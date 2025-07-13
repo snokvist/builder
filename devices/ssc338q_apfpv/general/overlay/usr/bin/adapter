@@ -2,7 +2,7 @@
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 149)
-wlanpwr=$(fw_printenv -n wlanpwr || echo 1000)
+wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
 [ "$chan" -le 13 ] && mode=g || mode=a
 
 set_config() {
