@@ -11,7 +11,10 @@
 #
 # By default this script does nothing.
 
-aalink.sh &
-web --html /etc/webui.html --commands /etc/commands.conf --port 81 &
+sleep 1
+echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo 1200000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+echo 1200000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
+
 
 exit 0
