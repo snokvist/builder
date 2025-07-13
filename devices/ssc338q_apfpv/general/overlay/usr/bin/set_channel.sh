@@ -89,7 +89,7 @@ Usage: $0 <channel-mode> [--make-permanent]
 
 Channel modes:
   ch36  ch36-20  ch44  ch44-20  ch52  ch52-20
-  ch100 ch100-20 ch149 ch149-20 ch157 ch157-20
+  ch149 ch149-20 ch157 ch157-20
 
 Add --make-permanent after a channel mode to store the chosen
 primary channel with:  fw_setenv chan <number>
