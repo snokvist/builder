@@ -17,7 +17,7 @@ done
 # ── Keep-alive ping (every 0.1 s) ──────────────────────────────────
 ping -i 0.1 192.168.0.10 >/dev/null 2>&1 &
 PING_PID=$!
-cleanup() { kill "$PING_PID" 2>/dev/null  true; exit; }
+cleanup() { kill "$PING_PID" 2>/dev/null || true; exit; }
 trap cleanup INT TERM EXIT
 
 # ── Constants ──────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ get()  { echo "$1" | cut -d' ' -f$(($2 + 1)); }
 
 # ── Main control loop ──────────────────────────────────────────────
 while :; do
-  s=$(rssi)  { sleep 0.1; continue; }
+  s=$(rssi) || { sleep 0.1; continue; }
   printf '%s\n' "$s" | grep -qE '^-?[0-9]+$' || { sleep 0.1; continue; }
 
   next=$mcs
