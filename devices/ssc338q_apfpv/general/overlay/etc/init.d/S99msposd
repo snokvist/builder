@@ -1,23 +1,34 @@
 #!/bin/sh
 
 case "$1" in
-	start)
-		echo "Starting msposd..."
-		devmem 0x1F207890 16 0x8
-		sleep 1
-		killall -q msposd
-		sleep 1
-		size=$(curl -s localhost/api/v1/config.json | jsonfilter -qe "@.video0.size")
-		msposd -b 115200 -c 8 -r 20 -m /dev/ttyS0 -z "$size" -x 99 > /dev/null &
-		;;
+    start)
+        echo "Starting msposd..."
+        devmem 0x1F207890 16 0x8
+        sleep 1
 
-	stop)
-		echo "Stopping msposd..."
-		killall -q msposd
-		;;
+        # ── Get the configured video size (unchanged)
+        size=$(curl -s localhost/api/v1/config.json | jsonfilter -qe "@.video0.size")
 
-	*)
-		echo "Usage: $0 {start|stop}"
-		exit 1
-		;;
+        # ── Read the U-Boot variable (blank if undefined)
+        tty_dev=$(fw_printenv -n msposd_tty 2>/dev/null)
+
+        # ── Decide which command to run
+        if [ -z "$tty_dev" ] || [ "$tty_dev" = "none" ]; then
+            # “none” (or empty) → fall back to /dev/ttyS0 and add -x 99
+            msposd -b 115200 -c 8 -r 1020 -m /dev/ttyS0 -z "$size" -x 99 > /dev/null &
+        else
+            # Any other value → use it verbatim, no -x 99
+            msposd -b 115200 -c 8 -r 1020 -m "$tty_dev" -z "$size" > /dev/null &
+        fi
+        ;;
+
+    stop)
+        echo "Stopping msposd..."
+        killall -q msposd
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
 esac
