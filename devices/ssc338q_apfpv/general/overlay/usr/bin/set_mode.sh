@@ -22,8 +22,10 @@ fi
 service_script=/etc/init.d/S991aalink
 
 if [ "$mode" = "manual" ]; then
+    echo "Stopping aalink."
     "$service_script" stop
 else
+    echo "Starting aalink."
     "$service_script" start
 fi
 
