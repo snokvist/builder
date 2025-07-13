@@ -3,14 +3,14 @@
 case "$1" in
         start)
                 echo "Starting aalink..."
-                kill -9 $(pidof aalink.sh) 2> /dev/null
+                kill -9 $(pidof aalink) 2> /dev/null
                 sleep 10
-                aalink.sh &
+                aalink &
                 ;;
 
         stop)
                 echo "Stopping msposd..."
-                kill -9 $(pidof aalink.sh)
+                kill -9 $(pidof aalink)
                 ;;
 
         *)
