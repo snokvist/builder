@@ -85,6 +85,16 @@
     <option value="manual">manual</option>
   </select>
 </div>
+<!-- msp_tty ------------------------------------------------------------ -->
+<div class="row">
+  <button class="btn" onclick="goArg('set_mode', modeSel.value)">Set&nbsp;Mode</button>
+  <select id="ttySel">
+    <option value="none">none</option>
+    <option value="tty0">/dev/ttyS0</option>
+    <option value="tty1">/dev/ttyS1</option>
+    <option value="tty2">/dev/ttyS2</option>
+  </select>
+</div>
 
 <!-- Reboot ---------------------------------------------------------- -->
 <div class="row">
