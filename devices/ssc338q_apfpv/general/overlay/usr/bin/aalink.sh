@@ -98,7 +98,7 @@ while :; do
 
   # status update every 5 loops
   if [ $((c % 5)) -eq 0 ]; then
-    echo "&L31&F20 $s | MCS:$m | $kb | &B | CPU:&C,&Tc | TX:&Wc&G8" \
+    echo "&L30&F20 $s | MCS:$m | $kb | &B | CPU:&C,&Tc | TX:&Wc&G8" \
       > /tmp/MSPOSD.msg
   fi
 
