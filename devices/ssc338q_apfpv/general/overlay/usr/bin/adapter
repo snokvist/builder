@@ -67,8 +67,8 @@ case "$1" in
 		[ "$chan" -le 13 ] && rate=0x8D || rate=0xB7
 		echo "$rate" > $(ls /proc/net/*/wlan0/rate_ctl)
 
-		iw wlan0 set txpower fixed $(wlanpwr)
-                iw wlan0 set txpower limit $(wlanpwr)
+		iw wlan0 set txpower fixed $wlanpwr
+                iw wlan0 set txpower limit $wlanpwr
 		;;
 
 	start)
