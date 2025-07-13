@@ -30,3 +30,4 @@ chmod +x /usr/bin/set_channel.sh
 chmod +x /usr/bin/web
 chmod +x /usr/bin/aalink.sh
 chmod +x /etc/init.d/S991aalink
+chmod +x /etc/init.d/S992web
