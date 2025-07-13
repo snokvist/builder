@@ -11,5 +11,6 @@ echo "Connected sensor: $(ipcinfo -l)"
 echo "Currently set sensor: $(fw_printenv sensor)"
 echo "Current temp: $(ipcinfo -t)"
 echo "-------------------------------"
+cat /proc/net/rtl*/wlan0/sta_tp_info
 
 exit 0
