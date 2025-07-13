@@ -22,6 +22,7 @@ cli -s .records.split 5
 cli -s .records.notime true
 cli -s .fpv.enabled true
 cli -s .fpv.noiseLevel 1
+cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
 
 # Set access
 chmod +x /usr/bin/all_rates.sh
