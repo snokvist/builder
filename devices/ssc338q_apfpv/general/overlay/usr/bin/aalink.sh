@@ -1,4 +1,5 @@
 #!/bin/sh
+#Version 3f
 set -euo pipefail
 
 # ── Driver detection ───────────────────────────────────────────────
