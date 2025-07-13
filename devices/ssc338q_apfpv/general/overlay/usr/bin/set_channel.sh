@@ -61,15 +61,9 @@ case "$MODE" in
         $HOSTAPD_CLI chan_switch $CS 5260
         [ "$PERM" = "--make-permanent" ] && permanent_set 52
         ;;
-    ch100)
-        echo "DFS: CAC ~60 s…"
-        $HOSTAPD_CLI chan_switch $CS 5500 sec_channel_offset=1 center_freq1=5510 $BW40
-        [ "$PERM" = "--make-permanent" ] && permanent_set 100
-        ;;
-    ch100-20)
-        echo "DFS: CAC ~60 s…"
-        $HOSTAPD_CLI chan_switch $CS 5500
-        [ "$PERM" = "--make-permanent" ] && permanent_set 100
+    ch140)
+        $HOSTAPD_CLI chan_switch $CS 5700 sec_channel_offset=1 center_freq1=5710 $BW40
+        [ "$PERM" = "--make-permanent" ] && permanent_set 140
         ;;
     ch149)
         $HOSTAPD_CLI chan_switch $CS 5745 sec_channel_offset=1 center_freq1=5755 $BW40
