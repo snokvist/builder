@@ -28,7 +28,7 @@ cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
 chmod +x /usr/bin/all_rates.sh
 chmod +x /usr/bin/set_channel.sh
 chmod +x /usr/bin/web
-chmod +x /usr/bin/aalink.sh
+chmod +x /usr/bin/aalink
 chmod +x /etc/init.d/S991aalink
 chmod +x /etc/init.d/S992web
 chmod +x /usr/bin/set_power.sh
