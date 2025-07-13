@@ -1,1 +1,18 @@
+#!/bin/sh
 
+case "$1" in
+	start)
+    killall -q web
+    web --html /etc/webui.html --commands /etc/commands.conf --port 81
+		;;
+
+	stop)
+		echo "Stopping msposd..."
+		killall -q web
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
