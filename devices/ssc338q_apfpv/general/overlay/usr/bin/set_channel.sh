@@ -10,7 +10,7 @@
 #   ch100 ch100-20 ch149 ch149-20 ch157 ch157-20
 #
 # Add --make-permanent after a channel mode to store the
-# primary channel with:   fw_setenv chan <number>
+# primary channel with:   fw_setenv wlanchan <number>
 # ---------------------------------------------------------
 
 ### USER CONSTANTS #######################################################
@@ -24,7 +24,7 @@ BW40="bandwidth=40 ht vht"             # CSA flags for HT40
 # Helper: write channel to bootloader env (permanent)
 ############################################################################
 permanent_set() {  # $1 = primary channel number
-    fw_setenv chan "$1" && echo "(fw_setenv chan $1)"
+    fw_setenv wlanchan "$1" && echo "(fw_setenv wlanchan $1)"
 }
 
 ############################################################################
