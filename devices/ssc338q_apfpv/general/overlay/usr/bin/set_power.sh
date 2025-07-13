@@ -5,12 +5,13 @@
 level=$(printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]')
 
 case "$level" in
+    pitmode)    PWR=250 ;;   # 2.5 dBm
     low)    PWR=1000 ;;   # 10 dBm
     medium) PWR=2000 ;;   # 20 dBm
     high)   PWR=3000 ;;   # 30 dBm
     *)
         echo "Unknown level: $1" >&2
-        echo "Usage: $0 Low|Medium|High" >&2
+        echo "Usage: $0 Pitmode|Low|Medium|High" >&2
         exit 1
         ;;
 esac
