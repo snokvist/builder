@@ -32,3 +32,4 @@ chmod +x /usr/bin/aalink.sh
 chmod +x /etc/init.d/S991aalink
 chmod +x /etc/init.d/S992web
 chmod +x /usr/bin/set_power.sh
+chmod +x /usr/bin/set_mode.sh
