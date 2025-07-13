@@ -27,3 +27,4 @@ cli -s .fpv.noiseLevel 1
 chmod +x /usr/bin/alink.sh
 chmod +x /usr/bin/all_rates.sh
 chmod +x /usr/bin/set_channel.sh
+chmod +x /usr/bin/web
