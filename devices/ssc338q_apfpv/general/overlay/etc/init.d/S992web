@@ -2,8 +2,8 @@
 
 case "$1" in
 	start)
-    killall -q web
-    web --html /etc/webui.html --commands /etc/commands.conf --port 81 &
+    		killall -q web
+   		web --html /etc/webui.html --commands /etc/commands.conf --port 81 &
 		;;
 
 	stop)
