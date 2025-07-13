@@ -22,3 +22,6 @@ cli -s .records.split 5
 cli -s .records.notime true
 cli -s .fpv.enabled true
 cli -s .fpv.noiseLevel 1
+
+# Set access
+chmod +x /usr/bin/alink.sh
