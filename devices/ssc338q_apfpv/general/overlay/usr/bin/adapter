@@ -52,7 +52,7 @@ wpa_passphrase=$pass
 
 # ---------- CLIENT TIME-OUTS ----------
 ap_max_inactivity=86400
-disassoc_low_ack=1
+disassoc_low_ack=0
 skip_inactivity_poll=1
 uapsd_advertisement_enabled=1
 EOF
