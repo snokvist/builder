@@ -3,6 +3,23 @@
 # Read the current U-Boot variable “mode”.
 #   * `fw_printenv -n mode`     → prints just the value on newer u-boot-tools
 #   * If `-n` is not available, fall back to parsing “var=value”.
+
+for card in $(lsusb | awk '{print $6}' | uniq); do
+    case "$card" in
+        "0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
+            driver=rtl88XXau
+            ;;
+        "0bda:a81a")
+            driver=rtl88x2eu
+            ;;
+        "0bda:f72b" | "0bda:b733")
+            driver=rtl8733bu
+            ;;
+    esac
+done
+
+
+
 MODE=$(fw_printenv -n mode 2>/dev/null 2>&1 || true)
 [ -z "$MODE" ] && MODE=$(fw_printenv mode 2>/dev/null | cut -d= -f2)
 
@@ -17,7 +34,7 @@ case "$1" in
         pid=$(pidof aalink 2>/dev/null)
         [ -n "$pid" ] && kill -9 "$pid"
         sleep 5
-        aalink &
+        aalink --adapter $driver &
         ;;
 
     stop)
