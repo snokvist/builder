@@ -13,7 +13,7 @@ case "$1" in
         tty_dev=$(fw_printenv -n msposd_tty 2>/dev/null)
 
         # ── Decide which command to run
-        if [ -z "$tty_dev" ] || [ "$tty_dev" = "none" ]; then
+        if [ -z "$tty_dev" ] || [ "$tty_dev" = "standalone" ]; then
             # “none” (or empty) → fall back to /dev/ttyS0 and add -x 99
             msposd -b 115200 -c 8 -r 1020 -m /dev/ttyS0 -z "$size" -x 99 > /dev/null &
         else
