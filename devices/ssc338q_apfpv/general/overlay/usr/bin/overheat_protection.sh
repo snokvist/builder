@@ -64,10 +64,10 @@ while true; do
         echo "All is well... Nothing to do."
     elif [ "$max_temp" -lt "$REBOOT_THRESHOLD" ]; then
         killall -q aalink
-        echo "Warning: High temperature was detected. aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F18" > /tmp/MSPOSD.msg
+        echo "Warning: High temperature was detected. aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F32" > /tmp/MSPOSD.msg
     else
         killall -q aalink
-        echo "VTX will reboot due to thermal state... aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F18.\nRebooting in 15 seconds..." > /tmp/MSPOSD.msg
+        echo "VTX will reboot due to thermal state... aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F32.\nRebooting in 15 seconds..." > /tmp/MSPOSD.msg
         sleep 15
         reboot
     fi
