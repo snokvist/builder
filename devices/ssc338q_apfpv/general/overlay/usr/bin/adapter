@@ -1,4 +1,20 @@
 #!/bin/sh
+for card in $(lsusb | awk '{print $6}' | uniq); do
+	case "$card" in
+		"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
+			driver=88XXau
+			;;
+
+		"0bda:a81a")
+			driver=8812eu
+			;;
+
+		"0bda:f72b" | "0bda:b733")
+			driver=8733bu
+			;;
+	esac
+done
+
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 149)
@@ -40,22 +56,6 @@ EOF
 
 case "$1" in
 	setup)
-		for card in $(lsusb | awk '{print $6}' | uniq); do
-			case "$card" in
-				"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
-					driver=88XXau
-					;;
-
-				"0bda:a81a")
-					driver=8812eu
-					;;
-
-				"0bda:f72b" | "0bda:b733")
-					driver=8733bu
-					;;
-			esac
-		done
-
 		if [ -z "$driver" ]; then
 			echo "Wireless module not detected!"
 			exit 1
