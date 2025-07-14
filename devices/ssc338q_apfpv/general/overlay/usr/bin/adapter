@@ -1,19 +1,23 @@
 #!/bin/sh
 for card in $(lsusb | awk '{print $6}' | uniq); do
-	case "$card" in
-		"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
-			driver=88XXau
-			;;
-
-		"0bda:a81a")
-			driver=8812eu
-			;;
-
-		"0bda:f72b" | "0bda:b733")
-			driver=8733bu
-			;;
-	esac
+    case "$card" in
+        "0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
+            driver=88XXau
+            ;;
+        "0bda:a81a")
+            driver=8812eu
+            ;;
+        "0bda:f72b" | "0bda:b733")
+            driver=8733bu
+            ;;
+    esac
 done
+
+# Pick the right HT capabilities string
+case "$driver" in
+    8733bu) HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40]" ;;
+    *)      HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]" ;;
+esac
 
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
@@ -22,7 +26,7 @@ wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
 [ "$chan" -le 13 ] && mode=g || mode=a
 
 set_config() {
-cat << EOF > /tmp/hostapd.conf
+cat <<EOF > /tmp/hostapd.conf
 ctrl_interface=/var/run/hostapd
 interface=wlan0
 
@@ -32,7 +36,7 @@ hw_mode=$mode
 channel=$chan
 ieee80211n=1
 ieee80211ac=0
-ht_capab=[HT40+][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]
+ht_capab=$HT_CAPAB
 vht_oper_chwidth=0
 wmm_enabled=1
 require_ht=1
@@ -56,6 +60,7 @@ EOF
 
 case "$1" in
 	setup)
+		sleep 2
 		if [ -z "$driver" ]; then
 			echo "Wireless module not detected!"
 			exit 1
@@ -64,7 +69,8 @@ case "$1" in
 		echo "Detected driver: $driver"
 		modprobe "$driver" rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
 
-		[ "$chan" -le 13 ] && rate=0x8D || rate=0xB7
+		#MCS1 short for rtl8733bu and rtl8812eu
+		rate=0x8D
 		echo "$rate" > $(ls /proc/net/*/wlan0/rate_ctl)
 
 		iw wlan0 set txpower fixed $wlanpwr
