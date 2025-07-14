@@ -34,3 +34,5 @@ chmod +x /etc/init.d/S992web
 chmod +x /usr/bin/set_power.sh
 chmod +x /usr/bin/set_mode.sh
 chmod +x /usr/bin/webinfo.sh
+chmod +x /usr/bin/overheat_protection.sh
+chmod +x /etc/init.d/S993overheat_protect
