@@ -13,8 +13,6 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
     esac
 done
 
-fw_setenv wlan_driver $($driver || echo OpenIPC)
-
 # Pick the right HT capabilities string
 case "$driver" in
     8733bu) HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40]" ;;
