@@ -22,7 +22,7 @@ cli -s .outgoing.server udp://192.168.0.10:5600
 cli -s .records.split 5
 cli -s .records.notime true
 cli -s .fpv.enabled true
-cli -s .fpv.noiseLevel 1
+cli -s .fpv.noiseLevel 0
 cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
 
 # Set access
