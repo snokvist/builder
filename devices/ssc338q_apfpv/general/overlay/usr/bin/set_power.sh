@@ -49,5 +49,5 @@ if [ "$driver" != "88XXau" ]; then
     iw dev wlan0 set txpower limit "$PWR"
 fi
 
-echo "Power set to $TXPWR." | tee -a /tmp/webui.log
+echo "Power set to $TXPWR." | tee /tmp/webui.log
 exit 0
