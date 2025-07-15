@@ -101,7 +101,7 @@
 </div>
 
 <!-- Info panel ------------------------------------------------------ -->
-<pre id="info">(loading system info…)</pre>
+<pre id="info">(Info box…)</pre>
 
 <script>
 function render(txt){ document.getElementById('info').textContent = txt; }
@@ -117,14 +117,6 @@ function goArg(name,arg){
   fetch('/cmd/'+name+q)
     .then(r=>r.text()).then(render)
     .catch(e=>render('Fetch error: '+e));
-}
-
-/* initial sysinfo */
-window.onload = () => {
-  const args='-c -f -v -l -i -S -v -F';
-  fetch('/cmd/sysinfo?args='+encodeURIComponent(args))
-    .then(r=>r.text()).then(render)
-    .catch(e=>render('Error loading info: '+e));
 };
 </script>
 </body>
