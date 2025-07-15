@@ -38,3 +38,4 @@ chmod +x /usr/bin/webinfo.sh
 chmod +x /usr/bin/overheat_protection.sh
 chmod +x /etc/init.d/S993overheat_protect
 chmod +x /usr/bin/set_wlanpass.sh
+chmod +x /usr/bin/set_tty.sh
