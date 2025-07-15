@@ -14,7 +14,7 @@
     /* ------- row layout ------------------------------------------------- */
     .row  { display:flex; justify-content:center; align-items:center;
             margin:.4em auto; max-width:340px; width:90%; gap:.5em; }
-    .btn  { flex:0 0 120px;            /* ← fixed width for all buttons  */
+    .btn  { flex:0 0 120px;            /* fixed width for all buttons  */
             width:120px; padding:.7em 0; font-size:1em; color:#fff;
             background:var(--blue); border:0; border-radius:6px; cursor:pointer;
             white-space:nowrap; }
@@ -25,7 +25,7 @@
     .danger      { background:#dc3545; }
     .danger:hover{ background:#b02a37; }
 
-    /* info panel */
+    /* log panel ---------------------------------------------------------- */
     pre#info { margin-top:2em; max-width:90%; margin-left:auto;margin-right:auto;
                background:#dceaff; border:1px solid #339; border-radius:6px;
                padding:1em; min-height:8em; white-space:pre-wrap; font-size:.9em; }
@@ -44,7 +44,7 @@
 <!-- Password -------------------------------------------------------- -->
 <div class="row">
   <button class="btn" onclick="goArg('set_password', pass.value)">Save&nbsp;PW</button>
-  <input id="pass" placeholder="New Wi-Fi password">
+  <input id="pass" placeholder="New Wi‑Fi password">
 </div>
 
 <!-- Channel --------------------------------------------------------- -->
@@ -52,15 +52,15 @@
   <button class="btn" onclick="goArg('set_channel', chSel.value)">Set&nbsp;Chan</button>
   <select id="chSel">
     <option value="ch36 --make-permanent">ch36</option>
-    <option value="ch36-20 --make-permanent">ch36-20</option>
+    <option value="ch36-20 --make-permanent">ch36‑20</option>
     <option value="ch44 --make-permanent">ch44</option>
-    <option value="ch44-20 --make-permanent">ch44-20</option>
+    <option value="ch44-20 --make-permanent">ch44‑20</option>
     <option value="ch52 --make-permanent">ch52</option>
-    <option value="ch52-20 --make-permanent">ch52-20</option>
+    <option value="ch52-20 --make-permanent">ch52‑20</option>
     <option value="ch149 --make-permanent">ch149</option>
-    <option value="ch149-20 --make-permanent">ch149-20</option>
+    <option value="ch149-20 --make-permanent">ch149‑20</option>
     <option value="ch157 --make-permanent">ch157</option>
-    <option value="ch157-20 --make-permanent">ch157-20</option>
+    <option value="ch157-20 --make-permanent">ch157‑20</option>
   </select>
 </div>
 
@@ -68,7 +68,7 @@
 <div class="row">
   <button class="btn" onclick="goArg('set_wlanpower', pwrSel.value)">Tx&nbsp;Power</button>
   <select id="pwrSel">
-    <option value="pitmode">pit-mode</option>
+    <option value="pitmode">pit‑mode</option>
     <option value="low">Low</option>
     <option value="medium">Medium</option>
     <option value="high">High</option>
@@ -83,7 +83,8 @@
     <option value="aalink">aalink</option>
   </select>
 </div>
-<!-- msp_tty ------------------------------------------------------------ -->
+
+<!-- msp_tty --------------------------------------------------------- -->
 <div class="row">
   <button class="btn" onclick="goArg('set_tty', ttySel.value)">Set&nbsp;TTY</button>
   <select id="ttySel">
@@ -100,24 +101,39 @@
           onclick="go('reboot')">Reboot&nbsp;Device</button>
 </div>
 
-<!-- Info panel ------------------------------------------------------ -->
-<pre id="info">(Info box…)</pre>
+<!-- Latest log ------------------------------------------------------ -->
+<h3 style="text-align:center;margin-top:2em;">Latest log</h3>
+<pre id="info">(no log yet)</pre>
 
 <script>
-function render(txt){ document.getElementById('info').textContent = txt; }
+const info = document.getElementById('info');
 
-function go(name){
-  fetch('/cmd/'+name)
-    .then(r=>r.text()).then(render)
-    .catch(e=>render('Fetch error: '+e));
+/* helper that writes to the <pre> */
+function render(txt) { info.textContent = txt || '(empty)'; }
+
+/* poll /log every 3 s */
+function updateLog() {
+  fetch('/log')
+    .then(r => r.text())
+    .then(render)
+    .catch(e => render('Log error: ' + e));
 }
 
-function goArg(name,arg){
-  const q='?args='+encodeURIComponent(arg);
-  fetch('/cmd/'+name+q)
-    .then(r=>r.text()).then(render)
-    .catch(e=>render('Fetch error: '+e));
-};
+/* run a command, then immediately refresh the log */
+function go(name) {
+  fetch('/cmd/' + name)
+    .then(() => updateLog())
+    .catch(e => render('Fetch error: ' + e));
+}
+
+function goArg(name, arg) {
+  fetch('/cmd/' + name + '?args=' + encodeURIComponent(arg))
+    .then(() => updateLog())
+    .catch(e => render('Fetch error: ' + e));
+}
+
+setInterval(updateLog, 3000);   // keep log fresh
+updateLog();                    // …and populate once on load
 </script>
 </body>
 </html>
