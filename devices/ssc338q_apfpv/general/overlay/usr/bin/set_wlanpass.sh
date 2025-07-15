@@ -4,7 +4,7 @@
 # --- sanity‑check that exactly one argument was supplied ---------------------
 if [ "$#" -ne 1 ]; then
     echo "Error: please supply exactly one argument (the new WLAN password)." | tee /tmp/webui.log
-    echo "Example:  $0 MySecret123" | tee /tmp/webui.log
+    echo "Your password cannot be empty and must be at least 8 characters long and not contain trailing spaces. Example:  $0 MySecret123" | tee /tmp/webui.log
     exit 1
 fi
 
