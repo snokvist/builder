@@ -87,12 +87,14 @@ case "$1" in
 		echo "Detected driver: $driver"
 		modprobe "$driver" rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
 
-		#MCS1 short for rtl8733bu and rtl8812eu
-		rate=0x8D
-		echo "$rate" > $(ls /proc/net/*/wlan0/rate_ctl)
+
+	        if [ "$driver" != "88XXau" ]; then
+	            rate=0x8D
+	            echo "$rate" > "$(ls /proc/net/*/wlan0/rate_ctl)"
+	            iw wlan0 set txpower limit "$wlanpwr"
+	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
-                iw wlan0 set txpower limit $wlanpwr
 		;;
 
 	start)
