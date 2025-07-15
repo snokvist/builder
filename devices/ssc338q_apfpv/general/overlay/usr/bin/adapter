@@ -13,18 +13,35 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
     esac
 done
 
-# Pick the right HT capabilities string
-case "$driver" in
-    8733bu) HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40]" ;;
-    88XXau) HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1]" ;;
-    *)      HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]" ;;
-esac
+
 
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 149)
 wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
 [ "$chan" -le 13 ] && mode=g || mode=a
+
+# Pick the right HT capabilities string
+case "$driver" in
+    8733bu)
+        HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40]"
+        ;;
+
+    88XXau)
+        HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1]"
+
+        # ----- Flip wlanpwr sign only for 88XXau -----
+        # If $wlanpwr does *not* start with '-', prepend one.
+        case "$wlanpwr" in
+            -*) ;;                    # already negative – leave it alone
+            *)  wlanpwr="-$wlanpwr" ;; # make it negative
+        esac
+        ;;
+
+    *)
+        HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]"
+        ;;
+esac
 
 set_config() {
 cat <<EOF > /tmp/hostapd.conf
