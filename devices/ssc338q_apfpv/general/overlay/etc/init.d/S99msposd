@@ -21,6 +21,7 @@ case "$1" in
             # Any other value → use it verbatim, no -x 99
             msposd -b 115200 -c 8 -r 1020 -m "$tty_dev" -z "$size" > /dev/null &
         fi
+        echo "" > /tmp/MSPOSD.msg
         ;;
 
     stop)
