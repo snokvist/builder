@@ -24,7 +24,7 @@ case "$1" in
       if ! timeout "$TIMEOUT" \
            $DB root@"$MASTER_IP" \
            "kill -SIGUSR1 \$(pidof pixelpilot)"; then
-        echo "❌  dbclient failed (key missing?)"
+        echo "❌  dbclient failed (key missing?). Generate new key with "dropbear_setup.sh on VTX."
         exit 1
       fi
     } 2>&1 | tee "$LOG"
