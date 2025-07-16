@@ -94,7 +94,6 @@ case "$1" in
 	        if [ "$driver" != "88XXau" ]; then
 	            rate=0x8D
 	            echo "$rate" > "$(ls /proc/net/*/wlan0/rate_ctl)"
-	            iw wlan0 set txpower limit "$wlanpwr"
 	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
