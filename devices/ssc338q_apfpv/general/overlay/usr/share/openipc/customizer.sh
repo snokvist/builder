@@ -44,3 +44,4 @@ chmod +x /usr/bin/air_man_ap
 chmod +x /etc/rc.local
 chmod +x /etc/init.d/S994air_man
 chmod +x /usr/bin/set_video.sh
+chmod +x /etc/init.d/S95majestic
