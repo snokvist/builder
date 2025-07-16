@@ -29,7 +29,19 @@ case "$1" in
       fi
     } 2>&1 | tee "$LOG"
     ;;
+  shutdown_vrx)
+    {
+      printf '▶  Shutdown VRX on %s …\n' "$MASTER_IP"
 
+      if ! timeout "$TIMEOUT" \
+           $DB root@"$MASTER_IP" \
+           "shutdown now"; then
+        echo "Error... ?"
+        exit 1
+      fi
+    } 2>&1 | tee "$LOG"
+    ;;
+    
   *)
     echo "Usage: $0 {ping|toggle_rec}" | tee "$LOG"
     exit 1
