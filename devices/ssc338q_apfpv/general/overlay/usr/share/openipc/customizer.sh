@@ -16,7 +16,7 @@ cli -s .video0.size 1440x1080
 cli -s .video0.bitrate 8096
 cli -s .video0.codec h265
 cli -s .video0.rcMode cbr
-cli -s .video0.gopSize 3
+cli -s .video0.gopSize 5
 cli -s .outgoing.enabled true
 cli -s .outgoing.server udp://192.168.0.10:5600
 cli -s .records.split 5
