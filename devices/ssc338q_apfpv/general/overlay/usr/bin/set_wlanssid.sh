@@ -25,7 +25,7 @@ fi
 
 # --- all checks passed – commit to environment ------------------------------
 if fw_setenv wlanssid "$ssid"; then
-    echo "SSID stored successfully. Please restart the device to apply the new SSID." | tee /tmp/webui.log
+    echo "SSID "$ssid" stored successfully. Please restart the device to apply the new SSID." | tee /tmp/webui.log
 else
     echo "Error: fw_setenv failed." | tee /tmp/webui.log
     exit 1
