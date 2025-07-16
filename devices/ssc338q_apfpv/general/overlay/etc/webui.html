@@ -84,6 +84,7 @@
   </select>
 </div>
 
+  
 <!-- Video Resolution ------------------------------------------------ -->
 <div class="row">
   <button class="btn" onclick="goArg('set_video', videoSel.value)">Set&nbsp;Video</button>
@@ -140,6 +141,15 @@
     <option value="/dev/ttyS0">/dev/ttyS0</option>
     <option value="/dev/ttyS1">/dev/ttyS1</option>
     <option value="/dev/ttyS2">/dev/ttyS2</option>
+  </select>
+</div>
+
+<!-- gs_cmd --------------------------------------------------------- -->
+<div class="row">
+  <button class="btn" onclick="goArg('gs_cmd', sendCmd.value)">Send GS CMD</button>
+  <select id="sendCmd">
+    <option value="ping">Ping</option>
+    <option value="toggleRec">Toggle record</option>
   </select>
 </div>
 
