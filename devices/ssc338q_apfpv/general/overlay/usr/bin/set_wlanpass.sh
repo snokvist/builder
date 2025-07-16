@@ -25,7 +25,7 @@ fi
 
 # --- all checks passed – commit to environment ------------------------------
 if fw_setenv wlanpass "$pass"; then
-    echo "Password stored successfully. Please restart the device to apply the new password" | tee /tmp/webui.log
+    echo "Password "$pass" stored successfully. Please restart the device to apply the new password" | tee /tmp/webui.log
 else
     echo "Error: fw_setenv failed." | tee /tmp/webui.log
     exit 1
