@@ -13,8 +13,6 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
     esac
 done
 
-
-
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 149)
