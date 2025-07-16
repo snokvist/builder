@@ -95,6 +95,12 @@
   </select>
 </div>
 
+<!-- Video resolution ------------------------------------------------ -->
+<div class="row">
+  <button class="btn" onclick="goVideo()">Set&nbsp;Video</button>
+  <select id="vidSel"></select>
+</div>
+  
 <!-- Show info ---------------------------------------------------------- -->
 <div class="row">
   <button class="btn info" style="width:100%;flex:1"
@@ -138,6 +144,52 @@ function goArg(name, arg) {
     .catch(e => render('Fetch error: ' + e));
 }
 
+/* ------------------------------------------------------------------ */
+/* video‑resolution helper                                            */
+const vidSel = document.getElementById('vidSel');
+
+/* one‑liner array with every allowed string exactly as the CLI wants */
+const videoOptions = [
+  "4:3 720p 60",        "4:3 720p 60 50HzAC",
+  "4:3 960p 60",        "4:3 960p 60 50HzAC",
+  "4:3 1080p 60",       "4:3 1080p 60 50HzAC",
+  "4:3 1440p 60",       "4:3 1440p 60 50HzAC",
+  "4:3 1920p 60",       "4:3 1920p 60 50HzAC",
+  "4:3 720p 90",        "4:3 720p 90 50HzAC",
+  "4:3 960p 90",        "4:3 960p 90 50HzAC",
+  "4:3 1080p 90",       "4:3 1080p 90 50HzAC",
+  "4:3 1440p 90",       "4:3 1440p 90 50HzAC",
+  "4:3 540p 120",       "4:3 720p 120",
+  "4:3 960p 120",       "4:3 1080p 120",
+  "16:9 540p 60",       "16:9 540p 60 50HzAC",
+  "16:9 720p 60",       "16:9 720p 60 50HzAC",
+  "16:9 1080p 60",      "16:9 1080p 60 50HzAC",
+  "16:9 1440p 60",      "16:9 1440p 60 50HzAC",
+  "16:9 540p 90",       "16:9 540p 90 50HzAC",
+  "16:9 720p 90",       "16:9 720p 90 50HzAC",
+  "16:9 1080p 90",      "16:9 1080p 90 50HzAC",
+  "16:9 1344p 90",      "16:9 1344p 90 50HzAC",
+  "16:9 540p 120",      "16:9 720p 120",      "16:9 1080p 120"
+];
+
+/* populate the <select> on page load */
+videoOptions.forEach(v => {
+  const o = document.createElement('option');
+  o.value = v;
+  o.textContent = v;
+  vidSel.appendChild(o);
+});
+
+/* wrap goArg so we can inject the needed quote marks "…" */
+function goVideo() {
+  const arg = '"' + vidSel.value + '"';   // e.g. "4:3 720p 60"
+  goArg('set_video', arg);
+}
+
+
+
+
+  
 setInterval(updateLog, 3000);   // keep log fresh
 updateLog();                    // …and populate once on load
 </script>
