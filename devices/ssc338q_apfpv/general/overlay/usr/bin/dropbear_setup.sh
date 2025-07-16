@@ -1,25 +1,43 @@
 #!/bin/sh
-# --- run ON THE CONTROLLER ---------------------------------------------------
-set -e                                    # stop on any error
 
-MASTER_IP="$(fw_printenv -n master_ip)"   # camera’s IP from U‑Boot
-[ -n "$MASTER_IP" ] || { echo "master_ip not set"; exit 1; }
+##############################################################################
+# CONFIGURATION – change only if you keep keys elsewhere
+##############################################################################
+KEYDIR=/root/.ssh                    # where the new key will live on controller
+KEY_DB=$KEYDIR/id_rsa                # Dropbear‑format private key
+KEY_SSH=$KEYDIR/id_rsa.openssh       # OpenSSH‑format private key (converted)
+PUB=$KEYDIR/id_rsa.pub               # OpenSSH‑format public key
+MASTER_IP=$(fw_printenv -n master_ip)
+REMOTE_SSH_DIR=/root/.ssh            # OpenSSH's authorized_keys lives here
+##############################################################################
 
-# 1) Create ~/.ssh and a 2048‑bit RSA key if missing
-mkdir -p /root/.ssh && chmod 700 /root/.ssh
-if [ ! -f /root/.ssh/id_rsa ]; then
-    echo "Generating controller key …"
-    dropbearkey -t rsa -s 2048 -f /root/.ssh/id_rsa
-    dropbearkey -y -f /root/.ssh/id_rsa | grep '^ssh-rsa' \
-        > /root/.ssh/id_rsa.pub
-fi
+set -e
 
-# 2) Push the public key to the camera (you’ll type the root password once)
-echo "Installing key on $MASTER_IP (will ask for password this one time) …"
-dbclient -y root@"$MASTER_IP" \
-  'mkdir -p /etc/dropbear && chmod 700 /etc/dropbear && \
-   cat >> /etc/dropbear/authorized_keys && chmod 600 /etc/dropbear/authorized_keys' \
-  < /root/.ssh/id_rsa.pub
+echo "[*] Cleaning up old keys …"
+rm -f "$KEY_DB" "$KEY_SSH" "$PUB"
+mkdir -p "$KEYDIR" && chmod 700 "$KEYDIR"
+sed -i "/$MASTER_IP/d" "$KEYDIR/known_hosts" 2>/dev/null || true
 
-echo "✓ Key installed. Test login:"
-dbclient -y -i /root/.ssh/id_rsa root@"$MASTER_IP" uptime
+echo "[*] Generating fresh 2048‑bit RSA key with dropbearkey …"
+dropbearkey -t rsa -s 2048 -f "$KEY_DB"
+
+echo "[*] Converting private key to OpenSSH format (optional but handy) …"
+# produces $KEY_SSH
+dropbearconvert dropbear openssh "$KEY_DB" "$KEY_SSH"
+chmod 600 "$KEY_DB" "$KEY_SSH"
+
+echo "[*] Extracting public half in OpenSSH format …"
+dropbearkey -y -f "$KEY_DB" | grep '^ssh-rsa' > "$PUB"
+
+echo "[*] Installing public key on $MASTER_IP …"
+# Creates ~/.ssh and appends the key to authorized_keys (OpenSSH path)
+dbclient -y root@"$MASTER_IP" "
+  mkdir -p $REMOTE_SSH_DIR && chmod 700 $REMOTE_SSH_DIR &&
+  cat >> $REMOTE_SSH_DIR/authorized_keys &&
+  chmod 600 $REMOTE_SSH_DIR/authorized_keys" < "$PUB"
+
+echo "[*] Verifying password‑less login with dbclient …"
+dbclient -y -i "$KEY_DB" root@"$MASTER_IP" 'echo OK – key works'
+
+echo "[✔] Key regeneration + distribution complete."
+echo "    Use $KEY_DB with dbclient; use $KEY_SSH with OpenSSH if needed."
