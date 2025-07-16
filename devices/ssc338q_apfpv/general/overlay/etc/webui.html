@@ -51,22 +51,22 @@
 <div class="row">
   <button class="btn" onclick="goArg('set_channel', chSel.value)">Set&nbsp;Chan</button>
   <select id="chSel">
-    <option value="ch36 --make-permanent">ch36</option>
-    <option value="ch36-20 --make-permanent">ch36‑20</option>
-    <option value="ch44 --make-permanent">ch44</option>
-    <option value="ch44-20 --make-permanent">ch44‑20</option>
-    <option value="ch52 --make-permanent">ch52</option>
-    <option value="ch52-20 --make-permanent">ch52‑20</option>
-    <option value="ch149 --make-permanent">ch149</option>
-    <option value="ch149-20 --make-permanent">ch149‑20</option>
     <option value="ch157 --make-permanent">ch157</option>
+    <option value="ch149 --make-permanent">ch149</option>
+    <option value="ch52 --make-permanent">ch52</option>
+    <option value="ch44 --make-permanent">ch44</option>
+    <option value="ch36 --make-permanent">ch36</option>
     <option value="ch157-20 --make-permanent">ch157‑20</option>
+    <option value="ch149-20 --make-permanent">ch149‑20</option>
+    <option value="ch52-20 --make-permanent">ch52‑20</option>
+    <option value="ch44-20 --make-permanent">ch44‑20</option>
+    <option value="ch36-20 --make-permanent">ch36‑20</option> 
   </select>
 </div>
 
 <!-- WLAN power ------------------------------------------------------ -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_wlanpower', pwrSel.value)">Tx&nbsp;Power</button>
+  <button class="btn" onclick="goArg('set_wlanpower', pwrSel.value)">Set&nbsp;Power</button>
   <select id="pwrSel">
     <option value="pitmode">pit‑mode</option>
     <option value="low">Low</option>
@@ -77,13 +77,23 @@
 
 <!-- Mode ------------------------------------------------------------ -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_mode', modeSel.value)">Set&nbsp;Mode</button>
+  <button class="btn" onclick="goArg('set_mode', modeSel.value)">Set&nbsp;Controller</button>
   <select id="modeSel">
     <option value="manual">manual</option>
     <option value="aalink">aalink</option>
   </select>
 </div>
 
+<!-- msp_tty --------------------------------------------------------- -->
+<div class="row">
+  <button class="btn" onclick="goArg('set_tty', ttySel.value)">Set&nbsp;TTY</button>
+  <select id="ttySel">
+    <option value="standalone">standalone</option>
+    <option value="/dev/ttyS0">/dev/ttyS0</option>
+    <option value="/dev/ttyS1">/dev/ttyS1</option>
+    <option value="/dev/ttyS2">/dev/ttyS2</option>
+  </select>
+</div>
   
 <!-- Video Resolution ------------------------------------------------ -->
 <div class="row">
@@ -133,22 +143,11 @@
   </select>
 </div>
 
-<!-- msp_tty --------------------------------------------------------- -->
-<div class="row">
-  <button class="btn" onclick="goArg('set_tty', ttySel.value)">Set&nbsp;TTY</button>
-  <select id="ttySel">
-    <option value="standalone">standalone</option>
-    <option value="/dev/ttyS0">/dev/ttyS0</option>
-    <option value="/dev/ttyS1">/dev/ttyS1</option>
-    <option value="/dev/ttyS2">/dev/ttyS2</option>
-  </select>
-</div>
-
 <!-- gs_cmd --------------------------------------------------------- -->
 <div class="row">
-  <button class="btn" onclick="goArg('gs_cmd', sendCmd.value)">Send GS CMD</button>
+  <button class="btn" onclick="goArg('gs_cmd', sendCmd.value)">Exec CMD</button>
   <select id="sendCmd">
-    <option value="ping">Ping</option>
+    <option value="ping">Ping vrx</option>
     <option value="toggle_rec">Toggle record</option>
   </select>
 </div>
