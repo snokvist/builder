@@ -46,3 +46,4 @@ chmod +x /etc/init.d/S994air_man
 chmod +x /usr/bin/set_video.sh
 chmod +x /etc/init.d/S95majestic
 chmod +x /usr/bin/gs_cmd.sh
+chmod +x /usr/bin/dropbear_setup.sh
