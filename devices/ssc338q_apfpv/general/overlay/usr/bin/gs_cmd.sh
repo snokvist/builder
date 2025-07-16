@@ -9,19 +9,19 @@ TIMEOUT=10                                  # seconds
 case "$1" in
   ping)
     echo "▶  Pinging $MASTER_IP …" | tee -a "$LOG"
-    ping -c 5 -A "$MASTER_IP" 2>&1 | tee -a "$LOG"
+    ping -c 5 -A "$MASTER_IP" 2>&1 | tee "$LOG"
     ;;
 
   toggle_rec)
-    echo "▶  Toggling recording on $MASTER_IP …" | tee -a "$LOG"
+    echo "▶  Toggling recording on $MASTER_IP …" | tee "$LOG"
     if ! timeout "$TIMEOUT" \
          $DB root@"$MASTER_IP" \
-         "kill -SIGUSR1 \$(pidof pixelpilot)" 2>&1 | tee -a "$LOG"
+         "kill -SIGUSR1 \$(pidof pixelpilot)" 2>&1 | tee "$LOG"
     then
-      echo "❌  dbclient failed (key missing?)" | tee -a "$LOG"
+      echo "❌  dbclient failed (key missing?)" | tee "$LOG"
       exit 1
     fi
     ;;
 
-  *)  echo "Usage: $0 {ping|toggle_rec}" | tee -a "$LOG"; exit 1 ;;
+  *)  echo "Usage: $0 {ping|toggle_rec}" | tee "$LOG"; exit 1 ;;
 esac
