@@ -40,3 +40,4 @@ chmod +x /etc/init.d/S993overheat_protect
 chmod +x /usr/bin/set_wlanpass.sh
 chmod +x /usr/bin/set_tty.sh
 chmod +x /usr/bin/set_wlanssid.sh
+chmod +x /usr/bin/air_man_ap
