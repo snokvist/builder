@@ -42,5 +42,5 @@ chmod +x /usr/bin/set_tty.sh
 chmod +x /usr/bin/set_wlanssid.sh
 chmod +x /usr/bin/air_man_ap
 chmod +x /etc/rc.local
-chmod +x S994air_man
-chmod +x set_video.sh
+chmod +x /etc/init.d/S994air_man
+chmod +x /usr/bin/set_video.sh
