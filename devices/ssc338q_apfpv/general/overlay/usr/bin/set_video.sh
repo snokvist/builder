@@ -3,15 +3,16 @@
 # BusyBox‑compatible wrapper for the video‑mode TCP service
 # – supports index, dashed or spaced mode strings – logs everything.
 
+set -o pipefail                     # propagate errors through the one‑tee pipeline
+
 ###############################################################################
 TARGET_IP=${TARGET_IP:-192.168.0.1}
 TARGET_PORT=${TARGET_PORT:-12355}
-NC_TIMEOUT=${NC_TIMEOUT:-2}            # seconds
-LOGFILE=/tmp/webui.log                 # tee all I/O here
+NC_TIMEOUT=${NC_TIMEOUT:-2}         # seconds
+LOGFILE=/tmp/webui.log              # fresh log each time
 ###############################################################################
 
 # ---------------------------------------------------------------- mode list --
-# Keep this list in the exact order you want the indices to have.
 MODE_LIST=$(cat <<'EOF'
 4:3 720p 60
 4:3 720p 60 50HzAC
@@ -72,55 +73,61 @@ Environment:
 EOF
 }
 
-# -------------------------------------------------------------- arguments ---
-[ "$#" -eq 0 ] && { usage | tee -a "$LOGFILE" >&2; exit 1; }
-
-case "$1" in
-    --get-current)
-        CMD="get_current_video_mode"
-        ;;
-    --get-all)
-        # Print list with a 1‑based index column
-        idx=1
-        echo "$MODE_LIST" | while IFS= read -r m; do
-            printf '%2d: %s\n' "$idx" "$m"
-            idx=$((idx+1))
-        done | tee -a "$LOGFILE"
-        exit 0
-        ;;
-    -h|--help)
-        usage | tee -a "$LOGFILE"
-        exit 0
-        ;;
-    *)
-        # Decide how the mode was specified
-        if [ "$#" -eq 1 ] && echo "$1" | grep -qE '^[0-9]+$'; then
-            # pure index
-            MODE=$(echo "$MODE_LIST" | sed -n "${1}p")
-            [ -z "$MODE" ] && { echo "Index $1 out of range" | tee -a "$LOGFILE" >&2; exit 1; }
-        elif [ "$#" -eq 1 ]; then
-            # single dashed token
-            MODE=$(printf '%s\n' "$1" | tr '-' ' ')
-        else
-            # already space‑separated
-            MODE=$*
-        fi
-        CMD="set_simple_video_mode $MODE"
-        ;;
-esac
-
-# ------------------------------------------------------------- run & log ---
-OUTPUT=$(printf '%s\n' "$CMD" \
-         | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
-STATUS=$?
-
+###############################################################################
+# Everything below runs inside one block that is piped to tee once
+###############################################################################
 {
+    # -------------------------------------------------------------- arguments -
+    if [ "$#" -eq 0 ]; then
+        usage >&2
+        exit 1
+    fi
+
+    case "$1" in
+        --get-current)
+            CMD="get_current_video_mode"
+            ;;
+        --get-all)
+            idx=1
+            printf '[%s] Available video modes:\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+            echo "$MODE_LIST" | while IFS= read -r m; do
+                printf '%2d: %s\n' "$idx" "$m"
+                idx=$((idx+1))
+            done
+            exit 0
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            # Decide how the mode was specified
+            if [ "$#" -eq 1 ] && echo "$1" | grep -qE '^[0-9]+$'; then
+                MODE=$(echo "$MODE_LIST" | sed -n "${1}p")
+                if [ -z "$MODE" ]; then
+                    echo "Index $1 out of range" >&2
+                    exit 1
+                fi
+            elif [ "$#" -eq 1 ]; then
+                MODE=$(printf '%s\n' "$1" | tr '-' ' ')
+            else
+                MODE=$*
+            fi
+            CMD="set_simple_video_mode $MODE"
+            ;;
+    esac
+
+    # ------------------------------------------------------------- run & log -
     printf '[%s] CMD: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$CMD"
+
+    OUTPUT=$(printf '%s\n' "$CMD" \
+             | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
+    STATUS=$?
+
     printf '%s\n' "$OUTPUT"
-} | tee -a "$LOGFILE"
 
-[ "$STATUS" -ne 0 ] && \
-    echo "Command failed (exit $STATUS). Is the device reachable?" | \
-    tee -a "$LOGFILE" >&2
-
-exit "$STATUS"
+    if [ "$STATUS" -ne 0 ]; then
+        echo "Command failed (exit $STATUS). Is the device reachable?" >&2
+    fi
+    exit "$STATUS"
+} 2>&1 | tee "$LOGFILE"
