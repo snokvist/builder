@@ -19,7 +19,7 @@ ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 149)
 wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
-master=$(fw_printenv -n master_ip || echo 192.168.1.10)
+master=$(fw_printenv -n master_ip || echo 192.168.0.10)
 cli -s .outgoing.server udp://$master:5600
 
 [ "$chan" -le 13 ] && mode=g || mode=a
