@@ -21,7 +21,8 @@ chan=$(fw_printenv -n wlanchan || echo 149)
 wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
 master=$(fw_printenv -n master_ip || echo 192.168.0.10)
 port=$(fw_printenv -n master_port || echo 5600)
-cli -s .outgoing.server udp://$master:$port
+protocol=$(fw_printenv -n master_protocol || echo udp)
+cli -s .outgoing.server $protocol://$master:$port
 
 [ "$chan" -le 13 ] && mode=g || mode=a
 
