@@ -1,13 +1,13 @@
 #!/bin/sh
-# gs_cmd.sh  ping | toggle_rec
+# gs_cmd.sh  ping | toggle_rec | shutdown_vrx
 
-set -o pipefail               # propagate errors through the single pipeline
+set -o pipefail
 
 LOG=/tmp/webui.log
 MASTER_IP=$(fw_printenv -n master_ip 2>/dev/null) || exit 1
 
-DB="dbclient -i /root/.ssh/id_rsa -y -T"    # -T = no-pty, perfect for 1-shot cmds
-TIMEOUT=10                                  # seconds
+DB="dbclient -i /root/.ssh/id_rsa -y -T"
+TIMEOUT=10
 
 case "$1" in
   ping)
@@ -24,26 +24,27 @@ case "$1" in
       if ! timeout "$TIMEOUT" \
            $DB root@"$MASTER_IP" \
            "kill -SIGUSR1 \$(pidof pixelpilot)"; then
-        echo "❌  dbclient failed (key missing?). Generate new key with "dropbear_setup.sh on VTX."
+        echo "❌  dbclient failed (key missing?). Generate a key with dropbear_setup.sh on the VTX."
         exit 1
       fi
     } 2>&1 | tee "$LOG"
     ;;
+
   shutdown_vrx)
     {
-      printf '▶  Shutdown VRX on %s …\n' "$MASTER_IP"
+      printf '▶  Shutting down VRX on %s …\n' "$MASTER_IP"
 
       if ! timeout "$TIMEOUT" \
            $DB root@"$MASTER_IP" \
            "shutdown now"; then
-        echo "Error... ?"
+        echo "❌  shutdown command failed"
         exit 1
       fi
     } 2>&1 | tee "$LOG"
     ;;
-    
+
   *)
-    echo "Usage: $0 {ping|toggle_rec}" | tee "$LOG"
+    echo "Usage: $0 {ping|toggle_rec|shutdown_vrx}" | tee "$LOG"
     exit 1
     ;;
 esac
