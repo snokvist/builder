@@ -97,7 +97,6 @@ case "$1" in
 	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
-		iw phy phy0 set retry short 2 long 3
 		;;
 
 	start)
