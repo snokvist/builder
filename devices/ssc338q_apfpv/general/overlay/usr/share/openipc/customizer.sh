@@ -24,6 +24,7 @@ cli -s .records.notime true
 cli -s .fpv.enabled true
 cli -s .fpv.noiseLevel 0
 cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
+cli -s .video0.qpDelta -12
 
 # Set access
 chmod +x /usr/bin/all_rates.sh
