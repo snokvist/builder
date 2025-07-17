@@ -24,6 +24,8 @@ restart_loop_stub() {       # $1 = service name
     # ───── PLACEHOLDER ─────
     # Here you could: touch a GPIO, reboot, send an MQTT alert, etc.
     logger -t dual_watchdog "$1 restart loop detected – stub called"
+    #For majestic, reset fps, exposure, size, clear rc.local
+    #For hostapd reset channel
 }
 
 restart_hostapd() {
