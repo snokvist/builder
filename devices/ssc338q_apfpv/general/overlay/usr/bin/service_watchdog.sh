@@ -32,8 +32,8 @@ restart_loop_stub() {       # $1 = service name
             # ── majestic-specific reset logic ──
             sed -i '/#set by air_manager/,/^$/d' "/etc/rc.local"
             killall -q msposd
-            cli -s .video.size 1280x720
-            cli -s .video.fps 60
+            cli -s .video0.size 1280x720
+            cli -s .video0.fps 60
             ;;
         hostapd)
             # ── hostapd-specific reset logic ──
