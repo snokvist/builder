@@ -51,3 +51,4 @@ chmod +x /usr/bin/dropbear_setup.sh
 chmod +x /usr/bin/service_watchdog.sh
 chmod +x /usr/bin/set_osd.sh
 chmod +x /usr/bin/ota.sh
+chmod +x /usr/bin/control_cmd.sh
