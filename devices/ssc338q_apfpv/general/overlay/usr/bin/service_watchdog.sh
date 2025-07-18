@@ -64,7 +64,7 @@ restart_majestic() {
 restart_web() {
     #logger -t dual_watchdog "web missing – restarting"
     echo "web missing – restarting" > /tmp/webui.log
-    /etc/init.d/S992web restart
+    /etc/init.d/S992web start
 }
 
 ##############################################################################
