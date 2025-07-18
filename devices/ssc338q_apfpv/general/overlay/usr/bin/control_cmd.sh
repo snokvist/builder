@@ -46,7 +46,7 @@ case "$1" in
   aalink_signalbar_enable)
     {
       printf '▶  Enabling signal bars ...\n'
-      #logic
+      sed -i.bak 's|^SHOW_SIGNAL_BARS=.*|SHOW_SIGNAL_BARS=true|' /etc/aalink.conf
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -54,15 +54,17 @@ case "$1" in
     aalink_signalbar_disable)
     {
       printf '▶  Disabling signal bars ...\n'
-      #logic
+      sed -i.bak 's|^SHOW_SIGNAL_BARS=.*|SHOW_SIGNAL_BARS=false|' /etc/aalink.conf
 
     } 2>&1 | tee "$LOG"
     ;;
     
     aalink_osd_level)
     {
+      
       printf '▶  Setting OSD level %s ...\n' "$2"
-      #logic
+      val=$2
+      sed -i.bak "s|^OSD_LEVEL=.*|OSD_LEVEL=${val}|" /etc/aalink.conf
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -78,8 +80,9 @@ case "$1" in
 
     aalink_mcs_source)
     {
+      val=$2
       printf '▶  Setting MCS source %s ...\n' "$2"
-      #logic
+      sed -i.bak "s|^MCS_SOURCE=.*|MCS_SOURCE=${2}|" /etc/aalink.conf
 
     } 2>&1 | tee "$LOG"
     ;;
