@@ -69,6 +69,16 @@
 <!-- Control Tab Content -->
 <div class="tab-content" id="contentControl">
 
+    <!-- aalink control -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">aalink CMD</button>
+    <select id="sendAalinkCmd">
+      <option value="aalink1">aalink cmd1</option>
+      <option value="aalink2">aalink cmd2</option>
+      <option value="aalink32">aalink cmd3</option>
+    </select>
+  </div>
+
     <!-- Exec VTX cmd -->
   <div class="row">
     <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
