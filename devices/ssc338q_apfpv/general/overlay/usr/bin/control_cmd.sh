@@ -86,7 +86,7 @@ case "$1" in
 
     aalink_print_settings)
     {
-      printf '▶  aalink Settings ...'
+      printf '▶  aalink Settings ...\n'
       echo "MCS RSSI Source: $(sed -n 's/^MCS_SOURCE=\(.*\)/\1/p' /etc/aalink.conf)"
       echo "Font size: $(sed -n -E 's|^OSD_PARAMS=.*&F([0-9]+).*|\1|p' /etc/aalink.conf)"
       echo "MCS source RSSI: $(sed -n 's/^MCS_SOURCE=\(.*\)/\1/p' /etc/aalink.conf)"
