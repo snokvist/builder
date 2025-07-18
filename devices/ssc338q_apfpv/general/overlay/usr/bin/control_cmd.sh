@@ -100,7 +100,8 @@ case "$1" in
 
 
   *)
-    echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown_vrx}" | tee "$LOG"
+        echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown|aalink_signalbar_enable|aalink_signalbar_disable|aalink_osd_level <level>|aalink_font_size <size>|aalink_mcs_source <source>|aalink_print_settings}" | tee "$LOG"; exit 1
+
     exit 1
     ;;
 esac
