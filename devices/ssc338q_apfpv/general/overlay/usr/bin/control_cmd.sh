@@ -89,7 +89,6 @@ case "$1" in
       printf '▶  aalink Settings ...\n'
       echo "MCS RSSI Source: $(sed -n 's/^MCS_SOURCE=\(.*\)/\1/p' /etc/aalink.conf)"
       echo "Font size: $(sed -n -E 's|^OSD_PARAMS=.*&F([0-9]+).*|\1|p' /etc/aalink.conf)"
-      echo "MCS source RSSI: $(sed -n 's/^MCS_SOURCE=\(.*\)/\1/p' /etc/aalink.conf)"
       echo "OSD level: $(sed -n 's/^OSD_LEVEL=\(.*\)/\1/p' /etc/aalink.conf)"
       echo "Show signal bars: $(sed -n 's/^SHOW_SIGNAL_BARS=\(.*\)/\1/p' /etc/aalink.conf)"
 
