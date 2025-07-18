@@ -50,7 +50,40 @@ case "$1" in
 
     } 2>&1 | tee "$LOG"
     ;;
+
+    aalink_signalbar_disable)
+    {
+      printf '▶  Disabling signal bars ...\n'
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
     
+    aalink_osd_level)
+    {
+      printf '▶  Setting OSD level %s ...\n' "$2"
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
+    aalink_font_size)
+    {
+      printf '▶  Setting OSD font size to %s ...\n' "$2"
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
+
+    aalink_mcs_source)
+    {
+      printf '▶  Setting MCS source %s ...\n' "$2"
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
 
   *)
     echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown_vrx}" | tee "$LOG"
