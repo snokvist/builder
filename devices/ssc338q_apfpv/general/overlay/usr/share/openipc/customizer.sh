@@ -48,3 +48,4 @@ chmod +x /usr/bin/set_video.sh
 chmod +x /etc/init.d/S95majestic
 chmod +x /usr/bin/gs_cmd.sh
 chmod +x /usr/bin/dropbear_setup.sh
+chmod +x /usr/bin/service_watchdog.sh
