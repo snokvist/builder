@@ -43,6 +43,15 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
+  aalink_signalbar_enable)
+    {
+      printf '▶  Enabling signal bars ...\n'
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
+    
+
   *)
     echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown_vrx}" | tee "$LOG"
     exit 1
