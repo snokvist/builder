@@ -23,19 +23,22 @@ is_alive() {                # $1 = executable name
 restart_loop_stub() {       # $1 = service name
     # ───── PLACEHOLDER ─────
     # Here you could: touch a GPIO, reboot, send an MQTT alert, etc.
-    logger -t dual_watchdog "$1 restart loop detected – stub called"
+    #logger -t dual_watchdog "$1 restart loop detected – stub called"
+     echo "$1 restart loop detected – stub called" > /log/webui.log
     #For majestic, reset fps, exposure, size, clear rc.local
     #For hostapd reset channel
 }
 
 restart_hostapd() {
-    logger -t dual_watchdog "hostapd missing – restarting"
+    #logger -t dual_watchdog "hostapd missing – restarting"
+    echo "hostapd missing – restarting" > /log/webui.log
     [ -e /var/run/hostapd/wlan0 ] && rm -f /var/run/hostapd/wlan0
     adapter start
 }
 
 restart_majestic() {
     logger -t dual_watchdog "majestic missing – restarting"
+    
     /etc/init.d/S95majestic restart
 }
 
