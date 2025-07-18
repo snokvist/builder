@@ -84,6 +84,14 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
+    aalink_print_settings)
+    {
+      printf '▶  Setting MCS source %s ...\n' "$2"
+      #logic
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
 
   *)
     echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown_vrx}" | tee "$LOG"
