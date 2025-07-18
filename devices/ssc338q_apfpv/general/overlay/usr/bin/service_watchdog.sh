@@ -1,16 +1,16 @@
 #!/bin/sh
 #
-# dual_watchdog.sh  – monitor hostapd + majestic every 2 s
+# dual_watchdog.sh  – monitor hostapd, majestic & web every 2 s
 #                     restart after 3 consecutive misses,
 #                     recognise restart loops (stub).
 #
-# BusyBox/ash compatible.  Start it in the background from rc.local or an init‑script:
+# BusyBox/ash compatible.  Start it in the background from rc.local or an init-script:
 #     /usr/local/bin/dual_watchdog.sh &
 
 CHECK_INT=2        # seconds between polls
 MAX_FAIL=3         # consecutive misses before restart
 MAX_OK=3           # consecutive OKs that “clear” the error state
-# How many restarts in a row make us declare “restart‑loop”; adjust as you like
+# How many restarts in a row make us declare “restart-loop”; adjust as you like
 RESTART_LOOP_THRESH=6
 
 ##############################################################################
@@ -46,9 +46,6 @@ restart_loop_stub() {       # $1 = service name
             # send_alert "Service $svc entered restart loop"
             ;;
     esac
-
-
-
 }
 
 restart_hostapd() {
@@ -59,16 +56,23 @@ restart_hostapd() {
 }
 
 restart_majestic() {
-    logger -t dual_watchdog "majestic missing – restarting"
-    
+    #logger -t dual_watchdog "majestic missing – restarting"
+    echo "majestic missing – restarting" > /log/webui.log
     /etc/init.d/S95majestic restart
 }
 
+restart_web() {
+    #logger -t dual_watchdog "web missing – restarting"
+    echo "web missing – restarting" > /log/webui.log
+    /etc/init.d/web restart
+}
+
 ##############################################################################
-# per‑service state variables
+# per-service state variables
 ##############################################################################
 fail_hostapd=0      ok_hostapd=0      restarts_hostapd=0
 fail_majestic=0     ok_majestic=0     restarts_majestic=0
+fail_web=0          ok_web=0          restarts_web=0
 
 ##############################################################################
 # main loop
@@ -111,6 +115,26 @@ while : ; do
             fail_majestic=0
             [ "$restarts_majestic" -ge "$RESTART_LOOP_THRESH" ] && \
                 restart_loop_stub majestic
+        fi
+    fi
+
+    ############################################################ web
+    if is_alive web ; then
+        fail_web=0
+        ok_web=$((ok_web + 1))
+        if [ "$ok_web" -ge "$MAX_OK" ]; then
+            ok_web=0
+            restarts_web=0
+        fi
+    else
+        ok_web=0
+        fail_web=$((fail_web + 1))
+        if [ "$fail_web" -ge "$MAX_FAIL" ]; then
+            restart_web
+            restarts_web=$((restarts_web + 1))
+            fail_web=0
+            [ "$restarts_web" -ge "$RESTART_LOOP_THRESH" ] && \
+                restart_loop_stub web
         fi
     fi
 
