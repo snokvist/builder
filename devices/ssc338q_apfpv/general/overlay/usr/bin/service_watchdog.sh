@@ -21,12 +21,33 @@ is_alive() {                # $1 = executable name
 }
 
 restart_loop_stub() {       # $1 = service name
+    local svc="$1"
     # ───── PLACEHOLDER ─────
     # Here you could: touch a GPIO, reboot, send an MQTT alert, etc.
-    #logger -t dual_watchdog "$1 restart loop detected – stub called"
-     echo "$1 restart loop detected – stub called" > /log/webui.log
-    #For majestic, reset fps, exposure, size, clear rc.local
-    #For hostapd reset channel
+    #logger -t dual_watchdog "$svc restart loop detected – stub called"
+    echo "$svc restart loop detected – stub called" > /log/webui.log
+
+    case "$svc" in
+        majestic)
+            # ── majestic-specific reset logic ──
+            sed -i '/#set by air_manager/,/^$/d' "/etc/rc.local"
+            cli -s .video.size 1280x720
+            cli -s .video.fps 60
+            ;;
+        hostapd)
+            # ── hostapd-specific reset logic ──
+            fw_setenv wlanssid
+            fw_setenv wlanpwr
+            ;;
+        *)
+            # Default/remainder logic for other services
+            # e.g., generic alert
+            # send_alert "Service $svc entered restart loop"
+            ;;
+    esac
+
+
+
 }
 
 restart_hostapd() {
