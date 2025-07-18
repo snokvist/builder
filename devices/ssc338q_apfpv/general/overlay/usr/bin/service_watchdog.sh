@@ -11,7 +11,7 @@ CHECK_INT=2        # seconds between polls
 MAX_FAIL=3         # consecutive misses before restart
 MAX_OK=3           # consecutive OKs that “clear” the error state
 # How many restarts in a row make us declare “restart‑loop”; adjust as you like
-RESTART_LOOP_THRESH=5 6 
+RESTART_LOOP_THRESH=6
 
 ##############################################################################
 # internal helpers
