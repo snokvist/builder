@@ -10,9 +10,9 @@ DB="dbclient -i /root/.ssh/id_rsa -y -T"
 TIMEOUT=10
 
 case "$1" in
-  ping)
+  vrx_ping)
     {
-      vrx_printf '▶  Pinging %s …\n' "$MASTER_IP"
+      printf '▶  Pinging %s …\n' "$MASTER_IP"
       ping -c 5 -A "$MASTER_IP"
     } 2>&1 | tee "$LOG"
     ;;
