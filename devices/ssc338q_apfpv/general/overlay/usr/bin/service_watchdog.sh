@@ -25,7 +25,7 @@ restart_loop_stub() {       # $1 = service name
     # ───── PLACEHOLDER ─────
     # Here you could: touch a GPIO, reboot, send an MQTT alert, etc.
     #logger -t dual_watchdog "$svc restart loop detected – stub called"
-    echo "$svc restart loop detected – stub called" > /log/webui.log
+    echo "$svc restart loop detected – stub called" > /tmp/webui.log
 
     case "$svc" in
         majestic)
@@ -50,21 +50,21 @@ restart_loop_stub() {       # $1 = service name
 
 restart_hostapd() {
     #logger -t dual_watchdog "hostapd missing – restarting"
-    echo "hostapd missing – restarting" > /log/webui.log
+    echo "hostapd missing – restarting" > /tmp/webui.log
     [ -e /var/run/hostapd/wlan0 ] && rm -f /var/run/hostapd/wlan0
     adapter start
 }
 
 restart_majestic() {
     #logger -t dual_watchdog "majestic missing – restarting"
-    echo "majestic missing – restarting" > /log/webui.log
+    echo "majestic missing – restarting" > /tmp/webui.log
     /etc/init.d/S95majestic restart
 }
 
 restart_web() {
     #logger -t dual_watchdog "web missing – restarting"
-    echo "web missing – restarting" > /log/webui.log
-    /etc/init.d/web restart
+    echo "web missing – restarting" > /tmp/webui.log
+    /etc/init.d/S992web restart
 }
 
 ##############################################################################
