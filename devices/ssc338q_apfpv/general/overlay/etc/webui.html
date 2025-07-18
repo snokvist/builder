@@ -134,26 +134,19 @@
     </select>
   </div>
 
-  <!-- TTY -->
+  <!-- OSD -->
   <div class="row">
-    <button class="btn" onclick="goArg('set_tty', ttySel.value)">Set&nbsp;TTY</button>
+    <button class="btn" onclick="goArg('set_osd', ttySel.value)">Set&nbsp;OSD</button>
     <select id="ttySel">
-      <option value="standalone">standalone</option>
-      <option value="/dev/ttyS0">/dev/ttyS0</option>
-      <option value="/dev/ttyS1">/dev/ttyS1</option>
-      <option value="/dev/ttyS2">/dev/ttyS2</option>
+      <option value="mode-standalone">No-tty(standalone)</option>
+      <option value="mode-tty0">/dev/ttyS0</option>
+      <option value="mode-tty1">/dev/ttyS1</option>
+      <option value="mode-tty2">/dev/ttyS2</option>
+      <option value="mode-manual">Static bitrate</option>
+      <option value="mode-aalink">Adaptive bitrate</option>
     </select>
   </div>
 
-  <!-- Set Controller -->
-  <div class="row">
-    <button class="btn" onclick="goArg('set_mode', modeSel.value)">Set&nbsp;Controller</button>
-    <select id="modeSel">
-      <option value="manual">manual</option>
-      <option value="aalink">aalink</option>
-    </select>
-  </div>
-  
   <!-- Video Resolution -->
   <div class="row">
     <button class="btn" onclick="goArg('set_video', videoSel.value)">Set&nbsp;Video</button>
