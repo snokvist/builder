@@ -68,10 +68,21 @@
 
 <!-- Control Tab Content -->
 <div class="tab-content" id="contentControl">
-  <!-- Exec CMD -->
+
+    <!-- Exec VTX cmd -->
   <div class="row">
-    <button class="btn" onclick="goArg('gs_cmd', sendCmd.value)">Exec CMD</button>
-    <select id="sendCmd">
+    <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
+    <select id="sendVTXCmd">
+      <option value="vtx1">VTX cmd1</option>
+      <option value="vtx2">VTX cmd2</option>
+      <option value="vtx2">VTX cmd3</option>
+    </select>
+  </div>
+  
+  <!-- Exec VRX master cmd -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendVRXCmd.value)">VRX CMD</button>
+    <select id="sendVRXCmd">
       <option value="ping">Ping vrx</option>
       <option value="toggle_rec">Toggle record</option>
       <option value="shutdown_vrx">Shutdown VRX</option>
