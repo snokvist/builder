@@ -206,6 +206,17 @@
     </select>
   </div>
 
+  <!-- OTA -->
+  <div class="row">
+    <button class="btn" onclick="goArg('ota', ota.value)">OTA upgrade</button>
+    <select id="ota">
+      <option value="ota-apfpv">AP-FPV</option>
+      <option value="ota-ruby">Flash Ruby</option>
+      <option value="mode-tty1">Flash "PnP"</option>
+    </select>
+  </div>
+
+  
   <!-- Show Info -->
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
