@@ -11,22 +11,22 @@ case "$1" in
     fw_setenv mode "aalink"
     ;;
 
-  mode-tty0)
+  mode-standalone)
     echo "Setting tty to standalone." | tee /tmp/webui.log
     fw_setenv msposd_tty "standalone"
     ;;
 
-  mode-tty1)
+  mode-tty0)
     echo "Setting tty to /dev/ttyS0." | tee /tmp/webui.log
     fw_setenv msposd_tty "/dev/ttyS0"
     ;;
 
-  mode-tty2)
+  mode-tty1)
     echo "Setting tty to /dev/ttyS1." | tee /tmp/webui.log
     fw_setenv msposd_tty "/dev/ttyS1"
     ;;
 
-  mode-tty3)
+  mode-tty2)
     echo "Setting tty to /dev/ttyS2." | tee /tmp/webui.log
     fw_setenv msposd_tty "/dev/ttyS2"
     ;;
