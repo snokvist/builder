@@ -12,12 +12,12 @@ TIMEOUT=10
 case "$1" in
   ping)
     {
-      printf '▶  Pinging %s …\n' "$MASTER_IP"
+      vrx_printf '▶  Pinging %s …\n' "$MASTER_IP"
       ping -c 5 -A "$MASTER_IP"
     } 2>&1 | tee "$LOG"
     ;;
 
-  toggle_rec)
+  vrx_toggle_rec)
     {
       printf '▶  Toggling recording on %s …\n' "$MASTER_IP"
 
@@ -30,7 +30,7 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
-  shutdown_vrx)
+  vrx_shutdown)
     {
       printf '▶  Shutting down VRX on %s …\n' "$MASTER_IP"
 
@@ -44,7 +44,7 @@ case "$1" in
     ;;
 
   *)
-    echo "Usage: $0 {ping|toggle_rec|shutdown_vrx}" | tee "$LOG"
+    echo "Usage: $0 {vrx_ping|vrx_toggle_rec|vrx_shutdown_vrx}" | tee "$LOG"
     exit 1
     ;;
 esac
