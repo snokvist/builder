@@ -36,7 +36,7 @@ restart_loop_stub() {       # $1 = service name
             ;;
         hostapd)
             # ── hostapd-specific reset logic ──
-            fw_setenv wlanssid
+            fw_setenv wlanchan
             fw_setenv wlanpwr
             ;;
         *)
