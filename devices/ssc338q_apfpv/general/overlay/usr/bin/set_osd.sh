@@ -14,7 +14,6 @@ case "$1" in
   mode-standalone)
     echo "Setting tty to standalone." | tee /tmp/webui.log
     fw_setenv msposd_tty "standalone"
-    echo "" > /tmp/MSPOSD.msg
     ;;
 
   mode-tty0)
@@ -40,5 +39,6 @@ esac
 
 /etc/init.d/S99msposd start
 /etc/init.d/S991aalink start
-
+sleep 2
+echo "" > /tmp/MSPOSD.msg
 exit 0
