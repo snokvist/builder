@@ -378,6 +378,47 @@
   }
 
   // ---------------------------------------------------------------------
+  // SLIDER INIT HELPERS
+  // ---------------------------------------------------------------------
+  /**
+   * Attempts endpoints sequentially; returns the first successful value.
+   * Retries once after short delay if needed.
+   */
+  async function fetchValueSequential(endpoints) {
+    for (const ep of endpoints) {
+      try {
+        const r = await fetch(ep, { cache: 'no-store' });
+        if (r.ok) return await r.text();
+      } catch (_) {}
+    }
+    /* one retry after 500 ms */
+    await new Promise(rs => setTimeout(rs, 500));
+    for (const ep of endpoints) {
+      try {
+        const r = await fetch(ep, { cache: 'no-store' });
+        if (r.ok) return await r.text();
+      } catch (_) {}
+    }
+    throw new Error('All endpoints failed');
+  }
+
+  async function initSlider({ slider, display, min, max, endpoints }) {
+    try {
+      const vRaw = await fetchValueSequential(endpoints);
+      const v    = parseInt(vRaw, 10);
+      if (!isNaN(v) && v >= min && v <= max) {
+        slider.value = v;
+        display.textContent = v;
+      } else {
+        console.warn('Fetched value out of range:', vRaw);
+      }
+    } catch (e) {
+      console.error(`${slider.id} init error:`, e);
+      render(`${slider.id} init error: ${e.message}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // THROUGHPUT SLIDER LOGIC
   // ---------------------------------------------------------------------
   const throughputSlider = document.getElementById('throughputSlider');
@@ -394,19 +435,13 @@
   });
   throughputSlider.addEventListener('change', sendThroughput);
 
-  fetch('/value/aalink_throughput')
-    .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
-    .then(v => {
-      const val = parseInt(v, 10);
-      if (!isNaN(val) && val >= 25 && val <= 75) {
-        throughputSlider.value   = val;
-        throughputValue.textContent = val;
-      }
-    })
-    .catch(err => {
-      console.error('Throughput slider init error:', err);
-      render('Throughput slider init error: ' + err);
-    });
+  initSlider({
+    slider:   throughputSlider,
+    display:  throughputValue,
+    min:      25,
+    max:      75,
+    endpoints:['/value/aalink_throughput']
+  });
 
   // ---------------------------------------------------------------------
   // OSD SIZE SLIDER LOGIC
@@ -425,19 +460,13 @@
   });
   osdSlider.addEventListener('change', sendOsdSize);
 
-  fetch('/value/aalink_font_size')
-    .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
-    .then(v => {
-      const val = parseInt(v, 10);
-      if (!isNaN(val) && val >= 20 && val <= 60) {
-        osdSlider.value   = val;
-        osdValue.textContent = val;
-      }
-    })
-    .catch(err => {
-      console.error('OSD slider init error:', err);
-      render('OSD slider init error: ' + err);
-    });
+  initSlider({
+    slider:   osdSlider,
+    display:  osdValue,
+    min:      20,
+    max:      60,
+    endpoints:['/value/aalink_font_size']
+  });
 
   // ---------------------------------------------------------------------
   // INITIALISE PERIODIC LOG POLL
