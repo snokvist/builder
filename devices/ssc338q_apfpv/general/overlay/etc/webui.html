@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     /* ------- palette & base -------------------------------------------- */
-    :root { --blue:#007bff; --blue-dk:#0056b3; --bg:#eef4fb; --txt:#003366; }
+    :root { --blue:#007bff; --blue-dk:#0056b3; --bg:#eef4fb; --txt:#003366;
+            --panel:#ffffff; --panel-brd:#0056b3; --slider-bg:#f5f9ff; }
     body  { margin:0; font-family:sans-serif; background:var(--bg);
             color:var(--txt); padding:1.5em; }
     h1    { text-align:center; color:#0059b3; font-size:1.6em; margin:.1em 0; }
@@ -27,7 +28,7 @@
     /* ------- tab content ------------------------------------------------ */
     .tab-content {
       max-width:340px; width:90%; margin:0 auto 2em;
-      background:#fff; border:1px solid var(--blue-dk);
+      background:var(--panel); border:1px solid var(--panel-brd);
       border-radius:0 6px 6px 6px; padding:1em;
     }
     .tab-content.hidden { display:none; }
@@ -49,6 +50,35 @@
     .danger      { background:#dc3545; }
     .danger:hover{ background:#b02a37; }
 
+    /* ------- cohesive slider block ------------------------------------- */
+    .slider-container {
+      flex-direction:column; align-items:center;
+      width:100%;                  /* same width as other rows           */
+      box-sizing:border-box;       /* include border & padding in width  */
+      background:var(--slider-bg); border:1px solid var(--blue);
+      border-radius:6px; padding:.7em .8em;
+    }
+    .slider-container label {
+      font-size:1em; font-weight:600; width:100%; text-align:center;
+      margin-bottom:.4em;
+    }
+    input[type=range] {
+      -webkit-appearance:none;
+      width:92%;                   /* visually balanced track            */
+      height:8px; background:#ddd; border-radius:4px; cursor:pointer;
+    }
+    input[type=range]:focus { outline:none; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none;
+      width:24px; height:24px; margin-top:-8px;
+      background:var(--blue); border-radius:50%; cursor:pointer;
+      touch-action:none;
+    }
+    input[type=range]::-moz-range-thumb {
+      width:24px; height:24px; background:var(--blue);
+      border:none; border-radius:50%; cursor:pointer; touch-action:none;
+    }
+
     /* ------- info box --------------------------------------------------- */
     .info-box { margin-top:1em; background:#dceaff; border:1px solid #339;
                 border-radius:6px; padding:1em; min-height:6em;
@@ -69,7 +99,7 @@
 <!-- Control Tab Content -->
 <div class="tab-content" id="contentControl">
 
-    <!-- aalink control -->
+  <!-- aalink control -->
   <div class="row">
     <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">aalink CMD</button>
     <select id="sendAalinkCmd">
@@ -89,7 +119,7 @@
     </select>
   </div>
 
-    <!-- Exec VTX cmd -->
+  <!-- Exec VTX cmd -->
   <div class="row">
     <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
     <select id="sendVTXCmd">
@@ -109,6 +139,12 @@
     </select>
   </div>
 
+  <!-- Power slider ---------------------------------------------------- -->
+  <div class="row slider-container">
+    <label for="powerSlider">Power Level: <span id="sliderValue">50</span></label>
+    <input type="range" id="powerSlider" min="25" max="75" value="50">
+  </div>
+
   <!-- Reboot -->
   <div class="row">
     <button class="btn danger" style="width:100%;flex:1"
@@ -123,10 +159,8 @@
 
   <!-- Show aalink settings -->
   <div class="row">
-    <button
-      class="btn info"
-      style="width:100%;flex:1"
-      onclick="goArg('control_cmd', 'aalink_print_settings')">
+    <button class="btn info" style="width:100%;flex:1"
+            onclick="goArg('control_cmd', 'aalink_print_settings')">
       Show aalink Settings
     </button>
   </div>
@@ -159,11 +193,11 @@
       <option value="ch52 --make-permanent">ch52</option>
       <option value="ch44 --make-permanent">ch44</option>
       <option value="ch36 --make-permanent">ch36</option>
-      <option value="ch157-20 --make-permanent">ch157‑20</option>
-      <option value="ch149-20 --make-permanent">ch149‑20</option>
-      <option value="ch52-20 --make-permanent">ch52‑20</option>
-      <option value="ch44-20 --make-permanent">ch44‑20</option>
-      <option value="ch36-20 --make-permanent">ch36‑20</option> 
+      <option value="ch157-20 --make-permanent">ch157-20</option>
+      <option value="ch149-20 --make-permanent">ch149-20</option>
+      <option value="ch52-20 --make-permanent">ch52-20</option>
+      <option value="ch44-20 --make-permanent">ch44-20</option>
+      <option value="ch36-20 --make-permanent">ch36-20</option> 
     </select>
   </div>
 
@@ -239,20 +273,19 @@
     </select>
   </div>
 
-<!-- OTA -->
-<div class="row">
-  <button class="btn" onclick="
-    if(confirm('Warning: You are about to perform an OTA upgrade to ' + ota.options[ota.selectedIndex].text + '. Are you sure?')) {
-      goArg('ota', ota.value);
-    }">OTA upgrade</button>
-  <select id="ota">
-    <option value="ota-apfpv">AP-FPV</option>
-    <option value="ota-ruby">Flash Ruby</option>
-    <option value="ota-pnp">Flash "PnP"</option>
-  </select>
-</div>
+  <!-- OTA -->
+  <div class="row">
+    <button class="btn" onclick="
+      if(confirm('Warning: You are about to perform an OTA upgrade to ' + ota.options[ota.selectedIndex].text + '. Are you sure?')) {
+        goArg('ota', ota.value);
+      }">OTA upgrade</button>
+    <select id="ota">
+      <option value="ota-apfpv">AP-FPV</option>
+      <option value="ota-ruby">Flash Ruby</option>
+      <option value="ota-pnp">Flash \"PnP\"</option>
+    </select>
+  </div>
 
-  
   <!-- Show Info -->
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
@@ -262,7 +295,9 @@
 </div>
 
 <script>
-  // Tab switching
+  // ---------------------------------------------------------------------
+  // TAB SWITCHING
+  // ---------------------------------------------------------------------
   const tabControl = document.getElementById('tabControl');
   const tabSetup   = document.getElementById('tabSetup');
   const contentControl = document.getElementById('contentControl');
@@ -286,7 +321,20 @@
   tabControl.addEventListener('click', () => switchTab(false));
   tabSetup  .addEventListener('click', () => switchTab(true));
 
-  // Info/log handling
+  // ---------------------------------------------------------------------
+  // UTIL: debounce – fires at most every `delay` ms
+  // ---------------------------------------------------------------------
+  function debounce(fn, delay = 200) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), delay);
+    };
+  }
+
+  // ---------------------------------------------------------------------
+  // INFO / LOG HANDLING
+  // ---------------------------------------------------------------------
   let lastLog = '(no log yet)';
   function render(txt) {
     lastLog = txt;
@@ -296,23 +344,74 @@
 
   function updateLog() {
     fetch('/log')
-      .then(r => r.text())
+      .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
       .then(render)
-      .catch(e => render('Log error: ' + e));
+      .catch(e => {
+        console.error('Log fetch error:', e);
+        render('Log error: ' + e);
+      });
   }
 
   function go(name) {
     fetch('/cmd/' + name)
       .then(() => updateLog())
-      .catch(e => render('Fetch error: ' + e));
+      .catch(e => {
+        console.error('Fetch error:', e);
+        render('Fetch error: ' + e);
+      });
   }
 
   function goArg(name, arg) {
     fetch('/cmd/' + name + '?args=' + encodeURIComponent(arg))
-      .then(() => updateLog())
-      .catch(e => render('Fetch error: ' + e));
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        updateLog();
+      })
+      .catch(e => {
+        console.error('Command error:', e);
+        render(`Command "${name}" failed: ${e.message}`);
+      });
   }
 
+  // ---------------------------------------------------------------------
+  // SLIDER LOGIC
+  // ---------------------------------------------------------------------
+  const slider      = document.getElementById('powerSlider');
+  const sliderValue = document.getElementById('sliderValue');
+
+  // helper that actually sends the value
+  const sendSlider = () => goArg('set_slider', slider.value);
+
+  // debounced version fires at most once every 0.2 s while dragging
+  const debouncedSend = debounce(sendSlider, 200);
+
+  // live feedback + debounced network update while dragging
+  slider.addEventListener('input', () => {
+    sliderValue.textContent = slider.value;
+    debouncedSend();
+  });
+
+  // final send when thumb is released
+  slider.addEventListener('change', sendSlider);
+
+  // ask backend for current value, fall back to 50
+  fetch('/value/slider')
+    .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
+    .then(v => {
+      const val = parseInt(v, 10);
+      if (!isNaN(val) && val >= 25 && val <= 75) {
+        slider.value = val;
+        sliderValue.textContent = val;
+      }
+    })
+    .catch(err => {
+      console.error('Slider init error:', err);
+      render('Slider init error: ' + err);
+    });
+
+  // ---------------------------------------------------------------------
+  // INITIALISE PERIODIC LOG POLL
+  // ---------------------------------------------------------------------
   setInterval(updateLog, 3000);
   updateLog();
 </script>
