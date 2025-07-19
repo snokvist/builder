@@ -72,7 +72,7 @@ case "$1" in
     aalink_ip_dest)
     {
       
-      printf '▶  Setting OSD level %s ...\n' "$2"
+      printf '▶  Setting MASTER IP to %s ...\n' "$2"
       val=$2
       sed -i.bak "s|^PING_DEST=.*|PING_DEST=${val}|" /etc/aalink.conf
       kill -SIGHUP $(pidof aalink)
