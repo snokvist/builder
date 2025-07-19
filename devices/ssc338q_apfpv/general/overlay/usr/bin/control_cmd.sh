@@ -6,8 +6,8 @@ set -o pipefail
 LOG=/tmp/webui.log
 MASTER_IP=$(fw_printenv -n master_ip 2>/dev/null) || exit 1
 
-DB="dbclient -i /root/.ssh/id_rsa -y -T"
-TIMEOUT=10
+DB="sshpass -p root ssh -y"
+TIMEOUT=
 
 case "$1" in
   vrx_ping)
@@ -20,13 +20,11 @@ case "$1" in
   vrx_toggle_rec)
     {
       printf '▶  Toggling recording on %s …\n' "$MASTER_IP"
-
-      if ! timeout "$TIMEOUT" \
-           $DB root@"$MASTER_IP" \
-           "kill -SIGUSR1 \$(pidof pixelpilot)"; then
-        echo "❌  dbclient failed (key missing?). Generate a key with dropbear_setup.sh on the VTX."
-        exit 1
-      fi
+    if ! timeout "$TIMEOUT" \
+       $DB root@"$MASTER_IP" 'kill -SIGUSR1 $(pidof pixelpilot)'; then
+    echo "❌  dbclient failed (key missing?). Generate a key with dropbear_setup.sh on the VTX."
+    exit 1
+  fi
     } 2>&1 | tee "$LOG"
     ;;
 
