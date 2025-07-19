@@ -1,31 +1,33 @@
 #!/bin/sh
-# Usage:  ./set_wlan_pass <new‑password>
+# Usage:  ./set_ip_addr <new-IP-address>
+#
+# This script validates a user‑supplied IPv4 address and stores it
+# in persistent U‑Boot environment under the variable *master_ip* via fw_setenv.
+# ‑ An IPv4 address must consist of four octets (0–255) separated by dots.
+# ‑ If validation fails, an explanatory error is written to /tmp/webui.log.
+#
+# ---------------------------------------------------------------------------
 
-# --- sanity‑check that exactly one argument was supplied ---------------------
+# --- sanity‑check that exactly one argument was supplied --------------------
 if [ "$#" -ne 1 ]; then
-    echo "Error: please supply exactly one argument (the new WLAN password)." | tee /tmp/webui.log
-    echo "Your password cannot be empty and must be at least 8 characters long and not contain trailing spaces. Example:  $0 MySecret123" | tee /tmp/webui.log
+    echo "Error: please supply exactly one argument (the new IP address)." | tee /tmp/webui.log
+    echo "Example:  $0 192.168.0.10" | tee /tmp/webui.log
     exit 1
 fi
 
-pass="$1"
+ip="$1"
 
-# --- rule 1: length ≥ 8 ------------------------------------------------------
-if [ "${#pass}" -lt 8 ]; then
-    echo "Error: password must be at least 8 characters long." | tee /tmp/webui.log
+# --- rule: must be a valid IPv4 dotted‑decimal address ----------------------
+# Quick regex screening (each octet 0‑255):
+if ! printf '%s\n' "$ip" | grep -Eq '^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])$'; then
+    echo "Error: \"$ip\" is not a valid IPv4 address (format: x.x.x.x with each x 0‑255)." | tee /tmp/webui.log
     exit 1
 fi
 
-# --- rule 2: only letters or digits -----------------------------------------
-# grep -Eq … returns 0 on a match, non‑zero otherwise.
-if ! printf '%s\n' "$pass" | grep -Eq '^[A-Za-z0-9]+$'; then
-    echo "Error: password may contain only letters (A–Z, a–z) and digits (0–9)." | tee /tmp/webui.log
-    exit 1
-fi
-
-# --- all checks passed – commit to environment ------------------------------
-if fw_setenv wlanpass "$pass"; then
-    echo "Password "$pass" stored successfully. Please restart the device to apply the new password" | tee /tmp/webui.log
+# --- all checks passed – commit to environment -----------------------------
+# Stores the address in the U‑Boot environment variable "master_ip".
+if fw_setenv master_ip "$ip"; then
+    echo "IP address \"$ip\" stored successfully. Please restart the device to apply the new address." | tee /tmp/webui.log
 else
     echo "Error: fw_setenv failed." | tee /tmp/webui.log
     exit 1
