@@ -215,17 +215,24 @@
 
   <!-- OSD -->
   <div class="row">
-    <button class="btn" onclick="goArg('set_osd', ttySel.value)">Set&nbsp;OSD</button>
+    <button class="btn" onclick="goArg('set_osd', ttySel.value)">Set FC Serial</button>
     <select id="ttySel">
       <option value="mode-standalone">No-tty(standalone)</option>
       <option value="mode-tty0">/dev/ttyS0</option>
       <option value="mode-tty1">/dev/ttyS1</option>
       <option value="mode-tty2">/dev/ttyS2</option>
+    </select>
+  </div>
+
+  <!-- Link -->
+  <div class="row">
+    <button class="btn" onclick="goArg('set_osd', linkSel.value)">Set&nbsp;Link</button>
+    <select id="linkSel">
       <option value="mode-manual">Static bitrate</option>
       <option value="mode-aalink">Adaptive bitrate</option>
     </select>
   </div>
-
+  
   <!-- Video Resolution -->
   <div class="row">
     <button class="btn" onclick="goArg('set_video', videoSel.value)">Set&nbsp;Video</button>
