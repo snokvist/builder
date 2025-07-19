@@ -380,7 +380,7 @@
   const sliderValue = document.getElementById('sliderValue');
 
   // helper that actually sends the value
-  const sendSlider = () => goArg('aalink_throughput', slider.value);
+  const sendSlider = () => goArg('control_cmd aalink_throughput', slider.value);
 
   // debounced version fires at most once every 0.2 s while dragging
   const debouncedSend = debounce(sendSlider, 200);
