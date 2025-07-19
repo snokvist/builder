@@ -44,7 +44,7 @@ case "$1" in
     {
       printf '▶  Enabling signal bars ...\n'
       sed -i.bak 's|^SHOW_SIGNAL_BARS=.*|SHOW_SIGNAL_BARS=true|' /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -53,7 +53,7 @@ case "$1" in
     {
       printf '▶  Disabling signal bars ...\n'
       sed -i.bak 's|^SHOW_SIGNAL_BARS=.*|SHOW_SIGNAL_BARS=false|' /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -64,7 +64,7 @@ case "$1" in
       printf '▶  Setting OSD level %s ...\n' "$2"
       val=$2
       sed -i.bak "s|^OSD_LEVEL=.*|OSD_LEVEL=${val}|" /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -75,7 +75,7 @@ case "$1" in
       printf '▶  Setting MASTER IP to %s ...\n' "$2"
       val=$2
       sed -i.bak "s|^PING_DEST=.*|PING_DEST=${val}|" /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -86,7 +86,7 @@ case "$1" in
     {
       printf '▶  Setting OSD font size to %s ...\n' "$2"
       sed -i.bak -E "s|^(OSD_PARAMS=.*&F)[0-9]+|\1$2|" /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -97,7 +97,7 @@ case "$1" in
       val=$2
       printf '▶  Setting MCS source %s ...\n' "$2"
       sed -i.bak "s|^MCS_SOURCE=.*|MCS_SOURCE=${2}|" /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
@@ -107,7 +107,7 @@ case "$1" in
       val=$2
       printf '▶  Setting throughput to %s ...\n' "$2"
       sed -i.bak "s|^THROUGHPUT_PCT=.*|THROUGHPUT_PCT=${2}|" /etc/aalink.conf
-      kill -SIGHUP $(pidof aalink)
+      kill -SIGHUP $(pidof aalink) 2>/dev/null
 
     } 2>&1 | tee "$LOG"
     ;;
