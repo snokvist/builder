@@ -72,6 +72,19 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
+    aalink_ip_dest)
+    {
+      
+      printf '▶  Setting OSD level %s ...\n' "$2"
+      val=$2
+      sed -i.bak "s|^IP_DEST=.*|IP_DEST=${val}|" /etc/aalink.conf
+      kill -SIGHUP $(pidof aalink)
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
+    
+
     aalink_font_size)
     {
       printf '▶  Setting OSD font size to %s ...\n' "$2"
