@@ -14,6 +14,7 @@ case "$1" in
   mode-standalone)
     echo "Setting tty to standalone." | tee /tmp/webui.log
     fw_setenv msposd_tty "standalone"
+    echo "" > /tmp/MSPOSD.msg
     ;;
 
   mode-tty0)
