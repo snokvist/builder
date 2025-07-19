@@ -53,8 +53,8 @@
     /* ------- cohesive slider block ------------------------------------- */
     .slider-container {
       flex-direction:column; align-items:center;
-      width:100%;                  /* same width as other rows           */
-      box-sizing:border-box;       /* include border & padding in width  */
+      width:100%;
+      box-sizing:border-box;
       background:var(--slider-bg); border:1px solid var(--blue);
       border-radius:6px; padding:.7em .8em;
     }
@@ -64,7 +64,7 @@
     }
     input[type=range] {
       -webkit-appearance:none;
-      width:92%;                   /* visually balanced track            */
+      width:92%;
       height:8px; background:#ddd; border-radius:4px; cursor:pointer;
     }
     input[type=range]:focus { outline:none; }
@@ -98,8 +98,6 @@
 
 <!-- Control Tab Content -->
 <div class="tab-content" id="contentControl">
-
-
 
   <!-- Exec VTX cmd -->
   <div class="row">
@@ -143,8 +141,14 @@
   
   <!-- throughput slider ---------------------------------------------------- -->
   <div class="row slider-container">
-    <label for="throughputSlider">aalink Throughput %: <span id="sliderValue">50</span></label>
+    <label for="throughputSlider">aalink Throughput %: <span id="throughputValue">50</span></label>
     <input type="range" id="throughputSlider" min="25" max="75" value="50">
+  </div>
+
+  <!-- OSD size slider ------------------------------------------------------- -->
+  <div class="row slider-container">
+    <label for="osdSlider">OSD Font Size: <span id="osdValue">38</span></label>
+    <input type="range" id="osdSlider" min="20" max="60" step="2" value="38">
   </div>
 
   <!-- Reboot -->
@@ -169,8 +173,6 @@
   
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
-
-
 
 <!-- Setup Tab Content -->
 <div class="tab-content hidden" id="contentSetup">
@@ -284,7 +286,7 @@
     <select id="ota">
       <option value="ota-apfpv">AP-FPV</option>
       <option value="ota-ruby">Flash Ruby</option>
-      <option value="ota-pnp">Flash \"PnP\"</option>
+      <option value="ota-pnp">Flash &quot;PnP&quot;</option>
     </select>
   </div>
 
@@ -324,7 +326,7 @@
   tabSetup  .addEventListener('click', () => switchTab(true));
 
   // ---------------------------------------------------------------------
-  // UTIL: debounce – fires at most every `delay` ms
+  // UTIL: debounce – fires at most every delay ms
   // ---------------------------------------------------------------------
   function debounce(fn, delay = 200) {
     let t;
@@ -376,40 +378,65 @@
   }
 
   // ---------------------------------------------------------------------
-  // SLIDER LOGIC
+  // THROUGHPUT SLIDER LOGIC
   // ---------------------------------------------------------------------
-  const slider      = document.getElementById('throughputSlider');
-  const sliderValue = document.getElementById('sliderValue');
+  const throughputSlider = document.getElementById('throughputSlider');
+  const throughputValue  = document.getElementById('throughputValue');
 
-  // helper that actually sends the value
-  const sendSlider = () =>  goArg('control_cmd', `aalink_throughput ${slider.value}`);
+  const sendThroughput = () =>
+    goArg('control_cmd', `aalink_throughput ${throughputSlider.value}`);
 
-  
-  // debounced version fires at most once every 0.2 s while dragging
-  const debouncedSend = debounce(sendSlider, 200);
+  const debouncedSendThroughput = debounce(sendThroughput, 200);
 
-  // live feedback + debounced network update while dragging
-  slider.addEventListener('input', () => {
-    sliderValue.textContent = slider.value;
-    debouncedSend();
+  throughputSlider.addEventListener('input', () => {
+    throughputValue.textContent = throughputSlider.value;
+    debouncedSendThroughput();
   });
+  throughputSlider.addEventListener('change', sendThroughput);
 
-  // final send when thumb is released
-  slider.addEventListener('change', sendSlider);
-
-  // ask backend for current value, fall back to 50
   fetch('/value/aalink_throughput')
     .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
     .then(v => {
       const val = parseInt(v, 10);
       if (!isNaN(val) && val >= 25 && val <= 75) {
-        slider.value = val;
-        sliderValue.textContent = val;
+        throughputSlider.value   = val;
+        throughputValue.textContent = val;
       }
     })
     .catch(err => {
-      console.error('Slider init error:', err);
-      render('Slider init error: ' + err);
+      console.error('Throughput slider init error:', err);
+      render('Throughput slider init error: ' + err);
+    });
+
+  // ---------------------------------------------------------------------
+  // OSD SIZE SLIDER LOGIC
+  // ---------------------------------------------------------------------
+  const osdSlider = document.getElementById('osdSlider');
+  const osdValue  = document.getElementById('osdValue');
+
+  const sendOsdSize = () =>
+    goArg('control_cmd', `aalink_font_size ${osdSlider.value}`);
+
+  const debouncedSendOsdSize = debounce(sendOsdSize, 200);
+
+  osdSlider.addEventListener('input', () => {
+    osdValue.textContent = osdSlider.value;
+    debouncedSendOsdSize();
+  });
+  osdSlider.addEventListener('change', sendOsdSize);
+
+  fetch('/value/aalink_font_size')
+    .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
+    .then(v => {
+      const val = parseInt(v, 10);
+      if (!isNaN(val) && val >= 20 && val <= 60) {
+        osdSlider.value   = val;
+        osdValue.textContent = val;
+      }
+    })
+    .catch(err => {
+      console.error('OSD slider init error:', err);
+      render('OSD slider init error: ' + err);
     });
 
   // ---------------------------------------------------------------------
