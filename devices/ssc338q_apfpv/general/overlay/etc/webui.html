@@ -299,25 +299,29 @@
 </div>
 
 <script>
+
+
+
+
   // ---------------------------------------------------------------------
   // TAB SWITCHING
   // ---------------------------------------------------------------------
-  const tabControl = document.getElementById('tabControl');
-  const tabSetup   = document.getElementById('tabSetup');
+  const tabControl     = document.getElementById('tabControl');
+  const tabSetup       = document.getElementById('tabSetup');
   const contentControl = document.getElementById('contentControl');
   const contentSetup   = document.getElementById('contentSetup');
 
   function switchTab(toSetup) {
     if (toSetup) {
-      tabSetup.classList.add('active');
+      tabSetup  .classList.add   ('active');
       tabControl.classList.remove('active');
-      contentSetup.classList.remove('hidden');
-      contentControl.classList.add('hidden');
+      contentSetup  .classList.remove('hidden');
+      contentControl.classList.add   ('hidden');
     } else {
-      tabControl.classList.add('active');
-      tabSetup.classList.remove('active');
+      tabControl.classList.add   ('active');
+      tabSetup  .classList.remove('active');
       contentControl.classList.remove('hidden');
-      contentSetup.classList.add('hidden');
+      contentSetup  .classList.add   ('hidden');
     }
     render(lastLog);
   }
@@ -326,8 +330,9 @@
   tabSetup  .addEventListener('click', () => switchTab(true));
 
   // ---------------------------------------------------------------------
-  // UTIL: debounce – fires at most every delay ms
+  // UTILITIES
   // ---------------------------------------------------------------------
+  /* debounce – fires at most every `delay` ms */
   function debounce(fn, delay = 200) {
     let t;
     return (...args) => {
@@ -336,18 +341,54 @@
     };
   }
 
+  /* fetch helper: abort previous request to the same URL + timeout */
+  const fetchControllers = Object.create(null);      // keyed by URL
+
+  function fetchJSONOrText(url, opts = {}, timeout = 1000) {
+    if (fetchControllers[url]) fetchControllers[url].abort(); // abort last
+    const ctrl = new AbortController();
+    fetchControllers[url] = ctrl;
+
+    const timer = setTimeout(() => ctrl.abort(new Error('timeout')), timeout);
+
+    return fetch(url, { ...opts, signal: ctrl.signal, cache: 'no-store' })
+      .finally(() => { clearTimeout(timer); delete fetchControllers[url]; });
+  }
+
+  // pause log‑polling while commands are in flight
+  let logPollPaused = false;
+  function pauseLogPoll(ms = 1500) {
+    logPollPaused = true;
+    setTimeout(() => { logPollPaused = false; }, ms);
+  }
+
+  
+  /* --- drop this near the top of the <script> --------------------------- */
+// Treat AbortError or explicit 'timeout' as benign.
+function isBenignAbort(err) {
+  return err && (
+    err.name === 'AbortError'               ||      // DOMException
+    err.message === 'timeout'               ||
+    /aborted/i.test(err.message)            // “The user aborted a request …”
+  );
+}
+  
+  
+  
   // ---------------------------------------------------------------------
   // INFO / LOG HANDLING
   // ---------------------------------------------------------------------
   let lastLog = '(no log yet)';
+
   function render(txt) {
     lastLog = txt;
     document.getElementById('infoControl').textContent = txt || '(empty)';
-    document.getElementById('infoSetup').textContent   = txt || '(empty)';
+    document.getElementById('infoSetup')  .textContent = txt || '(empty)';
   }
 
   function updateLog() {
-    fetch('/log')
+    if (logPollPaused) return;                        // skip if paused
+    fetchJSONOrText('/log', {}, 1500)
       .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
       .then(render)
       .catch(e => {
@@ -356,41 +397,44 @@
       });
   }
 
-  function go(name) {
-    fetch('/cmd/' + name)
-      .then(() => updateLog())
-      .catch(e => {
-        console.error('Fetch error:', e);
-        render('Fetch error: ' + e);
-      });
-  }
+function go(name) {
+  pauseLogPoll();
+  fetchJSONOrText(`/cmd/${name}`)
+    .then(() => updateLog())
+    .catch(e => {
+      if (isBenignAbort(e)) {               // <‑‑ NEW
+        console.debug('Request aborted:', e);
+        return;
+      }
+      console.error('Fetch error:', e);
+      render('Fetch error: ' + e);
+    });
+}
 
-  function goArg(name, arg) {
-    fetch('/cmd/' + name + '?args=' + encodeURIComponent(arg))
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        updateLog();
-      })
-      .catch(e => {
-        console.error('Command error:', e);
-        render(`Command "${name}" failed: ${e.message}`);
-      });
-  }
+function goArg(name, arg) {
+  pauseLogPoll();
+  fetchJSONOrText(`/cmd/${name}?args=${encodeURIComponent(arg)}`)
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      updateLog();
+    })
+    .catch(e => {
+      if (isBenignAbort(e)) {               // <‑‑ NEW
+        console.debug('Request aborted:', e);
+        return;
+      }
+      console.error('Command error:', e);
+      render(`Command "${name}" failed: ${e.message}`);
+    });
+}
 
   // ---------------------------------------------------------------------
-  // ROBUST SLIDER INIT HELPERS
+  // SLIDER INITIALISATION (robust with retry × 5)
   // ---------------------------------------------------------------------
-  const fetchWithTimeout = (url, timeout = 1000) =>
-    Promise.race([
-      fetch(url, { cache: 'no-store' }),
-      new Promise((_, rej) =>
-        setTimeout(() => rej(new Error('timeout')), timeout))
-    ]);
-
   function initSlider({ slider, display, min, max, endpoint, attempts = 5 }) {
     let tries = 0;
-    const start = () => {
-      fetchWithTimeout(endpoint)
+    const attempt = () => {
+      fetchJSONOrText(endpoint, {}, 1000)
         .then(r => {
           if (!r.ok) throw new Error('HTTP ' + r.status);
           return r.text();
@@ -406,16 +450,16 @@
         })
         .catch(err => {
           if (++tries < attempts) {
-            const backoff = 400 * tries;         // 0.4 s, 0.8 s, 1.2 s…
+            const backoff = 400 * tries;     // 0.4 s, 0.8 s, 1.2 s …
             console.warn(`${slider.id} retry ${tries}/${attempts}`, err);
-            setTimeout(start, backoff);
+            setTimeout(attempt, backoff);
           } else {
             console.error(`${slider.id} init failed`, err);
             render(`${slider.id} init failed: ${err.message}`);
           }
         });
     };
-    start();
+    attempt();
   }
 
   // ---------------------------------------------------------------------
@@ -471,10 +515,11 @@
   });
 
   // ---------------------------------------------------------------------
-  // INITIALISE PERIODIC LOG POLL
+  // PERIODIC LOG POLL
   // ---------------------------------------------------------------------
-  setInterval(updateLog, 3000);
+  setInterval(updateLog, 2000);
   updateLog();
 </script>
+
 </body>
 </html>
