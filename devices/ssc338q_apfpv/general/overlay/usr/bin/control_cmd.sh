@@ -104,6 +104,7 @@ case "$1" in
       echo "Font size: $(sed -n -E 's|^OSD_PARAMS=.*&F([0-9]+).*|\1|p' /etc/aalink.conf)"
       echo "OSD level: $(sed -n 's/^OSD_LEVEL=\(.*\)/\1/p' /etc/aalink.conf)"
       echo "Show signal bars: $(sed -n 's/^SHOW_SIGNAL_BARS=\(.*\)/\1/p' /etc/aalink.conf)"
+      echo "Throughput %: $(sed -n 's/^THROUGHPUT_PCT=\(.*\)/\1/p' /etc/aalink.conf)"
 
     } 2>&1 | tee "$LOG"
     ;;
