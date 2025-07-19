@@ -87,6 +87,16 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
+    aalink_throughput)
+    {
+      val=$2
+      printf '▶  Setting throughput to %s ...\n' "$2"
+      sed -i.bak "s|^THROUGHPUT_PCT=.*|THROUGHPUT_PCT=${2}|" /etc/aalink.conf
+
+    } 2>&1 | tee "$LOG"
+    ;;
+
+
     aalink_print_settings)
     {
       printf '▶  aalink Settings ...\n'
