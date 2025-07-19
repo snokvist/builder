@@ -22,7 +22,7 @@ case "$1" in
       printf '▶  Toggling recording on %s …\n' "$MASTER_IP"
     if ! timeout "$TIMEOUT" \
        $DB root@"$MASTER_IP" 'kill -SIGUSR1 $(pidof pixelpilot)'; then
-    echo "❌  dbclient failed (key missing?). Generate a key with dropbear_setup.sh on the VTX."
+    echo "❌  ssh failed ..."
     exit 1
   fi
     } 2>&1 | tee "$LOG"
@@ -32,12 +32,11 @@ case "$1" in
     {
       printf '▶  Shutting down VRX on %s …\n' "$MASTER_IP"
 
-      if ! timeout "$TIMEOUT" \
-           $DB root@"$MASTER_IP" \
-           "shutdown now"; then
-        echo "❌  shutdown command failed"
-        exit 1
-      fi
+    if ! timeout "$TIMEOUT" \
+       $DB root@"$MASTER_IP" 'shutdown now'; then
+    echo "❌  ssh failed ..."
+    exit 1
+  fi
     } 2>&1 | tee "$LOG"
     ;;
 
