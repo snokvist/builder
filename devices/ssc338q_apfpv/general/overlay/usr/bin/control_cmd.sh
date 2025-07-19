@@ -7,7 +7,7 @@ LOG=/tmp/webui.log
 MASTER_IP=$(fw_printenv -n master_ip 2>/dev/null) || exit 1
 
 DB="sshpass -p root ssh -y"
-TIMEOUT=
+TIMEOUT=5
 
 case "$1" in
   vrx_ping)
