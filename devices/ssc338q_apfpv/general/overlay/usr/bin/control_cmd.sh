@@ -74,7 +74,7 @@ case "$1" in
       
       printf '▶  Setting OSD level %s ...\n' "$2"
       val=$2
-      sed -i.bak "s|^IP_DEST=.*|IP_DEST=${val}|" /etc/aalink.conf
+      sed -i.bak "s|^PING_DEST=.*|PING_DEST=${val}|" /etc/aalink.conf
       kill -SIGHUP $(pidof aalink)
 
     } 2>&1 | tee "$LOG"
