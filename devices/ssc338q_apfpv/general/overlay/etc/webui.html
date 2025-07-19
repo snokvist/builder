@@ -378,44 +378,44 @@
   }
 
   // ---------------------------------------------------------------------
-  // SLIDER INIT HELPERS
+  // ROBUST SLIDER INIT HELPERS
   // ---------------------------------------------------------------------
-  /**
-   * Attempts endpoints sequentially; returns the first successful value.
-   * Retries once after short delay if needed.
-   */
-  async function fetchValueSequential(endpoints) {
-    for (const ep of endpoints) {
-      try {
-        const r = await fetch(ep, { cache: 'no-store' });
-        if (r.ok) return await r.text();
-      } catch (_) {}
-    }
-    /* one retry after 500 ms */
-    await new Promise(rs => setTimeout(rs, 500));
-    for (const ep of endpoints) {
-      try {
-        const r = await fetch(ep, { cache: 'no-store' });
-        if (r.ok) return await r.text();
-      } catch (_) {}
-    }
-    throw new Error('All endpoints failed');
-  }
+  const fetchWithTimeout = (url, timeout = 1000) =>
+    Promise.race([
+      fetch(url, { cache: 'no-store' }),
+      new Promise((_, rej) =>
+        setTimeout(() => rej(new Error('timeout')), timeout))
+    ]);
 
-  async function initSlider({ slider, display, min, max, endpoints }) {
-    try {
-      const vRaw = await fetchValueSequential(endpoints);
-      const v    = parseInt(vRaw, 10);
-      if (!isNaN(v) && v >= min && v <= max) {
-        slider.value = v;
-        display.textContent = v;
-      } else {
-        console.warn('Fetched value out of range:', vRaw);
-      }
-    } catch (e) {
-      console.error(`${slider.id} init error:`, e);
-      render(`${slider.id} init error: ${e.message}`);
-    }
+  function initSlider({ slider, display, min, max, endpoint, attempts = 5 }) {
+    let tries = 0;
+    const start = () => {
+      fetchWithTimeout(endpoint)
+        .then(r => {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(raw => {
+          const v = parseInt(raw, 10);
+          if (!isNaN(v) && v >= min && v <= max) {
+            slider.value = v;
+            display.textContent = v;
+          } else {
+            throw new Error('value out of range: ' + raw);
+          }
+        })
+        .catch(err => {
+          if (++tries < attempts) {
+            const backoff = 400 * tries;         // 0.4 s, 0.8 s, 1.2 s…
+            console.warn(`${slider.id} retry ${tries}/${attempts}`, err);
+            setTimeout(start, backoff);
+          } else {
+            console.error(`${slider.id} init failed`, err);
+            render(`${slider.id} init failed: ${err.message}`);
+          }
+        });
+    };
+    start();
   }
 
   // ---------------------------------------------------------------------
@@ -427,12 +427,13 @@
   const sendThroughput = () =>
     goArg('control_cmd', `aalink_throughput ${throughputSlider.value}`);
 
-  const debouncedSendThroughput = debounce(sendThroughput, 200);
-
-  throughputSlider.addEventListener('input', () => {
-    throughputValue.textContent = throughputSlider.value;
-    debouncedSendThroughput();
-  });
+  throughputSlider.addEventListener(
+    'input',
+    debounce(() => {
+      throughputValue.textContent = throughputSlider.value;
+      sendThroughput();
+    }, 200)
+  );
   throughputSlider.addEventListener('change', sendThroughput);
 
   initSlider({
@@ -440,7 +441,7 @@
     display:  throughputValue,
     min:      25,
     max:      75,
-    endpoints:['/value/aalink_throughput']
+    endpoint: '/value/aalink_throughput'
   });
 
   // ---------------------------------------------------------------------
@@ -452,12 +453,13 @@
   const sendOsdSize = () =>
     goArg('control_cmd', `aalink_font_size ${osdSlider.value}`);
 
-  const debouncedSendOsdSize = debounce(sendOsdSize, 200);
-
-  osdSlider.addEventListener('input', () => {
-    osdValue.textContent = osdSlider.value;
-    debouncedSendOsdSize();
-  });
+  osdSlider.addEventListener(
+    'input',
+    debounce(() => {
+      osdValue.textContent = osdSlider.value;
+      sendOsdSize();
+    }, 200)
+  );
   osdSlider.addEventListener('change', sendOsdSize);
 
   initSlider({
@@ -465,7 +467,7 @@
     display:  osdValue,
     min:      20,
     max:      60,
-    endpoints:['/value/aalink_font_size']
+    endpoint: '/value/aalink_font_size'
   });
 
   // ---------------------------------------------------------------------
