@@ -13,3 +13,4 @@
 /lib/modules/4.9.84/sigmastar/sensor_os04c10_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_sc501ai_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_sc8235_mipi.ko
+/etc/hostapd.conf
