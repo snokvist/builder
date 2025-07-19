@@ -139,10 +139,10 @@
     </select>
   </div>
 
-  <!-- Power slider ---------------------------------------------------- -->
+  <!-- throughput slider ---------------------------------------------------- -->
   <div class="row slider-container">
-    <label for="powerSlider">Power Level: <span id="sliderValue">50</span></label>
-    <input type="range" id="powerSlider" min="25" max="75" value="50">
+    <label for="throughputSlider">Power Level: <span id="sliderValue">50</span></label>
+    <input type="range" id="throughputSlider" min="25" max="75" value="50">
   </div>
 
   <!-- Reboot -->
@@ -376,7 +376,7 @@
   // ---------------------------------------------------------------------
   // SLIDER LOGIC
   // ---------------------------------------------------------------------
-  const slider      = document.getElementById('powerSlider');
+  const slider      = document.getElementById('throughputSlider');
   const sliderValue = document.getElementById('sliderValue');
 
   // helper that actually sends the value
@@ -395,7 +395,7 @@
   slider.addEventListener('change', sendSlider);
 
   // ask backend for current value, fall back to 50
-  fetch('/value/slider')
+  fetch('/value/aalink_throughput')
     .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
     .then(v => {
       const val = parseInt(v, 10);
