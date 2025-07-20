@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Read the current U-Boot variable “mode”.
+#   * `fw_printenv -n mode`     → prints just the value on newer u-boot-tools
+#   * If `-n` is not available, fall back to parsing “var=value”.
+
+MODE=$(fw_printenv -n mode 2>/dev/null 2>&1 || true)
+[ -z "$MODE" ] && MODE=$(fw_printenv mode 2>/dev/null | cut -d= -f2)
+
+case "$1" in
+    start)
+        if [ "$MODE" != "ap_alink" ]; then
+            echo "Current mode is '$MODE' – aalink will not be started."
+            killall -q aalink
+            exit 0        # or `exit 1` if you prefer a non-zero status
+        fi
+
+        echo "Starting ap-alink..."
+        pid=$(pidof aalink 2>/dev/null)
+        [ -n "$pid" ] && kill -9 "$pid"
+        sleep 5
+        ap_alink &
+        ;;
+
+    stop)
+        echo "Stopping ap_alink..."
+        pid=$(pidof ap_alink 2>/dev/null)
+        [ -n "$pid" ] && kill -9 "$pid"
+        echo "" > /tmp/MSPOSD.msg
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+exit 0
