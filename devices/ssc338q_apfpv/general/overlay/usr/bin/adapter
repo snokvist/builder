@@ -102,6 +102,8 @@ case "$1" in
 
 	start)
 		/usr/bin/adapter stop
+		cli -s .outgoing.server $protocol://$master:$port
+                control_cmd.sh aalink_ip_dest $master
 		set_config
 		hostapd /tmp/hostapd.conf -B
 		udhcpd -S
