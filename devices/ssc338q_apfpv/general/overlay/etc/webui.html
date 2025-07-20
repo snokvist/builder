@@ -544,10 +544,10 @@ function goArg(name, arg) {
     'input',
     debounce(() => {
       osdLevelValue.textContent = osdLevelSlider.value;
-      sendOsdSize();
+      sendLevelOsdSize();
     }, 300)
   );
-  osdLevelSlider.addEventListener('change', sendOsdSize);
+  osdLevelSlider.addEventListener('change', sendOsdLevelSize);
 
   initSlider({
     slider:   osdLevelSlider,
