@@ -24,6 +24,28 @@ TIMEOUT=5
 
 case "$1" in
 # ===== VRX commands ==================================================
+  vtx_adapter_start)
+    {
+      printf '▶  (RE)Starting adapter …\n'
+      adapter start
+    } 2>&1 | tee "$LOG"
+    ;;
+
+  vtx_disable_dhcpcd)
+    {
+      printf '▶  Killing udhcpd …\n'
+      kill -9 $(pidof udhcpd) 
+    } 2>&1 | tee "$LOG"
+    ;;
+    
+  vtx_reload_majestic)
+    {
+      printf '▶  Reloading majestic %s …\n'
+      kill -1 $(pidof majestic) 
+    } 2>&1 | tee "$LOG"
+    ;;
+  
+  
   vrx_ping)
     {
       printf '▶  Pinging %s …\n' "$MASTER_IP"
@@ -126,6 +148,8 @@ case "$1" in
       echo "Show signal bars: $(sed -n 's/^SHOW_SIGNAL_BARS=\(.*\)/\1/p'     /etc/aalink.conf)"
       echo "Throughput %    : $(sed -n 's/^THROUGHPUT_PCT=\(.*\)/\1/p'       /etc/aalink.conf)"
       echo "Ping destination: $(sed -n 's/^PING_DEST=\(.*\)/\1/p'            /etc/aalink.conf)"
+      echo "-------------------------------"
+      set_mcs.sh print
     } 2>&1 | tee "$LOG"
     ;;
 
