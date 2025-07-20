@@ -117,6 +117,7 @@
 <div class="tabs">
   <div class="tab-btn active" id="tabControl">Control</div>
   <div class="tab-btn"        id="tabSetup">Setup</div>
+  <div class="tab-btn"        id="tabApAlink">AP&nbsp;Alink</div>
 </div>
 
 <!-- Control Tab Content -->
@@ -422,6 +423,13 @@
   <pre class="info-box" id="infoSetup">(no log yet)</pre>
 </div>
 
+
+<!--‑‑ NEW: AP Alink Tab Content ‑‑-->
+<div class="tab-content hidden" id="contentApAlink">
+  <p style="text-align:center;margin:0;">(AP Alink settings go here)</p>
+</div>
+
+  
 <script>
 
 /* 5 GHz channel whitelist per regulatory domain
@@ -515,28 +523,28 @@ updateChannels();
   // ---------------------------------------------------------------------
   // TAB SWITCHING
   // ---------------------------------------------------------------------
-  const tabControl     = document.getElementById('tabControl');
-  const tabSetup       = document.getElementById('tabSetup');
-  const contentControl = document.getElementById('contentControl');
-  const contentSetup   = document.getElementById('contentSetup');
+const tabControl   = document.getElementById('tabControl');
+const tabSetup     = document.getElementById('tabSetup');
+const tabApAlink   = document.getElementById('tabApAlink');      // NEW
 
-  function switchTab(toSetup) {
-    if (toSetup) {
-      tabSetup  .classList.add   ('active');
-      tabControl.classList.remove('active');
-      contentSetup  .classList.remove('hidden');
-      contentControl.classList.add   ('hidden');
-    } else {
-      tabControl.classList.add   ('active');
-      tabSetup  .classList.remove('active');
-      contentControl.classList.remove('hidden');
-      contentSetup  .classList.add   ('hidden');
-    }
-    render(lastLog);
-  }
+const contentControl = document.getElementById('contentControl');
+const contentSetup   = document.getElementById('contentSetup');
+const contentApAlink = document.getElementById('contentApAlink'); // NEW
 
-  tabControl.addEventListener('click', () => switchTab(false));
-  tabSetup  .addEventListener('click', () => switchTab(true));
+/* --- REPLACE THE OLD SWITCH LOGIC WITH THIS ------------------------- */
+function showTab(btn, pane) {
+  [tabControl, tabSetup, tabApAlink].forEach(b =>
+    b.classList.toggle('active', b === btn));
+
+  [contentControl, contentSetup, contentApAlink].forEach(p =>
+    p.classList.toggle('hidden', p !== pane));
+
+  render(lastLog);
+}
+
+tabControl .addEventListener('click', () => showTab(tabControl , contentControl ));
+tabSetup   .addEventListener('click', () => showTab(tabSetup   , contentSetup   ));
+tabApAlink .addEventListener('click', () => showTab(tabApAlink , contentApAlink ));
 
   // ---------------------------------------------------------------------
   // UTILITIES
