@@ -512,7 +512,7 @@ function goArg(name, arg) {
   const osdValue  = document.getElementById('osdValue');
 
   const sendOsdSize = () =>
-    goArg('control_cmd', `aalink_osd_level ${osdSlider.value}`);
+    goArg('control_cmd', `aalink_font_size ${osdSlider.value}`);
 
   osdSlider.addEventListener(
     'input',
@@ -538,7 +538,7 @@ function goArg(name, arg) {
   const osdLevelValue  = document.getElementById('osdLevelValue');
 
   const sendOsdLevelSize = () =>
-    goArg('control_cmd', `aalink_font_size ${osdLevelSlider.value}`);
+    goArg('control_cmd', `aalink_osd_level ${osdLevelSlider.value}`);
 
   osdLevelSlider.addEventListener(
     'input',
