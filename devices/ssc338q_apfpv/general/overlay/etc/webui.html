@@ -427,6 +427,53 @@
 <!--‑‑ NEW: AP Alink Tab Content ‑‑-->
 <div class="tab-content hidden" id="contentApAlink">
   <p style="text-align:center;margin:0;">(AP Alink settings go here)</p>
+<!--‑‑ NEW: argument setters ‑‑-->
+<div class="row">
+  <button class="btn" onclick="goArg('set_apalink', 'bitrate_max ' + bitrateMax.value)">
+    Set&nbsp;bitrate_max
+  </button>
+  <input id="bitrateMax" placeholder="kbit/s">
+</div>
+
+<div class="row">
+  <button class="btn" onclick="goArg('set_apalink', 'bitrate_min ' + bitrateMin.value)">
+    Set&nbsp;bitrate_min
+  </button>
+  <input id="bitrateMin" placeholder="kbit/s">
+</div>
+
+<div class="row">
+  <button class="btn" onclick="goArg('set_apalink', 'dbmMax ' + dbmMax.value)">
+    Set&nbsp;dbmMax
+  </button>
+  <input id="dbmMax" placeholder="dBm">
+</div>
+
+<div class="row">
+  <button class="btn" onclick="goArg('set_apalink', 'dbmMin ' + dbmMin.value)">
+    Set&nbsp;dbmMin
+  </button>
+  <input id="dbmMin" placeholder="dBm">
+</div>
+
+<div class="row">
+  <button class="btn" onclick="goArg('set_apalink', 'autoPower ' + autoPower.value)">
+    Set&nbsp;autoPower
+  </button>
+  <input id="autoPower" placeholder="on|off">
+</div>
+
+<!--‑‑ Show current settings ‑‑-->
+<div class="row">
+  <button class="btn info" style="width:100%;flex:1"
+          onclick="goArg('set_apalink', 'print')">
+    Show AP Alink Settings
+  </button>
+</div>
+
+<pre class="info-box" id="infoApAlink">(no log yet)</pre>
+
+  
 </div>
 
   
@@ -626,11 +673,13 @@ function isBenignAbort(err) {
   // ---------------------------------------------------------------------
   let lastLog = '(no log yet)';
 
-  function render(txt) {
-    lastLog = txt;
-    document.getElementById('infoControl').textContent = txt || '(empty)';
-    document.getElementById('infoSetup')  .textContent = txt || '(empty)';
-  }
+/* --- REPLACE the old render() ---------------------------------------- */
+function render(txt) {
+  lastLog = txt;
+  document.getElementById('infoControl').textContent  = txt || '(empty)';
+  document.getElementById('infoSetup')  .textContent  = txt || '(empty)';
+  document.getElementById('infoApAlink').textContent = txt || '(empty)';
+}
 
   function updateLog() {
     if (logPollPaused) return;
