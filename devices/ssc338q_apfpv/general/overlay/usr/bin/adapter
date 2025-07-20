@@ -106,6 +106,7 @@ case "$1" in
 		set_config
 		hostapd /tmp/hostapd.conf -B
 		udhcpd -S
+		route del default;route add default gw 192.168.0.10 wlan0
 		;;
 
 	stop)
