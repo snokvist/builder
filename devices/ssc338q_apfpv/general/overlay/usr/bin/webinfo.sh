@@ -9,6 +9,8 @@ echo "Current Link Control: $(fw_printenv -n mode || echo manual)"
 echo "Current MSP TTY: $(fw_printenv -n msposd_tty || echo -)"
 echo "Current Output: $(fw_printenv -n master_protocol || echo udp)://$(fw_printenv -n master_ip || echo 192.168.0.10):$(fw_printenv -n master_port || echo 5600)"
 echo "-------------------------------"
+set_mcs.sh print
+echo "-------------------------------"
 echo "Connected sensor: $(ipcinfo -l)"
 echo "Currently set sensor: $(fw_printenv sensor)"
 echo "Current temp: $(ipcinfo -t)"
