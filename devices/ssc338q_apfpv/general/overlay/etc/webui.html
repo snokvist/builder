@@ -122,7 +122,7 @@
  
   <!-- throughput slider ---------------------------------------------------- -->
   <div class="row slider-container">
-    <label for="throughputSlider">aalink Throughput %: <span id="throughputValue">50</span></label>
+    <label for="throughputSlider">Bandwidth Utilization %: <span id="throughputValue">50</span></label>
     <input type="range" id="throughputSlider" min="25" max="75" value="50">
   </div>
 
@@ -134,7 +134,7 @@
 
     <!-- OSD size slider ------------------------------------------------------- -->
   <div class="row slider-container">
-    <label for="osdLevelSlider">OSD Level<span id="osdLevelValue">0</span></label>
+    <label for="osdLevelSlider">OSD Level: <span id="osdLevelValue">0</span></label>
     <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
   </div>
 
@@ -172,12 +172,18 @@
 
   </div>
   
-  <!-- Reboot -->
+  <!-- Reboot -------------------------------------------------------------- -->
   <div class="row">
     <button class="btn danger" style="width:100%;flex:1"
-            onclick="go('reboot')">Reboot&nbsp;Device</button>
+      onclick="
+        if (confirm('Warning: The device will reboot immediately. Continue?')) {
+          go('reboot');
+        }">
+      Reboot&nbsp;Device
+    </button>
   </div>
 
+  
   <!-- Show Info -->
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
