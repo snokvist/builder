@@ -42,6 +42,8 @@ case "$1" in
     exit 1
     ;;
 esac
+kill -9 $(pidof aalink)
+kill -9 $(pidof ap_alink)
 
 /etc/init.d/S99msposd start
 /etc/init.d/S991aalink start
