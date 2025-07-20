@@ -9,7 +9,7 @@ LOG=/tmp/webui.log
 
 case "$1" in
     print)
-        [ -f "$CONF" ] && cat "$CONF" | tee -a "$LOG"
+        [ -f "$CONF" ] && cat "$CONF" | tee "$LOG"
         exit
         ;;
 
