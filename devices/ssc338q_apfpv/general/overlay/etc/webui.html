@@ -560,8 +560,14 @@ function goArg(name, arg) {
   const throughputSlider = document.getElementById('throughputSlider');
   const throughputValue  = document.getElementById('throughputValue');
 
-  const sendThroughput = () =>
-    goArg('control_cmd', `aalink_throughput ${throughputSlider.value}`);
+  let lastThroughput = null;                       // <‑‑ NEW
+  
+  const sendThroughput = () => {
+    const v = throughputSlider.value;
+    if (v === lastThroughput) return;              // <‑‑ NEW
+    lastThroughput = v;                            // <‑‑ NEW
+    goArg('control_cmd', `aalink_throughput ${v}`);
+  };
 
   throughputSlider.addEventListener(
     'input',
@@ -586,8 +592,15 @@ function goArg(name, arg) {
   const osdSlider = document.getElementById('osdSlider');
   const osdValue  = document.getElementById('osdValue');
 
-  const sendOsdSize = () =>
-    goArg('control_cmd', `aalink_font_size ${osdSlider.value}`);
+  let lastOsdSize = null;
+  
+  const sendOsdSize = () => {
+    const v = osdSlider.value;
+    if (v === lastOsdSize) return;
+    lastOsdSize = v;
+    goArg('control_cmd', `aalink_font_size ${v}`);
+  };
+
 
   osdSlider.addEventListener(
     'input',
@@ -613,8 +626,15 @@ function goArg(name, arg) {
   const osdLevelSlider = document.getElementById('osdLevelSlider');
   const osdLevelValue  = document.getElementById('osdLevelValue');
 
-  const sendOsdLevelSize = () =>
-    goArg('control_cmd', `aalink_osd_level ${osdLevelSlider.value}`);
+  let lastOsdLevel = null;
+  
+  const sendOsdLevelSize = () => {
+    const v = osdLevelSlider.value;
+    if (v === lastOsdLevel) return;
+    lastOsdLevel = v;
+    goArg('control_cmd', `aalink_osd_level ${v}`);
+  };
+
 
   osdLevelSlider.addEventListener(
     'input',
