@@ -1,36 +1,53 @@
 #!/bin/sh
-# aplink.sh  –  minimal /etc/ap_alink.conf helper
-# Usage:
-#   aplink.sh print
-#   aplink.sh <bitrate_max|bitrate_min|dbmMax|dbmMin|autoPower> <value>
+# aplink.sh – manage /etc/ap_alink.conf one value at a time
+#   print                       → show file
+#   <key> <value>               → set value
 
 CONF=/etc/ap_alink.conf
 LOG=/tmp/webui.log
 
 case "$1" in
+    #####################################################################
+    # PRINT MODE
+    #####################################################################
     print)
-        [ -f "$CONF" ] && cat "$CONF" | tee "$LOG"
-        exit
+        {  # everything inside braces goes through tee → $LOG
+            if [ -f "$CONF" ]; then
+                cat "$CONF"
+            else
+                echo "(!) $CONF not found"
+            fi
+        } | tee "$LOG"
         ;;
 
+    #####################################################################
+    # SET MODE  –  handle one key/value pair
+    #####################################################################
     bitrate_max|bitrate_min|dbmMax|dbmMin|autoPower)
-        [ -z "$2" ] && { echo "missing value"; exit 1; }
+        [ -z "$2" ] && { echo "usage: $0 $1 <value>" | tee "$LOG"; exit 1; }
 
         KEY=$1
         VAL=$2
+        ESC=$(printf '%s\n' "$VAL" | sed 's/[\/&]/\\&/g')   # escape for sed
 
-        # change if present, else append
-        if grep -q "^${KEY}=" "$CONF" 2>/dev/null; then
-            sed -i "s|^${KEY}=.*|${KEY}=${VAL}|" "$CONF"
-        else
-            echo "${KEY}=${VAL}" >> "$CONF"
-        fi
-
-        echo "${KEY}=${VAL}"         # confirmation to stdout
+        {  # everything inside braces goes through tee → $LOG
+            echo "==> Setting $KEY to $VAL"
+            if grep -q "^${KEY}=" "$CONF" 2>/dev/null; then
+                sed -i "s|^${KEY}=.*|${KEY}=${ESC}|" "$CONF"
+                echo "(updated existing line)"
+            else
+                echo "${KEY}=${VAL}" >> "$CONF"
+                echo "(added new line)"
+            fi
+            echo "Done."
+        } | tee "$LOG"
         ;;
 
+    #####################################################################
+    # UNKNOWN ARGUMENT
+    #####################################################################
     *)
-        echo "usage: $0 print | $0 <key> <value>" >&2
+        echo "usage: $0 print  |  $0 <bitrate_max|bitrate_min|dbmMax|dbmMin|autoPower> <value>" | tee "$LOG"
         exit 1
         ;;
 esac
