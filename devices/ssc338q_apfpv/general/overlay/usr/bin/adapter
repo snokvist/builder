@@ -102,7 +102,7 @@ case "$1" in
 		;;
 
 	start)
-		stop
+		/usr/bin/adapter stop
 		set_config
 		hostapd /tmp/hostapd.conf -B
 		udhcpd -S
