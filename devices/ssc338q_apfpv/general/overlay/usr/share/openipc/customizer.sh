@@ -59,3 +59,4 @@ chmod +x /usr/bin/ap_alink
 chmod +x /etc/init.d/S996ap_alink
 chmod +x /usr/bin/set_apalink.sh
 chmod +x /usr/bin/set_mcs.sh
+chmod +x /usr/bin/msposd
