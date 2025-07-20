@@ -102,6 +102,7 @@ case "$1" in
 		;;
 
 	start)
+		stop
 		set_config
 		hostapd /tmp/hostapd.conf -B
 		udhcpd -S
@@ -111,6 +112,7 @@ case "$1" in
 		kill -9 $(pidof udhcpd)
 		kill -9 $(pidof hostapd)
 		[ -e /var/run/hostapd/wlan0 ] && rm -f /var/run/hostapd/wlan0
+		sleep 1
 		;;
 
 	*)
