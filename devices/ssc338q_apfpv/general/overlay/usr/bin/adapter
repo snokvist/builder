@@ -108,7 +108,7 @@ case "$1" in
 		;;
 
 	stop)
-		killall -q udhcpd wpa_supplicant
+		killall -q udhcpd hostapd
 		;;
 
 	*)
