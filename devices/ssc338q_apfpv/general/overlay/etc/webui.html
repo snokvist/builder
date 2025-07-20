@@ -127,7 +127,7 @@
     <button class="btn" onclick="goArg('vtx_adapter_start', sendVTXCmd.value)">VTX CMD</button>
     <select id="sendVTXCmd">
       <option value=" ">VTX Adapter start</option>
-      <option value="vtx_disable_dhcpcd">TODO VTX disable udhcpd</option>
+      <option value="vtx_disable_dhcpcd">VTX disable udhcpd</option>
     </select>
   </div>
   
@@ -162,8 +162,48 @@
     <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
   </div>
 
+  
+  
+  
+  <!-- aalink MCS / Threshold control -->
+<div class="row">
+  <!--
+       goArg('control_cmd', …) stays the same;             ───►   set_mcs <arg>
+       select’s ID is “sendMcsCmd” (parallel to sendAalinkCmd above)
+  -->
+  <button class="btn" onclick="goArg('set_mcs', sendMcsCmd.value)">
+    Set Thresholds
+  </button>
 
-  <!-- aalink control -->
+  <select id="sendMcsCmd">
+    <!-- Threshold presets -->
+    <optgroup label="Threshold presets">
+      <option value="set_mcs threshold_min">MCS Threshold Low</option>
+      <option value="set_mcs threshold_medium">MCS Threshold Medium</option>
+      <option value="set_mcs threshold_max">MCS Threshold High</option>
+    </optgroup>
+
+    <!-- MCS caps (20 MHz cap shown; 40 MHz is auto –1 except 0 → 1/0) -->
+    <optgroup label="MCS caps">
+      <option value="set_mcs mcs_0">MCS 0 (20→1, 40→0)</option>
+      <option value="set_mcs mcs_1">MCS 1 (20→1, 40→0)</option>
+      <option value="set_mcs mcs_2">MCS 2 (20→2, 40→1)</option>
+      <option value="set_mcs mcs_3">MCS 3 (20→3, 40→2)</option>
+      <option value="set_mcs mcs_4">MCS 4 (20→4, 40→3)</option>
+      <option value="set_mcs mcs_5">MCS 5 (20→5, 40→4)</option>
+      <option value="set_mcs mcs_6">MCS 6 (20→6, 40→5)</option>
+      <option value="set_mcs mcs_7">MCS 7 (20→7, 40→6)</option>
+    </optgroup>
+  </select>
+</div>
+  
+  
+  
+  
+  
+  
+
+  <!-- set LQ SRC control -->
   <div class="row">
     <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">Set LQ SRC</button>
     <select id="sendAalinkCmd">
