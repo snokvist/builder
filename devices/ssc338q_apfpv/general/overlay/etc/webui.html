@@ -119,20 +119,7 @@
     </select>
   </div>
 
-  <!-- aalink control -->
-  <div class="row">
-    <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">aalink CMD</button>
-    <select id="sendAalinkCmd">
-      <option value="aalink_signalbar_enable">Signalbar enable</option>
-      <option value="aalink_signalbar_disable">Signalbar disable</option>
-      <option value="aalink_mcs_source lowest">Source Lowest LQ</option>
-      <option value="aalink_mcs_source highest">Source Highest LQ</option>
-      <option value="aalink_mcs_source both">Source Both LQ</option>
-      <option value="aalink_mcs_source uplink">Source Uplink LQ</option>
-      <option value="aalink_mcs_source downlink">Source Downlink LQ</option>
-    </select>
-  </div>
-  
+ 
   <!-- throughput slider ---------------------------------------------------- -->
   <div class="row slider-container">
     <label for="throughputSlider">aalink Throughput %: <span id="throughputValue">50</span></label>
@@ -160,6 +147,18 @@
       Additional Settings
     </label>
 
+  <!-- aalink control -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">Set LQ SRC</button>
+    <select id="sendAalinkCmd">
+      <option value="aalink_mcs_source lowest">Source Lowest LQ</option>
+      <option value="aalink_mcs_source highest">Source Highest LQ</option>
+      <option value="aalink_mcs_source both">Source Both LQ</option>
+      <option value="aalink_mcs_source uplink">Source Uplink LQ</option>
+      <option value="aalink_mcs_source downlink">Source Downlink LQ</option>
+    </select>
+  </div>
+    
     <!-- existing checkbox -->
     <label style="user-select:none;">
       <input type="checkbox" id="signalbarToggle">
