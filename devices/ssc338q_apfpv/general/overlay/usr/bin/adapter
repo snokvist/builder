@@ -108,7 +108,9 @@ case "$1" in
 		;;
 
 	stop)
-		killall -q udhcpd hostapd
+		kill -9 $(pidof udhcpd)
+		kill -9 $(pidof hostapd)
+		[ -e /var/run/hostapd/wlan0 ] && rm -f /var/run/hostapd/wlan0
 		;;
 
 	*)
