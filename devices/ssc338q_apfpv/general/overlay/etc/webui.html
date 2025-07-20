@@ -149,6 +149,12 @@
     <input type="range" id="osdSlider" min="20" max="60" step="2" value="38">
   </div>
 
+    <!-- OSD size slider ------------------------------------------------------- -->
+  <div class="row slider-container">
+    <label for="osdLevelSlider">OSD Level: <span id="osdLevelValue">38</span></label>
+    <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
+  </div>
+
   <!-- Reboot -->
   <div class="row">
     <button class="btn danger" style="width:100%;flex:1"
@@ -513,7 +519,7 @@ function goArg(name, arg) {
     debounce(() => {
       osdValue.textContent = osdSlider.value;
       sendOsdSize();
-    }, 200)
+    }, 300)
   );
   osdSlider.addEventListener('change', sendOsdSize);
 
@@ -524,6 +530,33 @@ function goArg(name, arg) {
     max:      60,
     endpoint: '/value/aalink_font_size'
   });
+
+  // ---------------------------------------------------------------------
+  // OSD LEVEL SLIDER LOGIC
+  // ---------------------------------------------------------------------
+  const osdSlider = document.getElementById('osdLevelSlider');
+  const osdValue  = document.getElementById('osdLevelValue');
+
+  const sendOsdSize = () =>
+    goArg('control_cmd', `aalink_font_size ${osdLevelSlider.value}`);
+
+  osdLevelSlider.addEventListener(
+    'input',
+    debounce(() => {
+      osdLevelValue.textContent = osdLevelSlider.value;
+      sendOsdSize();
+    }, 300)
+  );
+  osdLevelSlider.addEventListener('change', sendOsdSize);
+
+  initSlider({
+    slider:   osdLevelSlider,
+    display:  osdLevelValue,
+    min:      0,
+    max:      3,
+    endpoint: '/value/aalink_osd_level'
+  });
+  
 
   // ---------------------------------------------------------------------
   // PERIODIC LOG POLL
