@@ -428,40 +428,52 @@
 <div class="tab-content hidden" id="contentApAlink">
   <p style="text-align:center;margin:0;">(AP Alink settings go here)</p>
 <!--‑‑ NEW: argument setters ‑‑-->
+  
+<!-- bitrate_max (Mbit/s) -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_apalink', 'bitrate_max ' + bitrateMax.value)">
+  <button class="btn"
+          onclick="goArg('set_apalink', 'bitrate_max ' + bitrateMax.value)">
     Set&nbsp;bitrate_max
   </button>
-  <input id="bitrateMax" placeholder="kbit/s">
+  <input id="bitrateMax" placeholder="Mbit/s">
 </div>
 
+<!-- bitrate_min (Mbit/s) -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_apalink', 'bitrate_min ' + bitrateMin.value)">
+  <button class="btn"
+          onclick="goArg('set_apalink', 'bitrate_min ' + bitrateMin.value)">
     Set&nbsp;bitrate_min
   </button>
-  <input id="bitrateMin" placeholder="kbit/s">
+  <input id="bitrateMin" placeholder="Mbit/s">
 </div>
 
+<!-- dbmMax (dBm) -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_apalink', 'dbmMax ' + dbmMax.value)">
+  <button class="btn"
+          onclick="goArg('set_apalink', 'dbmMax ' + dbmMax.value)">
     Set&nbsp;dbmMax
   </button>
   <input id="dbmMax" placeholder="dBm">
 </div>
 
+<!-- dbmMin (dBm) -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_apalink', 'dbmMin ' + dbmMin.value)">
+  <button class="btn"
+          onclick="goArg('set_apalink', 'dbmMin ' + dbmMin.value)">
     Set&nbsp;dbmMin
   </button>
   <input id="dbmMin" placeholder="dBm">
 </div>
 
+<!-- autoPower (0 = off, 1 = on) -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_apalink', 'autoPower ' + autoPower.value)">
+  <button class="btn"
+          onclick="goArg('set_apalink', 'autoPower ' + autoPower.value)">
     Set&nbsp;autoPower
   </button>
-  <input id="autoPower" placeholder="on|off">
+  <input id="autoPower" placeholder="0 or 1">
 </div>
+
 
 <!--‑‑ Show current settings ‑‑-->
 <div class="row">
