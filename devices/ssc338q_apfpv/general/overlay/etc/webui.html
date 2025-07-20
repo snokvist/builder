@@ -362,6 +362,11 @@
     };
   }
 
+  /* fire fn() only for real user interaction */
+  function ifUser(e, fn) {
+    if (e && e.isTrusted) fn();
+  }
+
   /* fetch helper: abort previous request to the same URL + timeout */
   const fetchControllers = Object.create(null);      // keyed by URL
 
@@ -494,12 +499,12 @@ function goArg(name, arg) {
 
   throughputSlider.addEventListener(
     'input',
-    debounce(() => {
+    debounce(e => {
       throughputValue.textContent = throughputSlider.value;
-      sendThroughput();
+      ifUser(e, sendThroughput);
     }, 300)
   );
-  throughputSlider.addEventListener('change', sendThroughput);
+  throughputSlider.addEventListener('change', e => ifUser(e, sendThroughput));
 
   initSlider({
     slider:   throughputSlider,
@@ -520,12 +525,13 @@ function goArg(name, arg) {
 
   osdSlider.addEventListener(
     'input',
-    debounce(() => {
+    debounce(e => {
       osdValue.textContent = osdSlider.value;
-      sendOsdSize();
+      ifUser(e, sendOsdSize);
     }, 300)
   );
-  osdSlider.addEventListener('change', sendOsdSize);
+  osdSlider.addEventListener('change', e => ifUser(e, sendOsdSize));
+
 
   initSlider({
     slider:   osdSlider,
@@ -546,12 +552,13 @@ function goArg(name, arg) {
 
   osdLevelSlider.addEventListener(
     'input',
-    debounce(() => {
+    debounce(e => {
       osdLevelValue.textContent = osdLevelSlider.value;
-      sendOsdLevelSize();
+      ifUser(e, sendOsdLevelSize);
     }, 300)
   );
-  osdLevelSlider.addEventListener('change', sendOsdLevelSize);
+  osdLevelSlider.addEventListener('change', e => ifUser(e, sendOsdLevelSize));
+
 
   initSlider({
     slider:   osdLevelSlider,
@@ -589,13 +596,14 @@ const signalbarToggle = document.getElementById('signalbarToggle');
 })();
 
 /* send enable/disable when user clicks */
-signalbarToggle.addEventListener('change', () => {
-  const cmd = signalbarToggle.checked
-    ? 'aalink_signalbar_enable'
-    : 'aalink_signalbar_disable';
-  goArg('control_cmd', cmd);
+signalbarToggle.addEventListener('change', e => {
+  ifUser(e, () => {
+    const cmd = signalbarToggle.checked
+      ? 'aalink_signalbar_enable'
+      : 'aalink_signalbar_disable';
+    goArg('control_cmd', cmd);
+  });
 });
-
 
 
   
