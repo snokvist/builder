@@ -151,7 +151,7 @@
 
     <!-- OSD size slider ------------------------------------------------------- -->
   <div class="row slider-container">
-    <label for="osdLevelSlider">OSD Level: <span id="osdLevelValue">38</span></label>
+    <label for="osdLevelSlider">(0)No osd,(1)Basic,2(Compact),3(Full)<span id="osdLevelValue">0</span></label>
     <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
   </div>
 
@@ -512,7 +512,7 @@ function goArg(name, arg) {
   const osdValue  = document.getElementById('osdValue');
 
   const sendOsdSize = () =>
-    goArg('control_cmd', `aalink_font_size ${osdSlider.value}`);
+    goArg('control_cmd', `aalink_osd_level ${osdSlider.value}`);
 
   osdSlider.addEventListener(
     'input',
@@ -534,10 +534,10 @@ function goArg(name, arg) {
   // ---------------------------------------------------------------------
   // OSD LEVEL SLIDER LOGIC
   // ---------------------------------------------------------------------
-  const osdSlider = document.getElementById('osdLevelSlider');
-  const osdValue  = document.getElementById('osdLevelValue');
+  const osdLevelSlider = document.getElementById('osdLevelSlider');
+  const osdLevelValue  = document.getElementById('osdLevelValue');
 
-  const sendOsdSize = () =>
+  const sendOsdLevelSize = () =>
     goArg('control_cmd', `aalink_font_size ${osdLevelSlider.value}`);
 
   osdLevelSlider.addEventListener(
