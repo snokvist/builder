@@ -151,12 +151,23 @@
     <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
   </div>
 
-  <!-- Signal‑bar toggle --------------------------------------------------- -->
-  <div class="row" id="signalbarRow">
-    <label style="flex:1; text-align:center; user-select:none;">
-      <input type="checkbox" id="signalbarToggle">
-      Show Signal Bar
+  <!-- Additional Settings ------------------------------------------------- -->
+  <div class="row slider-container" id="additionalSettings">
+
+    <!-- heading (styled like the other slider labels) -->
+    <label style="font-size:1em;font-weight:600;width:100%;text-align:center;
+                  margin-bottom:.4em;">
+      Additional Settings
     </label>
+
+    <!-- existing checkbox -->
+    <label style="user-select:none;">
+      <input type="checkbox" id="signalbarToggle">
+      Show Signal Bar
+    </label>
+
+    <!-- (future check‑boxes can be added right here) -->
+
   </div>
   
   <!-- Reboot -->
