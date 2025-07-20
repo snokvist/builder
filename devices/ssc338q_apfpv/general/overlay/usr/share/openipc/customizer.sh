@@ -25,7 +25,7 @@ cli -s .fpv.enabled true
 cli -s .fpv.noiseLevel 0
 cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
 cli -s .video0.qpDelta -12
-cli -s .osd.font /usr/share/fonts/truetype/osd.ttf
+#cli -s .osd.font /usr/share/fonts/truetype/osd.ttf
 
 # Set access
 chmod +x /usr/bin/all_rates.sh
