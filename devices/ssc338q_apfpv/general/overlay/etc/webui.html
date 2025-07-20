@@ -124,10 +124,10 @@
 
   <!-- Exec VTX cmd -->
   <div class="row">
-    <button class="btn" onclick="goArg('vtx_adapter_start', sendVTXCmd.value)">VTX CMD</button>
+    <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
     <select id="sendVTXCmd">
-      <option value="vtx_adapter_start">VTX Adapter start</option>
-      <option value="vtx_disable_dhcpcd">VTX disable udhcpd</option>
+      <option value="vtx_start_adapter">VTX Adapter start</option>
+      <option value="vtx_stop_udhcpd">VTX Stop udhcpd</option>
       <option value="vtx_reload_majestic">VTX reload majestic</option>
     </select>
   </div>
