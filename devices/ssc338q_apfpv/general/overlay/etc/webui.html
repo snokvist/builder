@@ -261,6 +261,28 @@
     </select>
   </div>
 
+  
+    <!-- Region filter ------------------------------------------------------ -->
+  <div class="row" id="regionRow">
+    <!-- default -->
+    <label style="user-select:none;"><input type="radio" name="region" value="US" checked> US</label>
+
+    <!-- ETSI domains -->
+    <label style="user-select:none;"><input type="radio" name="region" value="FR"> FR</label>
+    <label style="user-select:none;"><input type="radio" name="region" value="SE"> SE</label>
+    <label style="user-select:none;"><input type="radio" name="region" value="DE"> DE</label>
+    <label style="user-select:none;"><input type="radio" name="region" value="GB"> GB</label>
+
+    <!-- AU (ACMA) -->
+    <label style="user-select:none;"><input type="radio" name="region" value="AU"> AU</label>
+
+    <!-- Worldwide superset -->
+    <label style="user-select:none;"><input type="radio" name="region" value="00"> World</label>
+  </div>
+  
+  
+  
+  
   <!-- WLAN power -->
   <div class="row">
     <button class="btn" onclick="goArg('set_wlanpower', pwrSel.value)">Set&nbsp;Power</button>
@@ -363,6 +385,91 @@
 
 <script>
 
+/* 5 GHz channel whitelist per regulatory domain
+   ─────────────────────────────────────────── */
+const regionChannels = {
+  /* FCC (United States, default) */
+  US: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140','ch144',
+    'ch149','ch153','ch157','ch161','ch165',
+    'ch169','ch173'                      // new upper-UNII in 6 GHz interim use
+  ],
+
+  /* ETSI EU domains — France, Sweden, Germany, UK, etc. */
+  FR: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140'
+  ],
+  SE: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140'
+  ],
+  DE: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140'
+  ],
+  GB: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140'
+  ],
+
+  /* Australia — same as FCC minus 169/173 (not yet adopted) */
+  AU: [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140','ch144',
+    'ch149','ch153','ch157','ch161','ch165'
+  ],
+
+  /* World (regdomain 00) — superset of the widest common subset */
+  '00': [
+    'ch36','ch40','ch44','ch48',
+    'ch52','ch56','ch60','ch64',
+    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
+    'ch132','ch136','ch140','ch144',
+    'ch149','ch153','ch157','ch161','ch165',
+    'ch169','ch173'
+  ]
+};
+
+
+const chSel        = document.getElementById('chSel');
+const regionRadios = document.querySelectorAll('input[name="region"]');
+
+function updateChannels() {
+  const region  = document.querySelector('input[name="region"]:checked').value;
+  const allowed = regionChannels[region];
+
+  Array.from(chSel.options).forEach(opt => {
+    /* option value looks like "ch157 --make-permanent" – we only need "ch157" */
+    const chan = opt.value.split(' ')[0];
+    const base = chan.replace(/-20$/, '');          // treat 20 MHz variant same
+    const mayUse = allowed.includes(base);
+    opt.disabled = opt.hidden = !mayUse;
+  });
+
+  /* ensure dropdown never sits on a disabled item */
+  if (chSel.selectedOptions[0]?.disabled) {
+    const firstGood = Array.from(chSel.options).find(o => !o.disabled);
+    if (firstGood) chSel.value = firstGood.value;
+  }
+}
+
+/* hook listeners + initialise once */
+regionRadios.forEach(r => r.addEventListener('change', updateChannels));
+updateChannels();
 
 
 
