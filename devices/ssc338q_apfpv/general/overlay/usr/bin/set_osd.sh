@@ -45,6 +45,7 @@ esac
 
 /etc/init.d/S99msposd start
 /etc/init.d/S991aalink start
+/etc/init.d/S996ap_alink start
 sleep 5
 echo "" > /tmp/MSPOSD.msg
 exit 0
