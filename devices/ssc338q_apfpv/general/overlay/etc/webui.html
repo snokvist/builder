@@ -151,6 +151,14 @@
     <input type="range" id="osdLevelSlider" min="0" max="3" step="1" value="0">
   </div>
 
+  <!-- Signal‑bar toggle --------------------------------------------------- -->
+  <div class="row" id="signalbarRow">
+    <label style="flex:1; text-align:center; user-select:none;">
+      <input type="checkbox" id="signalbarToggle">
+      Show Signal Bar
+    </label>
+  </div>
+  
   <!-- Reboot -->
   <div class="row">
     <button class="btn danger" style="width:100%;flex:1"
@@ -540,7 +548,7 @@ function goArg(name, arg) {
     'input',
     debounce(() => {
       osdLevelValue.textContent = osdLevelSlider.value;
-      sendLevelOsdSize();
+      sendOsdLevelSize();
     }, 300)
   );
   osdLevelSlider.addEventListener('change', sendOsdLevelSize);
@@ -554,6 +562,43 @@ function goArg(name, arg) {
   });
   
 
+// ---------------------------------------------------------------------
+// SIGNAL‑BAR TOGGLE LOGIC
+// ---------------------------------------------------------------------
+const signalbarToggle = document.getElementById('signalbarToggle');
+
+/* initialise from /value/aalink_signalbar (true|false) with retry × 5 */
+(function initSignalbar(attempts = 5) {
+  let tries = 0;
+  const attempt = () => {
+    fetchJSONOrText('/value/aalink_signalbar', {}, 1000)
+      .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
+      .then(txt => {                   // e.g. "true\n"
+        signalbarToggle.checked = /^true$/i.test(txt.trim());
+      })
+      .catch(err => {
+        if (++tries < attempts) {
+          setTimeout(attempt, 400 * tries);
+        } else {
+          console.error('signalbar init failed', err);
+          render('Signal‑bar init failed: ' + err.message);
+        }
+      });
+  };
+  attempt();
+})();
+
+/* send enable/disable when user clicks */
+signalbarToggle.addEventListener('change', () => {
+  const cmd = signalbarToggle.checked
+    ? 'aalink_signalbar_enable'
+    : 'aalink_signalbar_disable';
+  goArg('control_cmd', cmd);
+});
+
+
+
+  
   // ---------------------------------------------------------------------
   // PERIODIC LOG POLL
   // ---------------------------------------------------------------------
