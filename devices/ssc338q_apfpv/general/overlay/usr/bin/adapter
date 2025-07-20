@@ -111,6 +111,7 @@ case "$1" in
 	stop)
 		kill -9 $(pidof udhcpd)
 		kill -9 $(pidof hostapd)
+		ifconfig wlan0 down 
 		[ -e /var/run/hostapd/wlan0 ] && rm -f /var/run/hostapd/wlan0
 		sleep 1
 		;;
