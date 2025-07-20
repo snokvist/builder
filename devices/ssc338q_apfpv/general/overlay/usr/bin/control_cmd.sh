@@ -31,7 +31,7 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
-  vtx_stop_dhcpd)
+  vtx_stop_udhcpd)
     {
       printf '▶  Killing udhcpd …\n'
       kill -9 $(pidof udhcpd) 
