@@ -24,14 +24,14 @@ TIMEOUT=5
 
 case "$1" in
 # ===== VRX commands ==================================================
-  vtx_adapter_start)
+  vtx_start_adapter)
     {
       printf '▶  (RE)Starting adapter …\n'
       adapter start
     } 2>&1 | tee "$LOG"
     ;;
 
-  vtx_disable_dhcpcd)
+  vtx_stop_dhcpd)
     {
       printf '▶  Killing udhcpd …\n'
       kill -9 $(pidof udhcpd) 
