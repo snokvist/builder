@@ -20,9 +20,6 @@ wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
 master=$(fw_printenv -n master_ip || echo 192.168.0.10)
 port=$(fw_printenv -n master_port || echo 5600)
 protocol=$(fw_printenv -n master_protocol || echo udp)
-cli -s .outgoing.server $protocol://$master:$port
-control_cmd.sh aalink_ip_dest $master
-
 
 [ "$chan" -le 13 ] && mode=g || mode=a
 
@@ -99,6 +96,8 @@ case "$1" in
 	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
+		cli -s .outgoing.server $protocol://$master:$port
+		control_cmd.sh aalink_ip_dest $master
 		;;
 
 	start)
