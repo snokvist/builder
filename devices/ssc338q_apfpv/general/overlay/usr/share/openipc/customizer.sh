@@ -56,5 +56,5 @@ chmod +x /etc/init.d/S995service_watchdog
 chmod +x /usr/bin/set_masterip.sh
 chmod +x /usr/bin/ap_alink
 chmod +x /etc/init.d/S996ap_alink
-chmod +x /usr/bin/set_aplink.sh
+chmod +x /usr/bin/set_apalink.sh
 chmod +x /usr/bin/set_mcs.sh
