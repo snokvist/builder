@@ -79,6 +79,19 @@
       border:none; border-radius:50%; cursor:pointer; touch-action:none;
     }
 
+    /* ----- inactive‑server overlay ---------------------------------------- */
+    #inactiveMask {
+      position:fixed; inset:0;                /* full‑screen */
+      background:rgba(255,255,255,.8);
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      font-size:1.2em; font-weight:600; color:#333;
+      z-index:9999;
+      opacity:0; pointer-events:none;         /* invisible until .visible */
+      transition:opacity .3s ease;
+    }
+    #inactiveMask.visible { opacity:1; pointer-events:auto; }
+
+    
     /* ------- info box --------------------------------------------------- */
     .info-box { margin-top:1em; background:#dceaff; border:1px solid #339;
                 border-radius:6px; padding:1em; min-height:6em;
@@ -89,6 +102,8 @@
 
 <h1>OPENIPC AP-FPV</h1>
 <center><body>---<::: RC8 aalink4h :::>---</body></center>
+<div id="inactiveMask">Connection lost – trying to reconnect…</div>
+
 
 <!-- Tabs -->
 <div class="tabs">
@@ -381,6 +396,30 @@
     };
   }
 
+// ---------------------------------------------------------------------
+// ACTIVE / INACTIVE SERVER STATE
+// ---------------------------------------------------------------------
+const inactiveMask = document.getElementById('inactiveMask');
+let   isActive     = true;   // current state
+let   failCount    = 0;      // consecutive /log failures before we grey out
+
+function setActiveState(state) {
+  if (state === isActive) return;          // nothing to do
+  isActive = state;
+
+  // toggle overlay
+  inactiveMask.classList.toggle('visible', !state);
+
+  // enable / disable every form control
+  document.querySelectorAll('button, input, select')
+    .forEach(el => {
+      // never disable the overlay itself (it’s not a control anyway)
+      if (el === inactiveMask) return;
+      el.disabled = !state;
+    });
+}
+
+  
   /* fire fn() only for real user interaction */
   function ifUser(e, fn) {
     if (e && e.isTrusted) fn();
@@ -432,13 +471,21 @@ function isBenignAbort(err) {
   }
 
   function updateLog() {
-    if (logPollPaused) return;                        // skip if paused
+    if (logPollPaused) return;
+  
     fetchJSONOrText('/log', {}, 1500)
       .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
-      .then(render)
+      .then(txt => {
+        failCount = 0;                // success: reset counter
+        setActiveState(true);         // UI active
+        render(txt);
+      })
       .catch(e => {
         console.error('Log fetch error:', e);
         render('Log error: ' + e);
+  
+        // after 2 consecutive failures, declare inactive
+        if (++failCount >= 2) setActiveState(false);
       });
   }
 
