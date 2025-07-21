@@ -53,11 +53,11 @@ chmod +x /usr/bin/service_watchdog.sh
 chmod +x /usr/bin/set_osd.sh
 chmod +x /usr/bin/ota.sh
 chmod +x /usr/bin/control_cmd.sh
-chmod +x /etc/init.d/S997manual_antenna
+chmod +x /etc/init.d/S997antenna_osd
 chmod +x /usr/bin/set_masterip.sh
 chmod +x /usr/bin/ap_alink
 chmod +x /etc/init.d/S996ap_alink
 chmod +x /usr/bin/set_apalink.sh
 chmod +x /usr/bin/set_mcs.sh
 chmod +x /usr/bin/msposd
-chmod +x /usr/bin/antenna_bar.sh
+chmod +x /usr/bin/antenna_osd
