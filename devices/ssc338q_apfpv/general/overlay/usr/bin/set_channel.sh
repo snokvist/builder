@@ -1,24 +1,30 @@
 #!/bin/sh
 # ---------------------------------------------------------
-# set_channel.sh – BusyBox-compatible channel helper
-# Updated: 2025‑07‑21
+# set_channel.sh – BusyBox‑compatible channel helper
+# Updated: 2025‑07‑21  (log aggregation)
 #
-# * Added support for **all** 5 GHz channels listed in regionChannels
-#   (36‑173) with both 20 MHz variants (e.g. ch52‑20) **and** HT40 variants
-#   on the lower channel of each permissible pair (e.g. ch52).
-# * Verifies that the channel switch succeeded via `iw dev $IFACE info`
-#   before writing to the bootloader (fw_setenv). If verification fails,
-#   no permanent change is written and a warning is logged.
-# * Keeps the original 88XXau fallback logic.
-# * Usage/help output automatically lists every new mode.
+# * Supports **all** 5 GHz channels (36‑173) with 20 MHz and HT40 variants.
+# * Aggregates every line of output into a temp file, then writes it
+#   once to /tmp/webui.log (replacing the old log) when the script ends.
+# * Verifies channel switch via `iw dev $IFACE info` before committing.
+# * Keeps the original 88XXau “reboot required” fallback logic.
 # ---------------------------------------------------------
 
 ############################################################################
-# 0)  Helper – log everything to /tmp/webui.log *and* to the console
+# 0)  Logging – collect everything, flush on exit
 ############################################################################
-log() {           # log "message …"
-    printf '%s\n' "$*" | tee -a /tmp/webui.log
+LOG_TMP="$(mktemp)"            # buffer for the whole run
+
+log() {                        # log "message …"
+    printf '%s\n' "$*"         # show immediately on the console
+    printf '%s\n' "$*" >> "$LOG_TMP"
 }
+
+finish() {                     # dump buffer → /tmp/webui.log (overwrite)
+    cat "$LOG_TMP" | tee /tmp/webui.log
+    rm -f "$LOG_TMP"
+}
+trap finish EXIT
 
 ############################################################################
 # 1)  Detect the USB WLAN chipset → driver name
@@ -33,7 +39,7 @@ detect_driver() {
     done
     echo unknown
 }
-DRIVER=$(detect_driver)
+DRIVER="$(detect_driver)"
 
 ############################################################################
 # 2)  Constants
@@ -47,7 +53,7 @@ BW40="bandwidth=40 ht vht"             # CSA flags for HT40
 # 3)  Helper – write channel to bootloader env (permanent)
 ############################################################################
 permanent_set() {                      # $1 = primary channel number
-    fw_setenv wlanchan "$1" 2>&1 | tee -a /tmp/webui.log
+    fw_setenv wlanchan "$1" 2>&1 | tee -a "$LOG_TMP"
     log "(fw_setenv wlanchan $1)"
 }
 
@@ -71,7 +77,7 @@ do_switch() {                          # $1 = hostapd_cli command, $2 = primary 
         return
     fi
 
-    eval "$1" 2>&1 | tee -a /tmp/webui.log
+    eval "$1" 2>&1 | tee -a "$LOG_TMP"
     sleep 3   # give hostapd a moment to complete CSA
 
     if verify_channel "$2"; then
@@ -126,7 +132,7 @@ case "$MODE" in
     ch140-20)  log "DFS: CAC ~60 s…" ; do_switch "$HOSTAPD_CLI chan_switch $CS 5700"                                140 ;;
     ch144-20)  log "DFS: CAC ~60 s…" ; do_switch "$HOSTAPD_CLI chan_switch $CS 5720"                                144 ;;
 
-# UNII‑3 / UNII‑4 – 149/153‑165 and 169/173 (5.8‑5.9‑6.0 GHz)
+# UNII‑3 / UNII‑4 – 149/153‑165 and 169/173 (5.8‑6.0 GHz)
     ch149)     do_switch "$HOSTAPD_CLI chan_switch $CS 5745  sec_channel_offset=1 center_freq1=5755 $BW40" 149 ;;
     ch149-20)  do_switch "$HOSTAPD_CLI chan_switch $CS 5745"                                                    149 ;;
     ch153-20)  do_switch "$HOSTAPD_CLI chan_switch $CS 5765"                                                    153 ;;
