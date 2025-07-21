@@ -44,12 +44,7 @@ case "$1" in
 esac
 kill -9 $(pidof aalink)
 kill -9 $(pidof ap_alink)
-
-/etc/init.d/S99msposd stop
-/etc/init.d/S991aalink stop
-/etc/init.d/S996ap_alink stop
-/etc/init.d/S997manual_antenna stop
-
+kill $(pgrep -f antenna_bar.sh)
 /etc/init.d/S99msposd start
 /etc/init.d/S991aalink start
 /etc/init.d/S996ap_alink start
