@@ -23,9 +23,9 @@ level=$(printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]')
 
 case "$level" in
     pitmode) PWR=250  ;;   # 2.5 dBm
-    low)     PWR=500  ;;   # 10 dBm
-    medium)  PWR=1250 ;;   # 20 dBm
-    high)    PWR=2250 ;;   # 30 dBm
+    low)     PWR=750  ;;   # 10 dBm
+    medium)  PWR=1500 ;;   # 20 dBm
+    high)    PWR=2500 ;;   # 30 dBm
     *)
         echo "Unknown level: $1" >&2
         echo "Usage: $0 Pitmode|Low|Medium|High" >&2
