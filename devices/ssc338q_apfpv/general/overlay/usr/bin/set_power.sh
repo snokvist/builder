@@ -1,8 +1,8 @@
 #!/bin/sh
-# Set Wi-Fi TX power.
-# - Presets:  Pitmode, Low, Medium, High     (same as before)
-# - Manual:   tx_power <mBm 50-3150>         e.g.  tx_power 1234
-#   (mBm = dBm × 100, so 2000 mBm = 20 dBm)
+# Set or query Wi‑Fi TX power.
+# Presets : Pitmode • Low • Medium • High
+# Manual  : tx_power <mBm 50‑3150>
+# Query   : get_current                (prints current power in mBm)
 
 ###############################################################################
 # Detect driver
@@ -11,7 +11,7 @@ driver=
 for card in $(lsusb | awk '{print $6}' | uniq); do
     case "$card" in
         "0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
-            driver=88XXau ;;        # Realtek 8812au/8821au etc.
+            driver=88XXau ;;
         "0bda:a81a")
             driver=8812eu ;;
         "0bda:f72b" | "0bda:b733")
@@ -20,12 +20,13 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
 done
 
 ###############################################################################
-# Translate CLI input to numeric mBm (PWR)
+# Parse arguments
 ###############################################################################
 if [ $# -eq 0 ]; then
     echo "Usage:"
     echo "  $0 Pitmode|Low|Medium|High"
-    echo "  $0 tx_power <50-3150>"
+    echo "  $0 tx_power <50‑3150>"
+    echo "  $0 get_current           # prints current mBm"
     exit 1
 fi
 
@@ -33,42 +34,44 @@ level=$(printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]')
 PWR=""
 
 case "$level" in
-    pitmode) PWR=250  ;;      #  2.5 dBm
-    low)     PWR=750  ;;      # 10.0 dBm
-    medium)  PWR=1500 ;;      # 20.0 dBm
-    high)    PWR=2500 ;;      # 30.0 dBm
+    pitmode) PWR=250  ;;                      #  2.5 dBm
+    low)     PWR=750  ;;                      # 10.0 dBm
+    medium)  PWR=1500 ;;                      # 20.0 dBm
+    high)    PWR=2500 ;;                      # 30.0 dBm
     tx_power)
-        # Expect second argument = raw mBm integer
-        if [ -z "$2" ]; then
-            echo "tx_power requires a numeric argument (50-3150)" >&2; exit 1
-        fi
-        if ! printf '%s' "$2" | grep -Eq '^[0-9]+$'; then
-            echo "tx_power value must be an integer (mBm)" >&2; exit 1
-        fi
-        if [ "$2" -lt 50 ] || [ "$2" -gt 3150 ]; then
-            echo "tx_power value out of range (50-3150 mBm)" >&2; exit 1
-        fi
+        [ -z "$2" ] && { echo "tx_power needs <50‑3150>" >&2; exit 1; }
+        printf '%s\n' "$2" | grep -Eq '^[0-9]+$' || {
+            echo "tx_power value must be an integer" >&2; exit 1; }
+        [ "$2" -lt 50 ] || [ "$2" -gt 3150 ] && {
+            echo "tx_power out of range (50‑3150)" >&2; exit 1; }
         PWR="$2"
+        ;;
+    get_current)
+        # Grab first 'txpower' line, field before 'dBm'
+        cur=$(iw dev wlan0 info 2>/dev/null | awk '/txpower/ {print $(NF-1); exit}')
+        [ -z "$cur" ] && cur=$(iw dev        | awk '/txpower/ {print $(NF-1); exit}')
+        [ -z "$cur" ] && { echo "N/A" >&2; exit 1; }
+
+        cur=${cur#-}                       # <-- strip leading minus, if any
+        mbm=$(awk "BEGIN {printf \"%d\", $cur*100}")  # float→int mBm
+        echo "$mbm"
+        exit 0
         ;;
     *)
         echo "Unknown level: $1" >&2
-        echo "Usage: $0 Pitmode|Low|Medium|High|tx_power <50-3150>" >&2
+        echo "Usage: $0 Pitmode|Low|Medium|High|tx_power <50‑3150>|get_current" >&2
         exit 1 ;;
 esac
 
 ###############################################################################
-# Calculate driver-specific fixed value
+# Driver‑specific fixed value
 ###############################################################################
-fw_setenv wlanpwr "$PWR"      # store original value in U-Boot env
+fw_setenv wlanpwr "$PWR"           # remember original mBm request
 
-TXPWR="$PWR"                  # default = raw value
+TXPWR="$PWR"
 if [ "$driver" = "88XXau" ]; then
-    # 88XXau wants:   if >1999 subtract 500, then -2 × value
-    if [ "$PWR" -gt 1999 ]; then
-        adj=$(( PWR - 500 ))
-    else
-        adj=$PWR
-    fi
+    adj=$PWR
+    [ "$PWR" -gt 1999 ] && adj=$(( PWR - 500 ))
     TXPWR=$(( -2 * adj ))
 fi
 
@@ -76,9 +79,7 @@ fi
 # Apply settings
 ###############################################################################
 iw dev wlan0 set txpower fixed "$TXPWR"
+iw dev wlan0 set txpower limit "$PWR"    # always write limit, even for 88XXau
 
-# Always write the power limit (including 88XXau)
-iw dev wlan0 set txpower limit "$PWR"
-
-echo "Power set: ${TXPWR} (mBm)  [requested ${PWR} mBm]" | tee /tmp/webui.log
+echo "Power set: ${TXPWR} mBm   (requested ${PWR} mBm)" | tee /tmp/webui.log
 exit 0
