@@ -39,7 +39,14 @@ fw_setenv wlanpwr "$PWR"          # Always store the original value
 
 TXPWR="$PWR"                      # Default: send the original value
 if [ "$driver" = "88XXau" ]; then
-    TXPWR=$(( -2 * PWR ))         # Double & negate for 88XXau
+    if [ "$PWR" -gt 1999 ]; then
+        # if PWR > 1999, subtract 500 before doubling & negating
+        adj=$(( PWR - 500 ))
+    else
+        # otherwise use the raw value
+        adj=$PWR
+    fi
+    TXPWR=$(( -2 * adj ))
 fi
 
 iw dev wlan0 set txpower fixed "$TXPWR"
