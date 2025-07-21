@@ -86,6 +86,19 @@
       width:24px; height:24px; background:var(--blue);
       border:none; border-radius:50%; cursor:pointer; touch-action:none;
     }
+    
+    /* ---- coloured thumb + filled track for txPowerSlider ---- */
+#txPowerSlider {
+  /* JS sets --thumb-color and inline background gradient */
+}
+
+#txPowerSlider::-webkit-slider-thumb {
+  background: var(--thumb-color, var(--blue));
+}
+
+#txPowerSlider::-moz-range-thumb {
+  background: var(--thumb-color, var(--blue));
+}
 
     /* ----- inactive‑server overlay ---------------------------------------- */
     #inactiveMask {
@@ -383,16 +396,15 @@
   
   
   
-  <!-- WLAN power -->
-  <div class="row">
-    <button class="btn" onclick="goArg('set_wlanpower', pwrSel.value)">Set&nbsp;Power</button>
-    <select id="pwrSel">
-      <option value="pitmode">Pitmode</option>
-      <option value="low">Low</option>
-      <option value="medium">Medium</option>
-      <option value="high">High</option>
-    </select>
-  </div>
+<!-- TX-Power (mW) SLIDER 250 - 2500 -->
+<div class="row slider-container">
+  <label for="txPowerSlider">
+    Tx&nbsp;Power&nbsp;(mW): <span id="txPowerValue">250</span>
+  </label>
+  <input type="range"
+         id="txPowerSlider" min="250" max="2500" step="10" value="250">
+</div>
+
 
   <!-- OSD -->
   <div class="row">
@@ -939,6 +951,64 @@ function goArg(name, arg) {
   });
   
 
+/* ---------- TX-POWER SLIDER 250-2500 mW ---------------- */
+const txPowerSlider = document.getElementById('txPowerSlider');
+const txPowerValue  = document.getElementById('txPowerValue');
+let   lastTxPower   = null;
+
+/* map mW → colour: 250-1250 mW green→yellow, 1250-2500 mW yellow→orange */
+function hueForTx(v) {
+  v = Number(v);
+  if (v <= 1250) {                 // green (120°) ➜ yellow (60°)
+    return 120 - 60 * ((v - 250) / 1000);
+  }
+  return 60 - 30 * ((v - 1250) / 1250);  // yellow (60°) ➜ orange (30°)
+}
+
+function paintTxSlider() {
+  const v   = txPowerSlider.value;
+  const hue = hueForTx(v);
+  const col = `hsl(${hue},100%,45%)`;
+  const pct = (v - 250) * 100 / 2250;    // fill length
+
+  /* colour thumb + left-side track */
+  txPowerSlider.style.setProperty('--thumb-color', col);
+  txPowerSlider.style.background =
+    `linear-gradient(to right, ${col} 0%, ${col} ${pct}%, #ddd ${pct}%, #ddd 100%)`;
+}
+
+/* ---- TX‑Power sender: two‑argument style ----------------------------- */
+function sendTxPower() {
+  const v = txPowerSlider.value;
+  if (v === lastTxPower) return;          // skip duplicates
+  lastTxPower = v;
+
+  /* two arguments → endpoint + 'set_txpower <value>' */
+  goArg('set_wlanpower', 'tx_power ' + v);
+}
+
+txPowerSlider.addEventListener('input',
+  debounce(e => {                  // smooth UI while dragging
+    txPowerValue.textContent = txPowerSlider.value;
+    paintTxSlider();
+    ifUser(e, sendTxPower);        // only real user events
+  }, 300)
+);
+
+txPowerSlider.addEventListener('change', e => ifUser(e, sendTxPower));
+
+/* initialise from /value/tx_power (retry ×5, like other sliders) */
+initSlider({
+  slider:   txPowerSlider,
+  display:  txPowerValue,
+  min:      250,
+  max:      2500,
+  endpoint: '/value/tx_power'
+});
+
+  
+  
+  
 // ---------------------------------------------------------------------
 // SIGNAL‑BAR TOGGLE LOGIC
 // ---------------------------------------------------------------------
