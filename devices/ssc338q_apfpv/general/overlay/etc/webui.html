@@ -109,8 +109,9 @@
 <body>
 
 <h1>OPENIPC AP-FPV</h1>
-<center><body>---<::: RC13 aalink4h - ap_alink :::>---</body></center>
+<center><body>---<::: RC15 aalink4h - ap_alink :::>---</body></center>
 <div id="inactiveMask">Connection lost – trying to reconnect…</div>
+
 
 
 <!-- Tabs -->
@@ -122,6 +123,26 @@
 
 <!-- Control Tab Content -->
 <div class="tab-content" id="contentControl">
+
+
+
+<div class="row">
+  <img
+    id="mjpegStream"
+    style="width:100%; height:auto; max-width:1104px; background:hsl(0,0%,25%); display:none;"
+    alt="MJPEG Stream">
+</div>
+
+
+<!-- Stream toggle button -->
+<div class="row">
+  <button
+    class="btn info"
+    id="toggleStream"
+    style="width:100%; flex:1">
+    Show Stream
+  </button>
+</div>
 
   <!-- Exec VTX cmd -->
   <div class="row">
@@ -233,6 +254,8 @@
     <!-- (future check‑boxes can be added right here) -->
 
   </div>
+  
+   
   
   <!-- Reboot -------------------------------------------------------------- -->
   <div class="row">
@@ -951,6 +974,29 @@ signalbarToggle.addEventListener('change', e => {
     goArg('control_cmd', cmd);
   });
 });
+
+
+
+// URL of your MJPEG feed:
+const STREAM_URL = 'http://192.168.0.1/mjpeg';
+
+const btn    = document.getElementById('toggleStream');
+const img    = document.getElementById('mjpegStream');
+let   active = false;
+
+btn.addEventListener('click', () => {
+  active = !active;
+  if (active) {
+    img.src = STREAM_URL;
+    img.style.display = 'block';
+    btn.textContent    = 'Hide Stream';
+  } else {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+    btn.textContent   = 'Show Stream';
+  }
+});
+
 
 
   
