@@ -831,7 +831,16 @@ function goArg(name, arg) {
           const v = parseInt(raw, 10);
           if (!isNaN(v) && v >= min && v <= max) {
             slider.value = v;
+            /* --- inside initSlider(), right after slider.value = v; --- */
+            if (!isNaN(v) && v >= min && v <= max) {
+            slider.value        = v;
             display.textContent = v;
+
+            /* draw initial colour for the TX‑power slider */
+            if (slider.id === 'txPowerSlider') {
+                paintTxSlider();                       // ✅ colour now set on first load
+            }
+            }
           } else {
             throw new Error('value out of range: ' + raw);
           }
