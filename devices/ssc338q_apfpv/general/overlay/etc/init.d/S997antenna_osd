@@ -17,16 +17,14 @@ case "$1" in
         fi
 
         echo "Starting antenna_osd..."
-        pid=$(pgrep -f antenna_osd 2>/dev/null)
-        [ -n "$pid" ] && kill -9 "$pid"
-        sleep 5
+        killall antenna_osd
+        sleep 1
         antenna_osd &
         ;;
 
     stop)
         echo "Stopping antenna_osd..."
-        pid=$(pgrep -f antenna_osd 2>/dev/null)
-        [ -n "$pid" ] && kill -9 "$pid"
+        killall antenna_osd
         echo "" > /tmp/MSPOSD.msg
         ;;
     *)
