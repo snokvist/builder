@@ -83,5 +83,5 @@ iw dev wlan0 set txpower limit "$PWR"    # always write limit, even for 88XXau
 # Log/output: convert requested mBm → percentage of 0‑3250
 ###############################################################################
 pct=$(( PWR * 100 / 3250 ))
-echo "Power set: ${pct}% mBm   (requested ${PWR} TX value)" | tee /tmp/webui.log
+echo "Power set: ${pct}%    (requested ${PWR} TX value)" | tee /tmp/webui.log
 exit 0
