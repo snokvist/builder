@@ -51,7 +51,7 @@ kill -9 $(pidof majestic)
 sleep 1
 kill -9 $(pidof aalink)
 kill -9 $(pidof ap_alink)
-kill $(pgrep -f antenna_bar.sh)
+kill -9 $(pidof antenna_osd)
 /etc/init.d/S95majestic start
 sleep 10
 /etc/init.d/S99msposd start
