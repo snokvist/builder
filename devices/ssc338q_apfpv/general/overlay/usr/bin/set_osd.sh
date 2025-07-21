@@ -43,15 +43,18 @@ case "$1" in
     ;;
 esac
 /etc/init.d/S99msposd stop
+/etc/init.d/S95majestic stop
 kill -9 $(pidof aalink)
 kill -9 $(pidof ap_alink)
 kill $(pgrep -f antenna_bar.sh)
 
+/etc/init.d/S95majestic start
+sleep 4
 /etc/init.d/S99msposd start
 sleep 1
 /etc/init.d/S991aalink start
 /etc/init.d/S996ap_alink start
 /etc/init.d/S997manual_antenna start
-sleep 1
+sleep 2
 echo "" > /tmp/MSPOSD.msg
 exit 0
