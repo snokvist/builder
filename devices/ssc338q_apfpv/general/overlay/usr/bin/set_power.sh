@@ -47,13 +47,11 @@ case "$level" in
         PWR="$2"
         ;;
     get_current)
-        # Grab first 'txpower' line, field before 'dBm'
         cur=$(iw dev wlan0 info 2>/dev/null | awk '/txpower/ {print $(NF-1); exit}')
-        [ -z "$cur" ] && cur=$(iw dev        | awk '/txpower/ {print $(NF-1); exit}')
+        [ -z "$cur" ] && cur=$(iw dev | awk '/txpower/ {print $(NF-1); exit}')
         [ -z "$cur" ] && { echo "N/A" >&2; exit 1; }
-
-        cur=${cur#-}                       # <-- strip leading minus, if any
-        mbm=$(awk "BEGIN {printf \"%d\", $cur*100}")  # float→int mBm
+        cur=${cur#-}                                      # strip minus sign
+        mbm=$(awk "BEGIN {printf \"%d\", $cur*100}")
         echo "$mbm"
         exit 0
         ;;
@@ -81,5 +79,9 @@ fi
 iw dev wlan0 set txpower fixed "$TXPWR"
 iw dev wlan0 set txpower limit "$PWR"    # always write limit, even for 88XXau
 
-echo "Power set: ${TXPWR} mBm   (requested ${PWR} mBm)" | tee /tmp/webui.log
+###############################################################################
+# Log/output: convert requested mBm → percentage of 0‑3250
+###############################################################################
+pct=$(( PWR * 100 / 3250 ))
+echo "Power set: ${pct}%    (requested ${PWR} TX value)" | tee /tmp/webui.log
 exit 0
