@@ -8,12 +8,12 @@ INFO_FILE="/proc/net/rtl88x2eu/wlan0/trx_info_debug"
 OUT_FILE="/tmp/MSPOSD.msg"
 
 INTERVAL=0.1       # seconds between updates
-BAR_WIDTH=30       # glyph cells in the bar
+BAR_WIDTH=37      # glyph cells in the bar
 TOP=80             # % that fills the bar
 BOTTOM=20          # % that empties the bar
 
-OSD_HDR=' &F48&L20' # OSD control header
-PING_IP="192.168.0.10"   # target to ping (leave empty to disable)
+OSD_HDR=' &F34&L20'    # OSD control header: font size 48, color red bottom‑left
+PING_IP="192.168.0.10" # target to ping (leave empty to disable)
 
 START='['          # left bracket of the bar
 END=']'            # right bracket
@@ -75,13 +75,15 @@ while :; do
         i=$((i+1))
     done
 
-    # 4) write OSD message
-    printf '%s%s %s%s%s %d%%\n' \
-           "$OSD_HDR" "$GL_ANT" "$START" "$BAR" "$END" "$Q" > "$OUT_FILE"
+    # 4) write OSD message (two lines)
+    {
+      # line 1: antenna + bar + raw %
+      printf '%s%s %s%s%s %d%%\n' \
+             "$OSD_HDR" "$GL_ANT" "$START" "$BAR" "$END" "$Q"
+      # line 2: custom diagnostics
+      printf 'TEMP: &TC/&WC | STATS: &B | CPU: &C\n'
+    } > "$OUT_FILE"
 
-    # 5) debug to stdout
-    #echo "DBG: raw=$Q%%  scaled=$PCT%%  bar='${START}${BAR}${END}'"
-
+    # 5) wait for next update
     sleep "$INTERVAL"
 done
-
