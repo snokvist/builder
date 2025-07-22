@@ -58,7 +58,7 @@ sleep 10
 sleep 1
 /etc/init.d/S991aalink start
 /etc/init.d/S996ap_alink start
-/etc/init.d/S997manual_antenna start
+/etc/init.d/S997antenna_osd
 sleep 1
 echo "" > /tmp/MSPOSD.msg
 exit 0
