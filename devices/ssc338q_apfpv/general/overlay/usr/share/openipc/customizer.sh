@@ -12,7 +12,7 @@ fw_setenv upgrade 'https://github.com/OpenIPC/builder/releases/download/latest/o
 #
 cli -s .isp.exposure 8
 cli -s .video0.fps 60
-cli -s .video0.size 1440x1080
+cli -s .video0.size 1920x1440
 cli -s .video0.bitrate 8096
 cli -s .video0.codec h265
 cli -s .video0.rcMode cbr
