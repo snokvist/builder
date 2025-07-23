@@ -43,12 +43,13 @@ case "$1" in
     ;;
 esac
 
-kill -9 $(pidof msposd) 
+killall -q $(pidof msposd) 
 sleep 1
-kill $(pidof majestic)
+killall -q $(pidof majestic)
 sleep 1
 kill -9 $(pidof majestic) 
 sleep 1
+kill -9 $(pidof msposd) 
 kill -9 $(pidof aalink)
 kill -9 $(pidof ap_alink)
 kill -9 $(pidof antenna_osd)
