@@ -61,3 +61,4 @@ chmod +x /usr/bin/set_apalink.sh
 chmod +x /usr/bin/set_mcs.sh
 chmod +x /usr/bin/msposd
 chmod +x /usr/bin/antenna_osd
+chmod +x /usr/bin/set_externalosd.sh
