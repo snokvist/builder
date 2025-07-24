@@ -264,7 +264,12 @@
       Show Signal Bar
     </label>
 
-    <!-- (future check‑boxes can be added right here) -->
+    <div class="row">
+  <label style="user-select:none;">
+    <input type="checkbox" id="powerUserToggle">
+    Power User Mode
+  </label>
+    </div>
 
   </div>
   
@@ -401,10 +406,13 @@
   <label for="txPowerSlider">
     Tx&nbsp;Power %&nbsp;(Scale 0-3250): <span id="txPowerValue">250</span>
   </label>
-  <input type="range"
-         id="txPowerSlider" min="250" max="2500" step="50" value="250">
+  <input
+    type="range"
+    id="txPowerSlider"
+    data-default-min="250"  data-default-max="2500"
+    data-power-min="250"    data-power-max="3100"
+    min="250" max="2500" step="50" value="250">
 </div>
-
 
   <!-- OSD -->
   <div class="row">
@@ -975,15 +983,35 @@ function hueForTx(v) {
 }
 
 function paintTxSlider() {
-  const v   = txPowerSlider.value;
+  const slider = document.getElementById('txPowerSlider');
+  const v      = Number(slider.value);
+  const min    = Number(slider.min);
+  const max    = Number(slider.max);
+
+  // 1) hue/color stays exactly as before
   const hue = hueForTx(v);
   const col = `hsl(${hue},100%,45%)`;
-  const pct = (v - 250) * 100 / 2250;    // fill length
 
-  /* colour thumb + left-side track */
-  txPowerSlider.style.setProperty('--thumb-color', col);
-  txPowerSlider.style.background =
-    `linear-gradient(to right, ${col} 0%, ${col} ${pct}%, #ddd ${pct}%, #ddd 100%)`;
+  // 2) measure dimensions
+  const fullW     = slider.getBoundingClientRect().width;
+  const thumbW    = 24;                              // matches your CSS
+  const trackW    = fullW - thumbW;                  // distance thumb travel
+
+  // 3) compute where the thumb *center* sits, as a % of full width
+  const ratio     = (v - min) / (max - min);
+  const centerX   = ratio * trackW + thumbW / 2;
+  const pct       = (centerX * 100) / fullW;
+
+  // 4) apply gradient up to exactly that pct
+  slider.style.setProperty('--thumb-color', col);
+  slider.style.background = 
+    `linear-gradient(
+       to right,
+       ${col} 0%,
+       ${col} ${pct}%,
+       #ddd ${pct}%,
+       #ddd 100%
+     )`;
 }
 
 /* ---- TX‑Power sender: two‑argument style ----------------------------- */
@@ -1075,6 +1103,45 @@ btn.addEventListener('click', () => {
     btn.textContent   = 'Show Stream';
   }
 });
+
+
+const powerToggle = document.getElementById('powerUserToggle');
+
+powerToggle.addEventListener('change', () => {
+  const isPower = powerToggle.checked;
+
+  // 1) show/hide extra <option>s:
+  document.querySelectorAll('option.extra').forEach(opt => {
+    opt.hidden = !isPower;
+    // if the current selection is now hidden, force it back to the first available:
+    const sel = opt.parentElement;
+    if (sel.value === opt.value && isPower === false) {
+      const good = Array.from(sel.options).find(o => !o.hidden);
+      if (good) sel.value = good.value;
+    }
+  });
+
+  // 2) swap slider min/max:
+  document.querySelectorAll('input[type=range]').forEach(slider => {
+    const dmin = slider.dataset.defaultMin;
+    const dmax = slider.dataset.defaultMax;
+    const pmin = slider.dataset.powerMin;
+    const pmax = slider.dataset.powerMax;
+    if (pmin && pmax) {
+      slider.min = isPower ? pmin : dmin;
+      slider.max = isPower ? pmax : dmax;
+      // clamp current value into new range:
+      if (+slider.value < +slider.min) slider.value = slider.min;
+      if (+slider.value > +slider.max) slider.value = slider.max;
+      // update any on‑page display
+      const lbl = document.getElementById(slider.id + 'Value');
+      if (lbl) lbl.textContent = slider.value;
+      // if it’s the txPowerSlider, repaint its gradient/thumb
+      if (slider.id === 'txPowerSlider') paintTxSlider();
+    }
+  });
+});
+
 
 
 
