@@ -21,6 +21,7 @@ region=$(fw_printenv -n wlanregion || echo US)
 master=$(fw_printenv -n master_ip || echo 192.168.0.10)
 port=$(fw_printenv -n master_port || echo 5600)
 protocol=$(fw_printenv -n master_protocol || echo udp)
+80211n=1
 
 [ "$chan" -le 13 ] && mode=g || mode=a
 
@@ -35,10 +36,12 @@ case "$driver" in
 	region=00
         # ----- Flip wlanpwr sign only for 88XXau -----
         # If $wlanpwr does *not* start with '-', prepend one.
-        case "$wlanpwr" in
-            -*) ;;                    # already negative – leave it alone
-            *)  wlanpwr="-$wlanpwr" ;; # make it negative
-        esac
+        #case "$wlanpwr" in
+        #    -*) ;;                    # already negative – leave it alone
+        #    *)  wlanpwr="-$wlanpwr" ;; # make it negative
+        #esac
+
+	80211n=0
         ;;
 
     *)
