@@ -67,11 +67,11 @@ esac
 fw_setenv wlanpwr "$PWR"           # remember original mBm request
 
 TXPWR="$PWR"
-if [ "$driver" = "88XXau" ]; then
-    adj=$PWR
-    [ "$PWR" -gt 1999 ] && adj=$(( PWR - 500 ))
-    TXPWR=$(( -2 * adj ))
-fi
+#if [ "$driver" = "88XXau" ]; then
+#    adj=$PWR
+#    [ "$PWR" -gt 1999 ] && adj=$(( PWR - 500 ))
+#    TXPWR=$(( -2 * adj ))
+#fi
 
 ###############################################################################
 # Apply settings
