@@ -64,7 +64,7 @@ esac
 ###############################################################################
 # Driver‑specific fixed value
 ###############################################################################
-#fw_setenv wlanpwr "$PWR"           # remember original mBm request
+fw_setenv wlanpwr "$PWR"           # remember original mBm request
 
 TXPWR="$PWR"
 #if [ "$driver" = "88XXau" ]; then
