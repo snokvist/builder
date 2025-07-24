@@ -11,6 +11,11 @@
 CONF=/etc/aalink.conf
 LOG=/tmp/webui.log
 
+# ─── Region‑specific 20MHz MCS caps (easy to change!) ─────────────────────
+CAP_MCS20_EU=7    # max MCS20 for EU
+CAP_MCS20_AU=2    # max MCS20 for AU
+CAP_MCS20_BU=7    # max MCS20 for BU
+
 # Preset threshold tables
 THRESH_MIN="00,15,25,34,45,58,65,70"
 THRESH_MED="00,20,30,38,50,63,75,88"
@@ -53,6 +58,7 @@ esac
 if printf '%s\n' "$arg" | grep -q '^mcs_[0-7]$'; then
     mcs="${arg#mcs_}"
 
+    # map "0" → 1/0, else X → X/(X-1)
     if [ "$mcs" -eq 0 ]; then
         MCS20=1; MCS40=0
     else
@@ -60,9 +66,27 @@ if printf '%s\n' "$arg" | grep -q '^mcs_[0-7]$'; then
     fi
 
     for R in EU AU BU; do
+        # pick the cap variable for this region:
+        cap_var="CAP_MCS20_${R}"
+        cap=$(eval echo \$$cap_var)
+
+        # region‑specific floor: if requested > cap, use cap
+        if [ "$MCS20" -gt "$cap" ]; then
+            MCS20_R=$cap
+        else
+            MCS20_R=$MCS20
+        fi
+
+        # derive MCS40_R = MCS20_R - 1, never negative
+        if [ "$MCS20_R" -gt 0 ]; then
+            MCS40_R=$((MCS20_R - 1))
+        else
+            MCS40_R=0
+        fi
+
         sed -i \
-            -e "s/^MAX_MCS_${R}=.*/MAX_MCS_${R}=${MCS20}/" \
-            -e "s/^MAX_MCS_40_${R}=.*/MAX_MCS_40_${R}=${MCS40}/" \
+            -e "s/^MAX_MCS_${R}=.*/MAX_MCS_${R}=${MCS20_R}/" \
+            -e "s/^MAX_MCS_40_${R}=.*/MAX_MCS_40_${R}=${MCS40_R}/" \
             "$CONF"
     done
 fi
@@ -73,7 +97,7 @@ case "$arg" in
     threshold_min)    THRESH=$THRESH_MIN ;;
     threshold_medium) THRESH=$THRESH_MED ;;
     threshold_max)    THRESH=$THRESH_MAX ;;
-    mcs_*) ;;  # already handled
+    mcs_*) ;;  # already handled above
     *) echo "✗  Invalid argument: $arg" >&2
        echo "    Use mcs_0…mcs_7, threshold_min|medium|max, or status" >&2
        exit 1 ;;
