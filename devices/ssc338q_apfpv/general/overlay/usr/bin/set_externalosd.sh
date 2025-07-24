@@ -14,7 +14,7 @@ usage() {
 # --- parse args ---
 [ $# -eq 1 ] || usage
 STATE="$1"
-[ "$STATE" = "enabled" ] || [ "$STATE" = "disabled" ] || usage
+[ "$STATE" = "enable" ] || [ "$STATE" = "disable" ] || usage
 
 # --- detect adapter ---
 for a in rtl8812au rtl88x2eu rtl8733bu; do
