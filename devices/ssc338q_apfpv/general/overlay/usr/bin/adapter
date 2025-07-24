@@ -13,6 +13,13 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
     esac
 done
 
+mode=$(fw_printenv -n mode 2>/dev/null)
+if [ -z "$mode" ]; then
+    echo "fw_printenv: mode undefined – setting default to aalink"
+    fw_setenv mode aalink
+    mode=aalink
+fi
+
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 157)
