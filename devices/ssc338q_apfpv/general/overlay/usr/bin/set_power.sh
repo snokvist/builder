@@ -64,7 +64,7 @@ esac
 ###############################################################################
 # Driver‑specific fixed value
 ###############################################################################
-fw_setenv wlanpwr "$PWR"           # remember original mBm request
+#fw_setenv wlanpwr "$PWR"           # remember original mBm request
 
 TXPWR="$PWR"
 #if [ "$driver" = "88XXau" ]; then
@@ -77,7 +77,7 @@ TXPWR="$PWR"
 # Apply settings
 ###############################################################################
 iw dev wlan0 set txpower fixed "$TXPWR"
-iw dev wlan0 set txpower limit "$PWR"    # always write limit, even for 88XXau
+#iw dev wlan0 set txpower limit "$PWR"    # always write limit, even for 88XXau
 
 ###############################################################################
 # Log/output: convert requested mBm → percentage of 0‑3250
