@@ -43,7 +43,8 @@ case "$1" in
     ;;
 esac
 
-killall -q $(pidof msposd) 
+#killall -q $(pidof msposd) 
+kill -9 $(pidof msposd) 
 sleep 1
 killall -q $(pidof majestic)
 sleep 1
