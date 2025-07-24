@@ -32,7 +32,7 @@ fi
 STATE="$CMD"  # enabled or disabled
 
 # detect adapter
-for a in rtl8812au rtl8812eu rtl8733bu; do
+for a in rtl8812au rtl88x2eu rtl8733bu; do
     if [ -f "/proc/net/${a}/wlan0/trx_info_debug" ]; then
         ADAPTER="$a"
         break
