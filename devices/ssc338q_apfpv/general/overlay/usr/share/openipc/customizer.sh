@@ -59,3 +59,4 @@ chmod +x /usr/bin/set_mcs.sh
 chmod +x /usr/bin/msposd
 chmod +x /usr/bin/antenna_osd
 chmod +x /usr/bin/set_externalosd.sh
+mv /etc/init.d/S99msposd /etc/init.d/S98msposd
