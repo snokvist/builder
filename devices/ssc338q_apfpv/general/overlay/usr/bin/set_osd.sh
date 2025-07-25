@@ -52,15 +52,13 @@ kill -9 $(pidof majestic)
 sleep 1
 kill -9 $(pidof msposd) 
 kill -9 $(pidof aalink)
-kill -9 $(pidof ap_alink)
 kill -9 $(pidof antenna_osd)
 majestic -s &
 sleep 10
 /etc/init.d/S99msposd start
 sleep 1
 /etc/init.d/S991aalink start
-/etc/init.d/S996ap_alink start
-/etc/init.d/S997antenna_osd start
+/etc/init.d/S990antenna_osd start
 sleep 1
 echo "" > /tmp/MSPOSD.msg
 exit 0
