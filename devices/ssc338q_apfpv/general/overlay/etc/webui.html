@@ -389,9 +389,9 @@
   <input
     type="range"
     id="txPowerSlider"
-    data-default-min="250"  data-default-max="2500"
-    data-power-min="250"    data-power-max="3100"
-    min="250" max="2500" step="50" value="250">
+    data-default-min="200"  data-default-max="2500"
+    data-power-min="200"    data-power-max="3100"
+    min="200" max="2500" step="50" value="200">
 </div>
 
   <!-- OSD -->
@@ -941,7 +941,7 @@ let   lastTxPower   = null;
 function hueForTx(v) {
   v = Number(v);
   if (v <= 1250) {                 // green (120°) ➜ yellow (60°)
-    return 120 - 60 * ((v - 250) / 1000);
+    return 120 - 60 * ((v - 200) / 1050);
   }
   return 60 - 30 * ((v - 1250) / 1250);  // yellow (60°) ➜ orange (30°)
 }
@@ -1002,7 +1002,7 @@ txPowerSlider.addEventListener('change', e => ifUser(e, sendTxPower));
 initSlider({
   slider:   txPowerSlider,
   display:  txPowerValue,
-  min:      250,
+  min:      200,
   max:      2500,
   endpoint: '/value/tx_power'
 });
