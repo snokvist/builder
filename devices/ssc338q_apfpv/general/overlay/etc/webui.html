@@ -157,26 +157,6 @@
   </button>
 </div>
 
-  <!-- Exec VTX cmd -->
-  <div class="row">
-    <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
-    <select id="sendVTXCmd">
-      <option value="vtx_start_adapter">VTX Adapter start</option>
-      <option value="vtx_stop_udhcpd">VTX Stop udhcpd</option>
-      <option value="vtx_reload_majestic">VTX reload majestic</option>
-    </select>
-  </div>
-  
-  <!-- Exec VRX master cmd -->
-  <div class="row">
-    <button class="btn" onclick="goArg('control_cmd', sendVRXCmd.value)">VRX CMD</button>
-    <select id="sendVRXCmd">
-      <option value="vrx_ping">Ping VRX</option>
-      <option value="vrx_toggle_rec">Toggle VRX record</option>
-      <option value="vrx_shutdown">Shutdown VRX</option>
-    </select>
-  </div>
-
   <!-- Section heading ---------------------------------------------------- -->
   <div class="section-title">Adaptive Link Control</div>
  
@@ -509,6 +489,28 @@
 <div class="tab-content hidden" id="contentApAlink">
   <p style="text-align:center;margin:0;">(Advanced settings go here)</p>
 <!--‑‑ NEW: argument setters ‑‑-->
+
+  <!-- Exec VTX cmd -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendVTXCmd.value)">VTX CMD</button>
+    <select id="sendVTXCmd">
+      <option value="vtx_start_adapter">VTX Adapter start</option>
+      <option value="vtx_stop_udhcpd">VTX Stop udhcpd</option>
+      <option value="vtx_reload_majestic">VTX reload majestic</option>
+    </select>
+  </div>
+  
+  <!-- Exec VRX master cmd -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendVRXCmd.value)">VRX CMD</button>
+    <select id="sendVRXCmd">
+      <option value="vrx_ping">Ping VRX</option>
+      <option value="vrx_toggle_rec">Toggle VRX record</option>
+      <option value="vrx_shutdown">Shutdown VRX</option>
+    </select>
+  </div>
+
+
   
   <div class="row">
     <button class="btn" onclick="goArg('set_externalosd', sendExternalosdvalue.value)">External OSD</button>
