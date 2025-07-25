@@ -27,7 +27,7 @@ start)
 
     sleep 1
     aalink &
-
+    echo aalink start!!! >> /tmp/antlog.log
     # now check EXTERNAL_OSD in /etc/aalink.conf using awk
     EXTERNAL_OSD=$(
       awk -F= '
@@ -43,17 +43,18 @@ start)
         }
       ' /etc/aalink.conf
     )
-
+    echo external_osd >> /tmp/antlog.log
     if [ "$EXTERNAL_OSD" = "1" ]; then
-        echo "EXTERNAL_OSD=1 → starting antenna_osd…"
+        echo "EXTERNAL_OSD=1 → starting antenna_osd…" >> /tmp/antlog.log
         # restart antenna_osd
         if pid=$(pidof antenna_osd 2>/dev/null); then
             kill -9 "$pid"
         fi
-        sleep 1
+        sleep 3
         antenna_osd &
+        echo "Antenna started....…" >> /tmp/antlog.log
     else
-        echo "EXTERNAL_OSD!=1 → skipping antenna_osd."
+        echo "EXTERNAL_OSD!=1 → skipping antenna_osd." >> /tmp/antlog.log
     fi
     ;;
 
