@@ -17,27 +17,46 @@ start)
 
     echo "Starting aalink..."
     # kill any running aalink
-    pid=$(pidof aalink 2>/dev/null)
-    [ -n "$pid" ] && kill -9 "$pid"
-    kill $(pidof antenna_osd)
+    if pid=$(pidof aalink 2>/dev/null); then
+        kill -9 "$pid"
+    fi
+    # also stop any hanging antenna_osd
+    if pid=$(pidof antenna_osd 2>/dev/null); then
+        kill -9 "$pid"
+    fi
+
     sleep 1
-    # start fresh
     aalink &
 
-    # now check if EXTERNAL_OSD=1 in /etc/aalink.conf
-    EXTERNAL_OSD=$(grep -E '^[[:space:]]*EXTERNAL_OSD=' /etc/aalink.conf \
-                    | tail -n1 \
-                    | cut -d= -f2 | tr -d '[:space:]')
+    # now check EXTERNAL_OSD in /etc/aalink.conf using awk
+    EXTERNAL_OSD=$(
+      awk -F= '
+        /^[[:space:]]*#/      { next }     # skip comments
+        /^[[:space:]]*EXTERNAL_OSD[[:space:]]*=/ {
+          val = $2
+          sub(/[[:space:]]*#.*/,"", val)    # strip trailing comment
+          gsub(/[[:space:]]*/,"", val)      # strip all whitespace
+        }
+        END {
+          if (val == "1") print 1
+          else               print 0
+        }
+      ' /etc/aalink.conf
+    )
+
     if [ "$EXTERNAL_OSD" = "1" ]; then
-        echo "EXTERNAL_OSD is enabled; starting antenna_osd..."
-        pid=$(pidof antenna_osd 2>/dev/null)
-        [ -n "$pid" ] && kill -9 "$pid"
+        echo "EXTERNAL_OSD=1 → starting antenna_osd…"
+        # restart antenna_osd
+        if pid=$(pidof antenna_osd 2>/dev/null); then
+            kill -9 "$pid"
+        fi
         sleep 1
         antenna_osd &
     else
-        echo "EXTERNAL_OSD is disabled; not starting antenna_osd."
+        echo "EXTERNAL_OSD!=1 → skipping antenna_osd."
     fi
     ;;
+
 
 
     stop)
