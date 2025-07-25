@@ -1,33 +1,31 @@
 #!/bin/sh
+# disable “exit on error” so missing pids or failed kills don’t abort
+set +e
 
-# Read the current U-Boot variable “mode”.
-#   * `fw_printenv -n mode`     → prints just the value on newer u-boot-tools
-#   * If `-n` is not available, fall back to parsing “var=value”.
-
-MODE=$(fw_printenv -n mode 2>/dev/null 2>&1 || true)
+# Read the current U‑Boot variable “mode”.
+MODE=$(fw_printenv -n mode 2>/dev/null || true)
 [ -z "$MODE" ] && MODE=$(fw_printenv mode 2>/dev/null | cut -d= -f2)
 
 case "$1" in
 start)
     if [ "$MODE" != "aalink" ]; then
         echo "Current mode is '$MODE' – aalink will not be started."
-        killall -q aalink
+        killall -q aalink 2>/dev/null || true
         exit 0
     fi
 
     echo "Starting aalink..."
     # kill any running aalink
-    if pid=$(pidof aalink 2>/dev/null); then
-        kill -9 "$pid"
-    fi
+    pid=$(pidof aalink 2>/dev/null)    
+    [ -n "$pid" ] && kill -9 "$pid" 2>/dev/null || true
+
     # also stop any hanging antenna_osd
-    if pid=$(pidof antenna_osd 2>/dev/null); then
-        kill -9 "$pid"
-    fi
+    pid=$(pidof antenna_osd 2>/dev/null)
+    [ -n "$pid" ] && kill -9 "$pid" 2>/dev/null || true
 
     sleep 1
     aalink &
-    echo aalink start!!! >> /tmp/antlog.log
+
     # now check EXTERNAL_OSD in /etc/aalink.conf using awk
     EXTERNAL_OSD=$(
       awk -F= '
@@ -35,7 +33,7 @@ start)
         /^[[:space:]]*EXTERNAL_OSD[[:space:]]*=/ {
           val = $2
           sub(/[[:space:]]*#.*/,"", val)    # strip trailing comment
-          gsub(/[[:space:]]*/,"", val)      # strip all whitespace
+          gsub(/[[:space:]]*/,"", val)      # strip whitespace
         }
         END {
           if (val == "1") print 1
@@ -43,32 +41,31 @@ start)
         }
       ' /etc/aalink.conf
     )
-    echo external_osd >> /tmp/antlog.log
+
     if [ "$EXTERNAL_OSD" = "1" ]; then
-        echo "EXTERNAL_OSD=1 → starting antenna_osd…" >> /tmp/antlog.log
-        # restart antenna_osd
-        if pid=$(pidof antenna_osd 2>/dev/null); then
-            kill -9 "$pid"
-        fi
-        sleep 3
+        echo "EXTERNAL_OSD=1 → starting antenna_osd…"
+        pid=$(pidof antenna_osd 2>/dev/null)
+        [ -n "$pid" ] && kill -9 "$pid" 2>/dev/null || true
+        sleep 1
         antenna_osd &
-        echo "Antenna started....…" >> /tmp/antlog.log
     else
-        echo "EXTERNAL_OSD!=1 → skipping antenna_osd." >> /tmp/antlog.log
+        echo "EXTERNAL_OSD!=1 → skipping antenna_osd."
     fi
     ;;
 
+stop)
+    echo "Stopping aalink..."
+    pid=$(pidof aalink 2>/dev/null)
+    [ -n "$pid" ] && kill -9 "$pid" 2>/dev/null || true
 
+    # clear any external‐OSD message file
+    echo "" > /tmp/MSPOSD.msg || true
+    ;;
 
-    stop)
-        echo "Stopping aalink..."
-        pid=$(pidof aalink 2>/dev/null)
-        [ -n "$pid" ] && kill -9 "$pid"
-        echo "" > /tmp/MSPOSD.msg
-        ;;
-    *)
-        echo "Usage: $0 {start|stop}"
-        exit 1
-        ;;
+*)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
 esac
+
 exit 0
