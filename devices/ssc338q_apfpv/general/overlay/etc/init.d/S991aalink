@@ -8,19 +8,37 @@ MODE=$(fw_printenv -n mode 2>/dev/null 2>&1 || true)
 [ -z "$MODE" ] && MODE=$(fw_printenv mode 2>/dev/null | cut -d= -f2)
 
 case "$1" in
-    start)
-        if [ "$MODE" != "aalink" ]; then
-            echo "Current mode is '$MODE' – aalink will not be started."
-            killall -q aalink
-            exit 0        # or `exit 1` if you prefer a non-zero status
-        fi
+start)
+    if [ "$MODE" != "aalink" ]; then
+        echo "Current mode is '$MODE' – aalink will not be started."
+        killall -q aalink
+        exit 0
+    fi
 
-        echo "Starting aalink..."
-        pid=$(pidof aalink 2>/dev/null)
+    echo "Starting aalink..."
+    # kill any running aalink
+    pid=$(pidof aalink 2>/dev/null)
+    [ -n "$pid" ] && kill -9 "$pid"
+    kill $(pidof antenna_osd)
+    sleep 1
+    # start fresh
+    aalink &
+
+    # now check if EXTERNAL_OSD=1 in /etc/aalink.conf
+    EXTERNAL_OSD=$(grep -E '^[[:space:]]*EXTERNAL_OSD=' /etc/aalink.conf \
+                    | tail -n1 \
+                    | cut -d= -f2 | tr -d '[:space:]')
+    if [ "$EXTERNAL_OSD" = "1" ]; then
+        echo "EXTERNAL_OSD is enabled; starting antenna_osd..."
+        pid=$(pidof antenna_osd 2>/dev/null)
         [ -n "$pid" ] && kill -9 "$pid"
         sleep 1
-        aalink &
-        ;;
+        antenna_osd &
+    else
+        echo "EXTERNAL_OSD is disabled; not starting antenna_osd."
+    fi
+    ;;
+
 
     stop)
         echo "Stopping aalink..."
