@@ -389,9 +389,9 @@
   <input
     type="range"
     id="txPowerSlider"
-    data-default-min="200"  data-default-max="2500"
-    data-power-min="200"    data-power-max="3100"
-    min="200" max="2500" step="50" value="200">
+    data-default-min="250"  data-default-max="2500"
+    data-power-min="250"    data-power-max="3100"
+    min="250" max="2500" step="50" value="250">
 </div>
 
   <!-- OSD -->
@@ -1049,24 +1049,24 @@ signalbarToggle.addEventListener('change', e => {
 
 
 // URL of your MJPEG feed:
-const STREAM_URL = 'http://192.168.0.1/mjpeg';
-
-const btn    = document.getElementById('toggleStream');
-const img    = document.getElementById('mjpegStream');
-let   active = false;
+const btn = document.getElementById('toggleStream');
+let streamWindow = null;
 
 btn.addEventListener('click', () => {
-  active = !active;
-  if (active) {
-    img.src = STREAM_URL;
-    img.style.display = 'block';
-    btn.textContent    = 'Hide Stream';
+  if (streamWindow && !streamWindow.closed) {
+    streamWindow.close();
+    streamWindow = null;
+    btn.textContent = 'Show Stream';
   } else {
-    img.removeAttribute('src');
-    img.style.display = 'none';
-    btn.textContent   = 'Show Stream';
+    streamWindow = window.open(
+      'http://192.168.0.1/mjpeg',
+      'streamWindow',
+      'width=960,height=540,resizable=yes,scrollbars=no'
+    );
+    btn.textContent = 'Hide Stream';
   }
 });
+
 
 
 const powerToggle = document.getElementById('powerUserToggle');
