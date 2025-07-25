@@ -6,11 +6,17 @@
 
 CONF_OSD=/etc/antennaosd.conf
 CONF_AA=/etc/aalink.conf
+LOG=/tmp/webui.log
 
 usage() {
-    echo "Usage: $0 enabled|disabled|status"
+    MSG="Usage: $0 enabled|disabled|status"
+    echo "$MSG"
+    echo "$MSG" > "$LOG"
     exit 1
 }
+
+# Initialize message collector
+OUTPUT_MSG=""
 
 # parse args
 [ $# -eq 1 ] || usage
@@ -21,15 +27,21 @@ CMD="$1"
 if [ "$CMD" = "status" ]; then
     val=$(grep -E '^[[:space:]]*EXTERNAL_OSD=' "$CONF_AA" 2>/dev/null | tail -n1 | cut -d= -f2)
     if [ "$val" = "1" ]; then
-        echo true
+        OUTPUT_MSG="true"
+        echo "$OUTPUT_MSG"
+        echo "$OUTPUT_MSG" > "$LOG"
         exit 0
     else
-        echo false
+        OUTPUT_MSG="false"
+        echo "$OUTPUT_MSG"
+        echo "$OUTPUT_MSG" > "$LOG"
         exit 1
     fi
 fi
 
 STATE="$CMD"  # enabled or disabled
+
+OUTPUT_MSG="Setting external OSD: $STATE\n"
 
 # detect adapter
 for a in rtl8812au rtl88x2eu rtl8733bu; do
@@ -39,7 +51,9 @@ for a in rtl8812au rtl88x2eu rtl8733bu; do
     fi
 done
 if [ -z "$ADAPTER" ]; then
-    echo "Error: no known adapter found under /proc/net" >&2
+    OUTPUT_MSG="${OUTPUT_MSG}Error: no known adapter found under /proc/net\n"
+    echo "$OUTPUT_MSG"
+    echo "$OUTPUT_MSG" > "$LOG"
     exit 2
 fi
 
@@ -102,15 +116,21 @@ else
 fi
 
 if [ "$STATE" = "enabled" ]; then
+    OUTPUT_MSG="${OUTPUT_MSG}External OSD enabled - starting antenna_osd...\n"
     if pidof antenna_osd >/dev/null 2>&1; then
         kill -1 "$(pidof antenna_osd)" 2>/dev/null || true
     else
         antenna_osd >/dev/null 2>&1 &
     fi
 else
+    OUTPUT_MSG="${OUTPUT_MSG}External OSD disabled - stopping antenna_osd...\n"
     if pidof antenna_osd >/dev/null 2>&1; then
         kill "$(pidof antenna_osd)" 2>/dev/null || true
     fi
 fi
+
+# Final output to log and stdout
+echo -e "$OUTPUT_MSG"
+echo -e "$OUTPUT_MSG" > "$LOG"
 
 exit 0
