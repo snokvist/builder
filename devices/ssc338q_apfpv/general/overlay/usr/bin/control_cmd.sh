@@ -110,6 +110,7 @@ aalink_font_size)
     if grep -q '^EXTERNAL_OSD=1' /etc/aalink.conf; then
       CONF_FILE="/etc/antennaosd.conf"
       sed -i.bak -E "s|(rssi_range[0-9]+_hdr.*&F)[0-9]+|\1$2|" "$CONF_FILE"
+      kill -SIGHUP "$(pidof antenna_osd)" 2>/dev/null
       printf '▶  Updated external OSD settings in %s\n' "$CONF_FILE"
     else
       CONF_FILE="/etc/aalink.conf"
@@ -120,6 +121,7 @@ aalink_font_size)
 
   } 2>&1 | tee "$LOG"
   ;;
+
 
   aalink_mcs_source)
     {
