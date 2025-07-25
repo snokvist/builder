@@ -102,14 +102,24 @@ case "$1" in
     } 2>&1 | tee "$LOG"
     ;;
 
-  aalink_font_size)
-    {
-      [ -n "$2" ] || { echo "❌  Missing <size>"; exit 1; }
-      printf '▶  Setting OSD font size to %s …\n' "$2"
-      sed -i.bak -E "s|^(OSD_PARAMS=.*&F)[0-9]+|\1$2|" /etc/aalink.conf
+aalink_font_size)
+  {
+    [ -n "$2" ] || { echo "❌  Missing <size>"; exit 1; }
+    printf '▶  Setting OSD font size to %s …\n' "$2"
+
+    if grep -q '^EXTERNAL_OSD=1' /etc/aalink.conf; then
+      CONF_FILE="/etc/antennaosd.conf"
+      sed -i.bak -E "s|(rssi_range[0-9]+_hdr.*&F)[0-9]+|\1$2|" "$CONF_FILE"
+      printf '▶  Updated external OSD settings in %s\n' "$CONF_FILE"
+    else
+      CONF_FILE="/etc/aalink.conf"
+      sed -i.bak -E "s|^(OSD_PARAMS=.*&F)[0-9]+|\1$2|" "$CONF_FILE"
       kill -SIGHUP "$(pidof aalink)" 2>/dev/null
-    } 2>&1 | tee "$LOG"
-    ;;
+      printf '▶  Updated aalink settings in %s\n' "$CONF_FILE"
+    fi
+
+  } 2>&1 | tee "$LOG"
+  ;;
 
   aalink_mcs_source)
     {
