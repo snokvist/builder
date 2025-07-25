@@ -75,7 +75,7 @@ ping_enable = 0
 info_file = /tmp/aalink_ext.msg
 rssi_key = used_rssi
 curr_tx_rate_key = mcs
-curr_tx_bw_key = mcs
+curr_tx_bw_key = width
 rssi_udp_enable = 1
 rssi_udp_key = rssi_udp
 EOF
