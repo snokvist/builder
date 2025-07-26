@@ -45,19 +45,16 @@ esac
 
 
 killall majestic
-sleep
-#killall -q $(pidof msposd) 
-kill -9 $(pidof msposd) 
-sleep 1
-#killall -q $(pidof majestic)
-#sleep 1
+sleep 0.5
 kill -9 $(pidof majestic) 
-sleep 1
+sleep 0.5
+kill -9 $(pidof msposd) 
+sleep 0.5
 kill -9 $(pidof msposd) 
 kill -9 $(pidof aalink)
 kill -9 $(pidof antenna_osd)
 majestic -s &
-sleep 5
+sleep 4
 /etc/init.d/S98msposd start
 sleep 1
 /etc/init.d/S991aalink start
