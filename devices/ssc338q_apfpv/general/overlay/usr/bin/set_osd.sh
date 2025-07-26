@@ -57,8 +57,8 @@ majestic -s &
 sleep 4
 /etc/init.d/S98msposd start
 sleep 1
-/etc/init.d/S991aalink start
 /etc/init.d/S990antenna_osd start
+/etc/init.d/S991aalink start
 sleep 1
 echo "" > /tmp/MSPOSD.msg
 exit 0
