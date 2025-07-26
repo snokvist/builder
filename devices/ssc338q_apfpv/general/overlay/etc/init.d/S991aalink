@@ -10,7 +10,7 @@ case "$1" in
 start)
     if [ "$MODE" != "aalink" ]; then
         echo "Current mode is '$MODE' – aalink will not be started."
-        killall -q aalink 2>/dev/null || true
+        #killall -q aalink 2>/dev/null || true
         exit 0
     fi
 
