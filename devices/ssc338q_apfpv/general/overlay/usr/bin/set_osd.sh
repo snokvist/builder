@@ -55,7 +55,7 @@ kill -9 $(pidof aalink)
 kill -9 $(pidof antenna_osd)
 majestic -s &
 sleep 4
-/etc/init.d/S96msposd start
+/etc/init.d/S99msposd start
 sleep 1
 /etc/init.d/S97antenna_osd start
 /etc/init.d/S991aalink start
