@@ -76,8 +76,8 @@ info_file = /tmp/aalink_ext.msg
 rssi_key = rssi_local
 curr_tx_rate_key = mcs
 curr_tx_bw_key = width
-rssi_udp_enable = 1
-rssi_udp_key = rssi_udp
+rssi_udp_enable = 0
+rssi_udp_key =
 EOF
 else
 cat <<EOF >> "$CONF_OSD"
