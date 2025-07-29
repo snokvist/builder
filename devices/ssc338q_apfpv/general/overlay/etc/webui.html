@@ -529,11 +529,55 @@
 ‑‑-->
 <pre class="info-box" id="infoApAlink">(no log yet)</pre>
 
+
+<div class="row" style="flex-direction:column;">
+  <label style="font-size:1em;font-weight:600;text-align:center;margin:.5em 0;">
+    Link Status Monitor
+  </label>
+
+  <button class="btn info" id="toggleAlinkStatusBtn" style="width:100%;flex:1">
+    Show Live Status
+  </button>
+
+  <iframe
+    id="alinkIframe"
+    style="width:100%; min-height:200px; border:1px solid #339;
+           border-radius:6px; margin-top:.8em; display:none;">
+  </iframe>
+</div>
+
+
+
   
 </div>
 
   
 <script>
+
+document.getElementById('alinkIframe').src = `http://${location.hostname}:8081/`;
+
+const statusBtn   = document.getElementById('toggleAlinkStatusBtn');
+const statusFrame = document.getElementById('alinkIframe');
+
+statusBtn.addEventListener('click', () => {
+  const showing = statusFrame.style.display === 'block';
+
+  if (showing) {
+    // Hide the iframe
+    statusFrame.style.display = 'none';
+    statusBtn.textContent = 'Show Live Status';
+    // Optional: stop polling if you modify the iframe page
+    statusFrame.src = '';  // unload to stop polling if needed
+  } else {
+    // Show and load iframe
+    statusFrame.src = `http://${location.hostname}:8081/`;
+    statusFrame.style.display = 'block';
+    statusBtn.textContent = 'Hide Live Status';
+  }
+});
+
+
+
 
 /* 5 GHz channel whitelist per regulatory domain
    ─────────────────────────────────────────── */
