@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Live Link Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --blue:#007bff; --blue-dk:#0056b3;
+      --bg:#eef4fb; --txt:#003366;
+    }
+
+    body {
+      margin: 0; padding: 1em;
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+    }
+
+    h2 {
+      text-align: center;
+      margin: 0.5em 0 1em;
+      font-size: 1.2em;
+      color: var(--blue-dk);
+    }
+
+    .section {
+      margin: 1em 0;
+    }
+
+    .fail-box {
+      display: inline-block;
+      margin: .3em .6em;
+      padding: .4em .8em;
+      border-radius: 6px;
+      background: #f2f2f2;
+      font-size: .9em;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 800px;
+      height: 200px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Live Link Status</h2>
+
+  <div class="section" id="infoTop">(loading...)</div>
+  <div class="section" id="failBox"></div>
+  <div class="section">
+    <canvas id="chartCanvas"></canvas>
+  </div>
+
+  <script>
+    const infoTop  = document.getElementById('infoTop');
+    const failBox  = document.getElementById('failBox');
+    const canvas   = document.getElementById('chartCanvas');
+    const ctx      = canvas.getContext('2d');
+    const maxPoints = 100;
+
+    // Map IP → { rssiHistory: [], color: "#hex" }
+    const nodeMap = {};
+
+    // assign stable color per IP
+    function colorForIP(ip) {
+      const h = [...ip].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      return `hsl(${h}, 70%, 45%)`;
+    }
+
+    function updateStatus() {
+      fetch('/status', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
+        .then(json => {
+          // Show top info
+          infoTop.textContent = `Role: ${json.role}   |   Active: ${json.active}`;
+
+          // Show fail counts
+          failBox.innerHTML = json.nodes.map(n =>
+            `<div class="fail-box"><b>${n.ip}</b><br>fail: ${n.fail}</div>`
+          ).join('');
+
+          // Store RSSI (rssi+100) in rolling history
+          json.nodes.forEach(n => {
+            const ip = n.ip;
+            const val = Math.max(0, Math.min(100, n.rssi + 100)); // clamp to 0–100
+            if (!nodeMap[ip]) {
+              nodeMap[ip] = {
+                rssiHistory: [],
+                color: colorForIP(ip)
+              };
+            }
+            const buf = nodeMap[ip].rssiHistory;
+            buf.push(val);
+            if (buf.length > maxPoints) buf.shift();  // keep last N
+          });
+
+          drawChart();
+        })
+        .catch(err => {
+          infoTop.textContent = '(error fetching status)';
+          failBox.textContent = err;
+        });
+    }
+
+    function drawChart() {
+      const W = canvas.width  = canvas.offsetWidth;
+      const H = canvas.height = 200;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineWidth = 2;
+
+      Object.entries(nodeMap).forEach(([ip, data]) => {
+        const vals = data.rssiHistory;
+        if (vals.length < 2) return;
+
+        ctx.strokeStyle = data.color;
+        ctx.beginPath();
+        vals.forEach((v, i) => {
+          const x = i / (maxPoints - 1) * W;
+          const y = H - v / 100 * H;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+
+      // Optional: draw axis lines
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      [25, 50, 75].forEach(p => {
+        const y = H - (p / 100 * H);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      });
+    }
+
+    setInterval(updateStatus, 500);
+    updateStatus();
+  </script>
+</body>
+</html>
