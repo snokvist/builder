@@ -30,12 +30,13 @@
 
     .fail-box {
       display: inline-block;
-      margin: .3em 1em .3em 0;  /* spacing between boxes */
-      padding: .5em 1em;
+      margin: .3em .6em .3em 0;       /* tighter spacing */
+      padding: .4em .6em;
       border-radius: 6px;
       background: #f2f2f2;
-      font-size: .9em;
+      font-size: .85em;
       white-space: pre-line;
+      min-width: 110px;
     }
 
     .fail-box.active {
@@ -72,13 +73,12 @@
     const maxPoints = 100;
 
     const nodeMap = {};
+    let activeIP = null;
 
     function colorForIP(ip) {
       const h = [...ip].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       return `hsl(${h}, 70%, 45%)`;
     }
-
-    let activeIP = null;
 
     function updateStatus() {
       fetch('/status', { cache: 'no-store' })
@@ -87,15 +87,15 @@
           activeIP = json.active;
           infoTop.textContent = `Role: ${json.role}   |   Active: ${activeIP}`;
 
-          // Draw fail+RSSI box for each node
           failBox.innerHTML = json.nodes.map(n => {
             const isActive = n.ip === activeIP;
             const className = 'fail-box' + (isActive ? ' active' : '');
             return `<div class="${className}">
-              ${n.ip}
-              RSSI: ${n.rssi}
-              Fail: ${n.fail}
-            </div>`;
+${n.ip}
+RSSI:  ${n.rssi}
+Succ:  ${n.succ}
+Fail:  ${n.fail}
+</div>`;
           }).join('');
 
           // Track RSSI history
@@ -145,7 +145,7 @@
         ctx.stroke();
       });
 
-      // Optional guide lines
+      // Draw reference grid lines
       ctx.strokeStyle = '#ccc';
       ctx.lineWidth = 1;
       [25, 50, 75].forEach(p => {
