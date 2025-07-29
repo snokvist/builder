@@ -30,11 +30,19 @@
 
     .fail-box {
       display: inline-block;
-      margin: .3em .6em;
-      padding: .4em .8em;
+      margin: .3em 1em .3em 0;  /* spacing between boxes */
+      padding: .5em 1em;
       border-radius: 6px;
       background: #f2f2f2;
       font-size: .9em;
+      white-space: pre-line;
+    }
+
+    .fail-box.active {
+      font-weight: bold;
+      color: #007700;
+      background: #e6ffe6;
+      border: 1px solid #0a0;
     }
 
     canvas {
@@ -63,31 +71,37 @@
     const ctx      = canvas.getContext('2d');
     const maxPoints = 100;
 
-    // Map IP → { rssiHistory: [], color: "#hex" }
     const nodeMap = {};
 
-    // assign stable color per IP
     function colorForIP(ip) {
       const h = [...ip].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       return `hsl(${h}, 70%, 45%)`;
     }
 
+    let activeIP = null;
+
     function updateStatus() {
       fetch('/status', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
         .then(json => {
-          // Show top info
-          infoTop.textContent = `Role: ${json.role}   |   Active: ${json.active}`;
+          activeIP = json.active;
+          infoTop.textContent = `Role: ${json.role}   |   Active: ${activeIP}`;
 
-          // Show fail counts
-          failBox.innerHTML = json.nodes.map(n =>
-            `<div class="fail-box"><b>${n.ip}</b><br>fail: ${n.fail}</div>`
-          ).join('');
+          // Draw fail+RSSI box for each node
+          failBox.innerHTML = json.nodes.map(n => {
+            const isActive = n.ip === activeIP;
+            const className = 'fail-box' + (isActive ? ' active' : '');
+            return `<div class="${className}">
+              ${n.ip}
+              RSSI: ${n.rssi}
+              Fail: ${n.fail}
+            </div>`;
+          }).join('');
 
-          // Store RSSI (rssi+100) in rolling history
+          // Track RSSI history
           json.nodes.forEach(n => {
             const ip = n.ip;
-            const val = Math.max(0, Math.min(100, n.rssi + 100)); // clamp to 0–100
+            const val = Math.max(0, Math.min(100, n.rssi + 100));
             if (!nodeMap[ip]) {
               nodeMap[ip] = {
                 rssiHistory: [],
@@ -96,7 +110,7 @@
             }
             const buf = nodeMap[ip].rssiHistory;
             buf.push(val);
-            if (buf.length > maxPoints) buf.shift();  // keep last N
+            if (buf.length > maxPoints) buf.shift();
           });
 
           drawChart();
@@ -112,13 +126,15 @@
       const H = canvas.height = 200;
 
       ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 2;
 
       Object.entries(nodeMap).forEach(([ip, data]) => {
         const vals = data.rssiHistory;
         if (vals.length < 2) return;
 
-        ctx.strokeStyle = data.color;
+        const isActive = ip === activeIP;
+        ctx.strokeStyle = isActive ? '#00cc00' : data.color;
+        ctx.lineWidth   = isActive ? 3 : 2;
+
         ctx.beginPath();
         vals.forEach((v, i) => {
           const x = i / (maxPoints - 1) * W;
@@ -129,7 +145,7 @@
         ctx.stroke();
       });
 
-      // Optional: draw axis lines
+      // Optional guide lines
       ctx.strokeStyle = '#ccc';
       ctx.lineWidth = 1;
       [25, 50, 75].forEach(p => {
