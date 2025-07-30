@@ -30,7 +30,7 @@
 
     .fail-box {
       display: inline-block;
-      margin: .3em .6em .3em 0;       /* tighter spacing */
+      margin: .3em .6em .3em 0;
       padding: .4em .6em;
       border-radius: 6px;
       background: #f2f2f2;
@@ -70,7 +70,7 @@
     const failBox  = document.getElementById('failBox');
     const canvas   = document.getElementById('chartCanvas');
     const ctx      = canvas.getContext('2d');
-    const maxPoints = 100;
+    const maxPoints = 150;  // ← extended by 50%
 
     const nodeMap = {};
     let activeIP = null;
@@ -98,19 +98,26 @@ Fail:  ${n.fail}
 </div>`;
           }).join('');
 
-          // Track RSSI history
           json.nodes.forEach(n => {
             const ip = n.ip;
-            const val = Math.max(0, Math.min(100, n.rssi + 100));
+            const rssiVal = Math.max(0, Math.min(100, n.rssi + 100));
+            const isActiveNow = (ip === activeIP);
+
             if (!nodeMap[ip]) {
               nodeMap[ip] = {
                 rssiHistory: [],
                 color: colorForIP(ip)
               };
             }
-            const buf = nodeMap[ip].rssiHistory;
-            buf.push(val);
-            if (buf.length > maxPoints) buf.shift();
+
+            nodeMap[ip].rssiHistory.push({
+              value: rssiVal,
+              isActive: isActiveNow
+            });
+
+            if (nodeMap[ip].rssiHistory.length > maxPoints) {
+              nodeMap[ip].rssiHistory.shift();
+            }
           });
 
           drawChart();
@@ -122,39 +129,56 @@ Fail:  ${n.fail}
     }
 
     function drawChart() {
-      const W = canvas.width  = canvas.offsetWidth;
-      const H = canvas.height = 200;
+    const W = canvas.width  = canvas.offsetWidth;
+    const H = canvas.height = 200;
 
-      ctx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
 
-      Object.entries(nodeMap).forEach(([ip, data]) => {
+    Object.entries(nodeMap).forEach(([ip, data]) => {
         const vals = data.rssiHistory;
         if (vals.length < 2) return;
 
-        const isActive = ip === activeIP;
-        ctx.strokeStyle = isActive ? '#00cc00' : data.color;
-        ctx.lineWidth   = isActive ? 3 : 2;
+        for (let i = 1; i < vals.length; i++) {
+        const prev = vals[i - 1];
+        const curr = vals[i];
+
+        const prevX = (i - 1) / (maxPoints - 1) * W;
+        const prevY = H - prev.value / 100 * H;
+        const currX = i / (maxPoints - 1) * W;
+        const currY = H - curr.value / 100 * H;
 
         ctx.beginPath();
-        vals.forEach((v, i) => {
-          const x = i / (maxPoints - 1) * W;
-          const y = H - v / 100 * H;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-      });
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(currX, currY);
 
-      // Draw reference grid lines
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1;
-      [25, 50, 75].forEach(p => {
+        if (prev.isActive && curr.isActive) {
+            ctx.strokeStyle = '#00cc00'; // solid green
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+        } else {
+            ctx.strokeStyle = data.color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 3]);     // dotted style
+        }
+
+        ctx.stroke();
+        }
+
+        ctx.setLineDash([]); // reset after each node
+    });
+
+    // Guide lines
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    [25, 50, 75].forEach(p => {
         const y = H - (p / 100 * H);
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(W, y);
         ctx.stroke();
-      });
+    });
+    ctx.setLineDash([]); // reset dash
     }
 
     setInterval(updateStatus, 500);
