@@ -13,10 +13,10 @@ fw_setenv upgrade 'https://github.com/OpenIPC/builder/releases/download/latest/o
 cli -s .isp.exposure 8
 cli -s .video0.fps 60
 cli -s .video0.size 1920x1440
-cli -s .video0.bitrate 8096
+cli -s .video0.bitrate 3233
 cli -s .video0.codec h265
 cli -s .video0.rcMode cbr
-cli -s .video0.gopSize 0.5
+cli -s .video0.gopSize 1.25
 cli -s .outgoing.enabled true
 cli -s .outgoing.server udp://192.168.0.10:5600
 cli -s .records.split 5
