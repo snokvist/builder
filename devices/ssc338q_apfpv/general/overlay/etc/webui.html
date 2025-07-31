@@ -413,18 +413,6 @@
     </select>
   </div>
 
-  <!-- OTA -->
-  <div class="row">
-    <button class="btn" onclick="
-      if(confirm('Warning: You are about to perform an OTA upgrade to ' + ota.options[ota.selectedIndex].text + '. Are you sure?')) {
-        goArg('ota', ota.value);
-      }">OTA upgrade</button>
-    <select id="ota">
-      <option value="ota-apfpv">AP-FPV</option>
-      <option value="ota-ruby">Flash Ruby</option>
-      <option value="ota-pnp">Flash &quot;PnP&quot;</option>
-    </select>
-  </div>
 
   <!-- Show Info -->
   <div class="row">
@@ -473,6 +461,21 @@
     </select>
   </div>
 
+
+  <!-- OTA -->
+  <div class="row">
+    <button class="btn" onclick="
+      if(confirm('Warning: You are about to perform an OTA upgrade to ' + ota.options[ota.selectedIndex].text + '. Are you sure?')) {
+        goArg('ota', ota.value);
+      }">OTA upgrade</button>
+    <select id="ota">
+      <option value="ota-apfpv">AP-FPV</option>
+      <option value="ota-ruby">Flash Ruby</option>
+      <option value="ota-pnp">Flash &quot;PnP&quot;</option>
+    </select>
+  </div>
+
+  
   <!-- Section heading ---------------------------------------------------- -->
   <div class="section-title">Advanced AAlink Settings</div>
 
