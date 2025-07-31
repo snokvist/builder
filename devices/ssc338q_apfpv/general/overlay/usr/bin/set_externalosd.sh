@@ -83,9 +83,9 @@ else
 cat <<EOF >> "$CONF_OSD"
 ping_enable = 1
 info_file = /proc/net/${ADAPTER}/wlan0/trx_info_debug
-rssi_key =
-curr_tx_rate_key =
-curr_tx_bw_key =
+rssi_key =rssi
+curr_tx_rate_key =curr_tx_rate
+curr_tx_bw_key =curr_tx_bw
 rssi_udp_enable = 0
 rssi_udp_key =
 EOF
