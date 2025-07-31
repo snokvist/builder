@@ -11,12 +11,6 @@ case "$1" in
     fw_setenv mode "aalink"
     ;;
 
-
-  mode-ap_alink)
-    echo "Setting link control to experimental ap-alink." | tee /tmp/webui.log
-    fw_setenv mode "ap_alink"
-    ;;
-
   mode-standalone)
     echo "Setting tty to standalone." | tee /tmp/webui.log
     fw_setenv msposd_tty "standalone"
