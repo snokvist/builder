@@ -129,13 +129,13 @@
 
 <!-- Tabs -->
 <div class="tabs">
-  <div class="tab-btn"        id="tabSetup">Setup</div>
-  <div class="tab-btn active" id="tabControl">Control</div>
+  <div class="tab-btn active"        id="tabSetup">Setup</div>
+  <div class="tab-btn" id="tabControl">Control</div>
   <div class="tab-btn" id="tabApAlink" style="display:none">Advanced</div>
 </div>
 
 <!-- Control Tab Content -->
-<div class="tab-content" id="contentControl">
+<div class="tab-content hidden" id="contentControl">
 
 <div class="row">
   <img
@@ -178,30 +178,13 @@
 
 
   
-  <!-- Additional Settings ------------------------------------------------- -->
-  <div class="row slider-container" id="additionalSettings">
 
-    <!-- heading (styled like the other slider labels) -->
-    <label style="font-size:1em;font-weight:600;width:100%;text-align:center;
-                  margin-bottom:.4em;">
-      Additional Settings
-    </label>
-
-
-    <div class="row">
-  <label style="user-select:none;">
-    <input type="checkbox" id="powerUserToggle">
-    Power User Mode
-  </label>
-    </div>
-
-  </div>
   
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
 
 <!-- Setup Tab Content -->
-<div class="tab-content hidden" id="contentSetup">
+<div class="tab-content" id="contentSetup">
   <!-- SSID -->
   <div class="row">
     <button class="btn" onclick="goArg('set_ssid', ssid.value)">Save&nbsp;SSID</button>
@@ -220,11 +203,8 @@
   <button class="btn" onclick="goArg('set_channel', chSel.value)">Set&nbsp;Chan</button>
   <select id="chSel">
     <!-- UNII‑1 -->
-    <option value="ch36 --make-permanent">ch36</option>
     <option value="ch36-20 --make-permanent">ch36‑20</option>
     <option value="ch40-20 --make-permanent">ch40‑20</option>
-    <option value="ch44 --make-permanent">ch44</option>
-    <option value="ch44-20 --make-permanent">ch44‑20</option>
     <option value="ch48-20 --make-permanent">ch48‑20</option>
     
     <!-- UNII‑2A (DFS) -->
@@ -258,10 +238,8 @@
     <option value="ch144-20 --make-permanent">ch144‑20</option>
     -->
     <!-- UNII‑3 / UNII‑4 -->
-    <option value="ch149 --make-permanent">ch149</option>
     <option value="ch149-20 --make-permanent">ch149‑20</option>
     <option value="ch153-20 --make-permanent">ch153‑20</option>
-    <option value="ch157 --make-permanent">ch157</option>
     <option value="ch157-20 --make-permanent">ch157‑20</option>
     <option value="ch161-20 --make-permanent">ch161‑20</option>
     <option value="ch165-20 --make-permanent">ch165‑20</option>
@@ -378,6 +356,29 @@
     </select>
   </div>
 
+  
+  
+  
+  
+    <!-- Additional Settings ------------------------------------------------- -->
+  <div class="row slider-container" id="additionalSettings">
+
+    <!-- heading (styled like the other slider labels) -->
+    <label style="font-size:1em;font-weight:600;width:100%;text-align:center;
+                  margin-bottom:.4em;">
+      Additional Settings
+    </label>
+
+
+    <div class="row">
+  <label style="user-select:none;">
+    <input type="checkbox" id="powerUserToggle">
+    Power User Mode
+  </label>
+    </div>
+
+  </div>
+  
 
   <!-- Show Info 
   <div class="row">
@@ -1229,6 +1230,29 @@ initDefault(passInput, '/value/passw');
 initDefault(ttySel,    '/value/msposd_tty');
 initDefault(linkSel,   '/value/mode');
 
+
+// ─── auto‐fetch default WLAN channel (robust “ch149-20 --make-permanent” etc.) ───
+fetchJSONOrText('/value/wlanchan', {}, 1000)
+  .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
+  .then(raw => {
+    const chan     = raw.trim();                   // e.g. "149"
+    const candidate= `ch${chan}-20`;               // → "ch149-20"
+
+    // find an <option> whose value starts with that candidate
+    const opt = Array.from(chSel.options).find(o =>
+      o.value.split(' ')[0] === candidate
+    );
+
+    if (opt) {
+      // set the full value (including any "--make-permanent" suffix)
+      chSel.value = opt.value;
+    } else {
+      console.warn(`No channel option matching "${candidate}"`);
+    }
+  })
+  .catch(err => {
+    console.error('Failed to fetch /value/wlanchan:', err);
+  });
 
  
   // ---------------------------------------------------------------------
