@@ -209,6 +209,21 @@
       Reboot&nbsp;Device
     </button>
   </div>
+
+  
+  <!-- Show Info -->
+  <div class="row">
+    <button class="btn info" style="width:100%;flex:1"
+            onclick="go('sysinfo')">Show Info</button>
+  </div>
+
+  <!-- Show aalink settings -->
+  <div class="row">
+    <button class="btn info" style="width:100%;flex:1"
+            onclick="goArg('control_cmd', 'aalink_print_settings')">
+      Show aalink Settings
+    </button>
+  </div>
   
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
@@ -387,14 +402,14 @@
   </div>
 
 
-  <!-- Show Info 
+  <!-- Show Info -->
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
             onclick="go('sysinfo')">Show Info</button>
   </div>
   <pre class="info-box" id="infoSetup">(no log yet)</pre>
 </div>
--->
+
 
 <!--‑‑ NEW: AP Alink Tab Content ‑‑-->
 <div class="tab-content hidden" id="contentApAlink">
@@ -503,20 +518,6 @@
   </div>
 
 
-  <!-- Show Info -->
-  <div class="row">
-    <button class="btn info" style="width:100%;flex:1"
-            onclick="go('sysinfo')">Show Info</button>
-  </div>
-
-  <!-- Show aalink settings -->
-  <div class="row">
-    <button class="btn info" style="width:100%;flex:1"
-            onclick="goArg('control_cmd', 'aalink_print_settings')">
-      Show aalink Settings
-    </button>
-  </div>
-  
   
 <!--‑‑ Show current settings 
 <div class="row">
