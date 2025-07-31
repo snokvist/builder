@@ -187,51 +187,7 @@
   
   
   
-  <!-- aalink MCS / Threshold control -->
-<div class="row">
-  <button class="btn" onclick="goArg('set_mcs', sendMcsCmd.value)">
-    Set Thresholds
-  </button>
 
-  <select id="sendMcsCmd">
-    <!-- Threshold presets -->
-    <optgroup label="Threshold presets">
-      <option value="threshold_min">MCS Threshold Low</option>
-      <option value="threshold_medium">MCS Threshold Medium</option>
-      <option value="threshold_max">MCS Threshold High</option>
-    </optgroup>
-
-    <!-- MCS caps (20 MHz cap shown; 40 MHz is auto –1 except 0 → 1/0) -->
-    <optgroup label="MCS caps">
-      <option value="mcs_0">MCS 0 (20→1, 40→0)</option>
-      <option value="mcs_1">MCS 1 (20→1, 40→0)</option>
-      <option value="mcs_2">MCS 2 (20→2, 40→1)</option>
-      <option value="mcs_3">MCS 3 (20→3, 40→2)</option>
-      <option value="mcs_4">MCS 4 (20→4, 40→3)</option>
-      <option value="mcs_5">MCS 5 (20→5, 40→4)</option>
-      <option value="mcs_6">MCS 6 (20→6, 40→5)</option>
-      <option value="mcs_7">MCS 7 (20→7, 40→6)</option>
-    </optgroup>
-  </select>
-</div>
-  
-  
-  
-  
-  
-  
-
-  <!-- set LQ SRC control -->
-  <div class="row">
-    <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">Set LQ SRC</button>
-    <select id="sendAalinkCmd">
-      <option value="aalink_mcs_source lowest">Source Lowest LQ</option>
-      <option value="aalink_mcs_source highest">Source Highest LQ</option>
-      <option value="aalink_mcs_source both">Source Both LQ</option>
-      <option value="aalink_mcs_source uplink">Source Uplink LQ</option>
-      <option value="aalink_mcs_source downlink">Source Downlink LQ</option>
-    </select>
-  </div>
 
   
   <!-- Additional Settings ------------------------------------------------- -->
@@ -298,11 +254,6 @@
     <input id="pass" placeholder="New password">
   </div>
 
-    <!-- Password -->
-  <div class="row">
-    <button class="btn" onclick="goArg('masterip', masterip.value)">Set Master IP</button>
-    <input id="masterip" placeholder="192.168.0.10">
-  </div>
 
 <!-- Channel -->
 <div class="row">
@@ -509,7 +460,10 @@
     </select>
   </div>
 
-
+  <div class="row">
+    <button class="btn" onclick="goArg('masterip', masterip.value)">Set Master IP</button>
+    <input id="masterip" placeholder="192.168.0.10">
+  </div>
   
   <div class="row">
     <button class="btn" onclick="goArg('set_externalosd', sendExternalosdvalue.value)">External OSD</button>
@@ -519,6 +473,51 @@
     </select>
   </div>
 
+  <!-- Section heading ---------------------------------------------------- -->
+  <div class="section-title">Advanced AAlink Settings</div>
+
+  <!-- aalink MCS / Threshold control -->
+<div class="row">
+  <button class="btn" onclick="goArg('set_mcs', sendMcsCmd.value)">
+    Set Thresholds
+  </button>
+
+  <select id="sendMcsCmd">
+    <!-- Threshold presets -->
+    <optgroup label="Threshold presets">
+      <option value="threshold_min">MCS Threshold Low</option>
+      <option value="threshold_medium">MCS Threshold Medium</option>
+      <option value="threshold_max">MCS Threshold High</option>
+    </optgroup>
+
+    <!-- MCS caps (20 MHz cap shown; 40 MHz is auto –1 except 0 → 1/0) -->
+    <optgroup label="MCS caps">
+      <option value="mcs_0">MCS 0 (20→1, 40→0)</option>
+      <option value="mcs_1">MCS 1 (20→1, 40→0)</option>
+      <option value="mcs_2">MCS 2 (20→2, 40→1)</option>
+      <option value="mcs_3">MCS 3 (20→3, 40→2)</option>
+      <option value="mcs_4">MCS 4 (20→4, 40→3)</option>
+      <option value="mcs_5">MCS 5 (20→5, 40→4)</option>
+      <option value="mcs_6">MCS 6 (20→6, 40→5)</option>
+      <option value="mcs_7">MCS 7 (20→7, 40→6)</option>
+    </optgroup>
+  </select>
+</div>
+
+  <!-- set LQ SRC control -->
+  <div class="row">
+    <button class="btn" onclick="goArg('control_cmd', sendAalinkCmd.value)">Set LQ SRC</button>
+    <select id="sendAalinkCmd">
+      <option value="aalink_mcs_source lowest">Source Lowest LQ</option>
+      <option value="aalink_mcs_source highest">Source Highest LQ</option>
+      <option value="aalink_mcs_source both">Source Both LQ</option>
+      <option value="aalink_mcs_source uplink">Source Uplink LQ</option>
+      <option value="aalink_mcs_source downlink">Source Downlink LQ</option>
+    </select>
+  </div>
+
+
+  
 <!--‑‑ Show current settings 
 <div class="row">
   <button class="btn info" style="width:100%;flex:1"
