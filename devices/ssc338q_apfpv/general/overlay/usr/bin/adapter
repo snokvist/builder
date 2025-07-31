@@ -15,9 +15,9 @@ done
 
 mode=$(fw_printenv -n mode 2>/dev/null)
 if [ -z "$mode" ]; then
-    echo "fw_printenv: mode undefined – setting default to aalink"
-    fw_setenv mode aalink
-    mode=aalink
+    echo "fw_printenv: mode undefined – setting default to manual again (previous aalink)"
+    fw_setenv mode manual
+    mode=manual
 fi
 
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
