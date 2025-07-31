@@ -60,32 +60,24 @@ set_config() {
 cat <<EOF > /tmp/hostapd.conf
 ctrl_interface=/var/run/hostapd
 interface=wlan0
-
-# ---------- RADIO ----------
-ieee80211d=0
-hw_mode=$mode
-channel=$chan
-ieee80211n=$set80211n
-ieee80211ac=0
-ht_capab=$HT_CAPAB
-vht_oper_chwidth=0
-wmm_enabled=1
-require_ht=1
-beacon_int=100
-dtim_period=2
-max_num_sta=4
-country_code=$region
-# ---------- SECURITY / SSID ----------
-rsn_pairwise=CCMP
-wpa=2
 ssid=$ssid
 wpa_passphrase=$pass
-
-# ---------- CLIENT TIME-OUTS ----------
-ap_max_inactivity=86400
-disassoc_low_ack=0
-skip_inactivity_poll=1
-uapsd_advertisement_enabled=1
+hw_mode=$mode
+channel=$chan
+country_code=US
+ieee80211d=1
+ieee80211n=1
+ieee80211ac=1
+require_ht=0
+require_vht=0
+wmm_enabled=1
+wpa=2
+rsn_pairwise=CCMP
+auth_algs=1
+ieee8021x=0
+beacon_int=100
+dtim_period=2
+max_num_sta=16
 EOF
 }
 
@@ -102,8 +94,9 @@ case "$1" in
 
 
 	        if [ "$driver" != "88XXau" ]; then
-	            rate=0x8D
-	            echo "$rate" > "$(ls /proc/net/*/wlan0/rate_ctl)"
+	            echo "Rate..."
+		    #rate=0x8D
+	            #echo "$rate" > "$(ls /proc/net/*/wlan0/rate_ctl)"
 	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
