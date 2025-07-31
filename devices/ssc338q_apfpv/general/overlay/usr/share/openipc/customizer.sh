@@ -12,7 +12,7 @@ fw_setenv upgrade 'https://github.com/OpenIPC/builder/releases/download/latest/o
 #
 cli -s .isp.exposure 8
 cli -s .video0.fps 60
-cli -s .video0.size 1920x1440
+cli -s .video0.size 1280x960
 cli -s .video0.bitrate 3233
 cli -s .video0.codec h265
 cli -s .video0.rcMode cbr
@@ -25,7 +25,6 @@ cli -s .fpv.enabled true
 cli -s .fpv.noiseLevel 0
 cli -s .isp.sensorConfig /etc/sensors/imx335_greg_fpvV.bin
 cli -s .video0.qpDelta -12
-#cli -s .osd.font /usr/share/fonts/truetype/osd.ttf
 
 # Set access
 chmod +x /usr/bin/all_rates.sh
