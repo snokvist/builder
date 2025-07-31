@@ -457,6 +457,17 @@
   <!-- Section heading ---------------------------------------------------- -->
   <div class="section-title">Advanced AAlink Settings</div>
 
+  <!-- HT Mode dropdown + button -->
+<div class="row">
+  <button class="btn" id="htModeBtn">Apply HT Mode</button>
+  <select id="htModeSel">
+    <option value="set_noht">No HT</option>
+    <option value="set_ht40">HT40</option>
+  </select>
+</div>
+  
+  
+  
   <!-- aalink MCS / Threshold control -->
 <div class="row">
   <button class="btn" onclick="goArg('set_mcs', sendMcsCmd.value)">
@@ -986,6 +997,19 @@ function goArg(name, arg) {
   });
   
 
+  
+/* ---------- HT MODE DROPDOWN ---------------- */
+const htModeBtn = document.getElementById('htModeBtn');
+const htModeSel = document.getElementById('htModeSel');
+
+htModeBtn.addEventListener('click', () => {
+  // grab the selected command name
+  const cmd = htModeSel.value;   // "set_noht" or "set_ht40"
+  // call it directly (no extra args)
+  go(cmd);
+});
+  
+  
 /* ---------- TX-POWER SLIDER 250-2500 mW ---------------- */
 const txPowerSlider = document.getElementById('txPowerSlider');
 const txPowerValue  = document.getElementById('txPowerValue');
