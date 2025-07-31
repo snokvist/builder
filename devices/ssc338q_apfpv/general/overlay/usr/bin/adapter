@@ -19,6 +19,13 @@ if [ -z "$mode" ]; then
     fw_setenv mode manual
     mode=manual
 fi
+msp_tty=$(fw_printenv -n msposd_tty 2>/dev/null)
+if [ -z "$msp_tty" ]; then
+    echo "fw_printenv: msposd_tty undefined – setting default to standalone"
+    fw_setenv msposd_tty standalone
+    msp_tty=standalone
+fi
+
 
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
