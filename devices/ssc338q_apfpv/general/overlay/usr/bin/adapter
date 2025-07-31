@@ -39,30 +39,6 @@ set80211n=1
 
 [ "$chan" -le 13 ] && mode=g || mode=a
 
-# Pick the right HT capabilities string
-case "$driver" in
-    8733bu)
-        HT_CAPAB="[SHORT-GI-20]"
-        ;;
-
-    88XXau)
-        HT_CAPAB="[SHORT-GI-20][TX-STBC][RX-STBC1]"
-        # ----- Flip wlanpwr sign only for 88XXau -----
-        # If $wlanpwr does *not* start with '-', prepend one.
-        #case "$wlanpwr" in
-        #    -*) ;;                    # already negative – leave it alone
-        #    *)  wlanpwr="-$wlanpwr" ;; # make it negative
-        #esac
-
-	#set80211n=0
-	region=US
-        ;;
-
-    *)
-        HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]"
-        ;;
-esac
-
 set_config() {
 cat <<EOF > /tmp/hostapd.conf
 ctrl_interface=/var/run/hostapd
