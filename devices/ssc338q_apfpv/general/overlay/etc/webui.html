@@ -197,34 +197,6 @@
 
   </div>
   
-   
-  
-  <!-- Reboot -------------------------------------------------------------- -->
-  <div class="row">
-    <button class="btn danger" style="width:100%;flex:1"
-      onclick="
-        if (confirm('Warning: The device will reboot immediately. Continue?')) {
-          go('reboot');
-        }">
-      Reboot&nbsp;Device
-    </button>
-  </div>
-
-  
-  <!-- Show Info -->
-  <div class="row">
-    <button class="btn info" style="width:100%;flex:1"
-            onclick="go('sysinfo')">Show Info</button>
-  </div>
-
-  <!-- Show aalink settings -->
-  <div class="row">
-    <button class="btn info" style="width:100%;flex:1"
-            onclick="goArg('control_cmd', 'aalink_print_settings')">
-      Show aalink Settings
-    </button>
-  </div>
-  
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
 
@@ -254,16 +226,18 @@
     <option value="ch44 --make-permanent">ch44</option>
     <option value="ch44-20 --make-permanent">ch44‑20</option>
     <option value="ch48-20 --make-permanent">ch48‑20</option>
-
+    
     <!-- UNII‑2A (DFS) -->
+    <!--
     <option value="ch52 --make-permanent">ch52</option>
     <option value="ch52-20 --make-permanent">ch52‑20</option>
     <option value="ch56-20 --make-permanent">ch56‑20</option>
     <option value="ch60 --make-permanent">ch60</option>
     <option value="ch60-20 --make-permanent">ch60‑20</option>
     <option value="ch64-20 --make-permanent">ch64‑20</option>
-
+    -->
     <!-- UNII‑2C / 2‑Extended (DFS) -->
+     <!--
     <option value="ch100 --make-permanent">ch100</option>
     <option value="ch100-20 --make-permanent">ch100‑20</option>
     <option value="ch104-20 --make-permanent">ch104‑20</option>
@@ -282,7 +256,7 @@
     <option value="ch140 --make-permanent">ch140</option>
     <option value="ch140-20 --make-permanent">ch140‑20</option>
     <option value="ch144-20 --make-permanent">ch144‑20</option>
-
+    -->
     <!-- UNII‑3 / UNII‑4 -->
     <option value="ch149 --make-permanent">ch149</option>
     <option value="ch149-20 --make-permanent">ch149‑20</option>
@@ -291,9 +265,12 @@
     <option value="ch157-20 --make-permanent">ch157‑20</option>
     <option value="ch161-20 --make-permanent">ch161‑20</option>
     <option value="ch165-20 --make-permanent">ch165‑20</option>
+    <!--
     <option value="ch169 --make-permanent">ch169</option>
     <option value="ch169-20 --make-permanent">ch169‑20</option>
     <option value="ch173-20 --make-permanent">ch173‑20</option>
+    -->
+    
   </select>
 </div>
 
@@ -402,11 +379,13 @@
   </div>
 
 
-  <!-- Show Info -->
+  <!-- Show Info 
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
             onclick="go('sysinfo')">Show Info</button>
   </div>
+  -->
+  
   <pre class="info-box" id="infoSetup">(no log yet)</pre>
 </div>
 
@@ -518,6 +497,33 @@
   </div>
 
 
+    <!-- Reboot -------------------------------------------------------------- -->
+  <div class="row">
+    <button class="btn danger" style="width:100%;flex:1"
+      onclick="
+        if (confirm('Warning: The device will reboot immediately. Continue?')) {
+          go('reboot');
+        }">
+      Reboot&nbsp;Device
+    </button>
+  </div>
+
+  
+  <!-- Show Info -->
+  <div class="row">
+    <button class="btn info" style="width:100%;flex:1"
+            onclick="go('sysinfo')">Show Info</button>
+  </div>
+
+  <!-- Show aalink settings -->
+  <div class="row">
+    <button class="btn info" style="width:100%;flex:1"
+            onclick="goArg('control_cmd', 'aalink_print_settings')">
+      Show aalink Settings
+    </button>
+  </div>
+  
+  
   
 <!--‑‑ Show current settings 
 <div class="row">
@@ -545,6 +551,10 @@
            border-radius:6px; margin-top:.8em; display:none;">
   </iframe>
 </div>
+
+
+
+
 
 
 
@@ -1149,10 +1159,7 @@ powerToggle.addEventListener('change', () => {
   });
 });
 
-
-
-
-  
+ 
   // ---------------------------------------------------------------------
   // PERIODIC LOG POLL
   // ---------------------------------------------------------------------
