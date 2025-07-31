@@ -131,7 +131,7 @@
 <div class="tabs">
   <div class="tab-btn"        id="tabSetup">Setup</div>
   <div class="tab-btn active" id="tabControl">Control</div>
-  <div class="tab-btn"        id="tabApAlink">Advanced</div>
+  <div class="tab-btn" id="tabApAlink" style="display:none">Advanced</div>
 </div>
 
 <!-- Control Tab Content -->
@@ -1158,6 +1158,77 @@ powerToggle.addEventListener('change', () => {
     }
   });
 });
+
+
+// ───── UI ENHANCEMENTS: hide/show Advanced + fetch defaults ─────
+
+// grab all the bits we need
+const tabApAlinkBtn     = document.getElementById('tabApAlink');
+const tabControlBtn     = document.getElementById('tabControl');
+const contentControlPane= document.getElementById('contentControl');
+const ssidInput         = document.getElementById('ssid');
+const passInput         = document.getElementById('pass');
+const ttySel            = document.getElementById('ttySel');
+const linkSel           = document.getElementById('linkSel');
+
+// ─── hide/show “Advanced” without breaking its centering ───
+tabApAlinkBtn.style.display = 'none';
+
+powerToggle.addEventListener('change', () => {
+  if (powerToggle.checked) {
+    // reveal, but let CSS handle centering
+    tabApAlinkBtn.style.removeProperty('display');
+  } else {
+    // hide
+    tabApAlinkBtn.style.display = 'none';
+    // if it was active, bounce back to Control
+    if (tabApAlinkBtn.classList.contains('active')) {
+      showTab(tabControlBtn, contentControlPane);
+    }
+  }
+});
+
+// ─── simplified, reliable default-value loader ───
+function initDefault(el, endpoint) {
+  fetchJSONOrText(endpoint, {}, 1000)
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(raw => {
+      const v = raw.trim();
+
+      if (el.tagName === 'SELECT') {
+        // grab the “mode” prefix from your options
+        const prefix = el.options[0].value.split('-')[0];
+
+        // for tty values, strip “/dev/” and convert “ttyS1”→“tty1”
+        const suffix = v.startsWith('/dev/')
+          ? v.slice(5).replace(/^ttyS/, 'tty')
+          : v;
+
+        const candidate = `${prefix}-${suffix}`;
+        if (el.querySelector(`option[value="${candidate}"]`)) {
+          el.value = candidate;
+        } else {
+          console.warn(`initDefault: no <option> for "${candidate}"`);
+        }
+      } else {
+        // plain <input>
+        el.value = v;
+      }
+    })
+    .catch(err => {
+      console.error(`initDefault(${endpoint}) failed:`, err);
+    });
+}
+
+// ─── fire them all off ───
+initDefault(ssidInput, '/value/ssid');
+initDefault(passInput, '/value/passw');
+initDefault(ttySel,    '/value/msposd_tty');
+initDefault(linkSel,   '/value/mode');
+
 
  
   // ---------------------------------------------------------------------
