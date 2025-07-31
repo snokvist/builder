@@ -52,7 +52,7 @@ case "$driver" in
         ;;
 
     *)
-        HT_CAPAB="[HT40+][HT40-][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]"
+        HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40][TX-STBC][RX-STBC1][LDPC]"
         ;;
 esac
 
