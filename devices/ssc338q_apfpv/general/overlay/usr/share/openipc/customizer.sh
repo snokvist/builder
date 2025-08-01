@@ -59,3 +59,4 @@ chmod +x /usr/bin/msposd
 chmod +x /usr/bin/antenna_osd
 chmod +x /usr/bin/set_externalosd.sh
 chmod +x /usr/bin/linkmgdr
+chmod +x /usr/bin/set_distance.sh
