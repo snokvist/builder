@@ -430,8 +430,19 @@
   </select>
 </div>
   
-  
-  
+  <!-- set distance -->
+  <div class="row">
+    <button class="btn" onclick="goArg('set_distance', setDistance.value)">Set Distance Live</button>
+    <select id="setDistance">
+      <option value="status">Get Status</option>
+      <option value="0">Default (0m)</option>
+      <option value="500">500m</option>
+      <option value="1000">1000m</option>
+      <option value="2000">2000m</option>
+      <option value="5000">5000m</option>
+    </select>
+  </div>
+
   <!-- aalink MCS / Threshold control -->
 <div class="row">
   <button class="btn" onclick="goArg('set_mcs', sendMcsCmd.value)">
