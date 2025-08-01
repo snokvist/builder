@@ -308,54 +308,14 @@
     </select>
   </div>
   
+  
   <!-- Video Resolution -->
   <div class="row">
-    <button class="btn" onclick="goArg('set_video', videoSel.value)">Set&nbsp;Video</button>
+    <button class="btn" onclick="goArg('set_video', videoSel.value)">Set Video</button>
     <select id="videoSel">
-      <option value="1">4:3 720p 60</option>
-      <option value="2">4:3 720p 60 50HzAC</option>
-      <option value="3">4:3 960p 60</option>
-      <option value="4">4:3 960p 60 50HzAC</option>
-      <option value="5">4:3 1080p 60</option>
-      <option value="6">4:3 1080p 60 50HzAC</option>
-      <option value="7">4:3 1440p 60</option>
-      <option value="8">4:3 1440p 60 50HzAC</option>
-      <option value="9">4:3 1920p 60</option>
-      <option value="10">4:3 1920p 60 50HzAC</option>
-      <option value="11">4:3 720p 90</option>
-      <option value="12">4:3 720p 90 50HzAC</option>
-      <option value="13">4:3 960p 90</option>
-      <option value="14">4:3 960p 90 50HzAC</option>
-      <option value="15">4:3 1080p 90</option>
-      <option value="16">4:3 1080p 90 50HzAC</option>
-      <option value="17">4:3 1440p 90</option>
-      <option value="18">4:3 1440p 90 50HzAC</option>
-      <option value="19">4:3 540p 120</option>
-      <option value="20">4:3 720p 120</option>
-      <option value="21">4:3 960p 120</option>
-      <option value="22">4:3 1080p 120</option>
-      <option value="23">16:9 540p 60</option>
-      <option value="24">16:9 540p 60 50HzAC</option>
-      <option value="25">16:9 720p 60</option>
-      <option value="26">16:9 720p 60 50HzAC</option>
-      <option value="27">16:9 1080p 60</option>
-      <option value="28">16:9 1080p 60 50HzAC</option>
-      <option value="29">16:9 1440p 60</option>
-      <option value="30">16:9 1440p 60 50HzAC</option>
-      <option value="31">16:9 540p 90</option>
-      <option value="32">16:9 540p 90 50HzAC</option>
-      <option value="33">16:9 720p 90</option>
-      <option value="34">16:9 720p 90 50HzAC</option>
-      <option value="35">16:9 1080p 90</option>
-      <option value="36">16:9 1080p 90 50HzAC</option>
-      <option value="37">16:9 1344p 90</option>
-      <option value="38">16:9 1344p 90 50HzAC</option>
-      <option value="39">16:9 540p 120</option>
-      <option value="40">16:9 720p 120</option>
-      <option value="41">16:9 1080p 120</option>
+      <option value="">Loading…</option>
     </select>
   </div>
-
   
   
   
@@ -842,16 +802,14 @@ function go(name) {
 
 function goArg(name, arg) {
   pauseLogPoll();
-  fetchJSONOrText(`/cmd/${name}?args=${encodeURIComponent(arg)}`)
+  const q = encodeURIComponent(arg);            // ← encode here
+  fetchJSONOrText(`/cmd/${name}?args=${q}`)
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       updateLog();
     })
     .catch(e => {
-      if (isBenignAbort(e)) {               // <‑‑ NEW
-        console.debug('Request aborted:', e);
-        return;
-      }
+      if (isBenignAbort(e)) return;
       console.error('Command error:', e);
       render(`Command "${name}" failed: ${e.message}`);
     });
@@ -1257,6 +1215,58 @@ initDefault(ssidInput, '/value/ssid');
 initDefault(passInput, '/value/passw');
 initDefault(ttySel,    '/value/msposd_tty');
 initDefault(linkSel,   '/value/mode');
+
+
+
+// ─── Video Modes dropdown ─────────────────────────────────────────────
+const videoSel = document.getElementById('videoSel');
+
+function initVideoModes(attempts = 3) {
+  let tries = 0;
+  const attempt = () => {
+    fetchJSONOrText('/value/video_modes', {}, 1000)
+      .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
+      .then(data => {
+        const modes = Array.isArray(data.available_modes)
+                    ? data.available_modes
+                    : [];
+        if (modes.length) {
+          // clear old and populate
+          videoSel.innerHTML = '';
+          modes.forEach(mode => {
+            const opt = document.createElement('option');
+            // backend wants hyphens
+            opt.value       = mode
+                     .replace(/:/g, '_')
+                     .replace(/ /g, '-');
+            opt.textContent = mode;
+            videoSel.appendChild(opt);
+          });
+        } else {
+          throw new Error('no modes returned');
+        }
+      })
+      .catch(err => {
+        console.error('initVideoModes failed:', err);
+        // fallback single un-executable option
+        videoSel.innerHTML = '<option value="unknown">unknown</option>';
+      });
+  };
+
+  // in case of transient failures, retry a couple times
+  const wrapped = () => {
+    attempt();
+    if (++tries < attempts) {
+      setTimeout(wrapped, 400 * tries);
+    }
+  };
+  wrapped();
+}
+
+// fire it off
+initVideoModes();
+
+
 
 
 // ─── auto‐fetch default WLAN channel (robust “ch149-20 --make-permanent” etc.) ───
