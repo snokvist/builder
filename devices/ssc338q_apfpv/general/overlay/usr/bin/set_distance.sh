@@ -11,11 +11,17 @@
 # - Timeout formulas:
 #     ACK_timeout  = 33 + ceil(2*distance/300)
 #     CTS2_timeout = 20 + ceil(distance/300)
-# - Requires write access to /proc/net/rtl88x2eu/<iface>/*_timeout.
+# - Automatically detects any rtl8xxx driver under /proc/net/*8*.
 
 LOG=/tmp/webui.log
 IFACE=wlan0
-PROC_BASE="/proc/net/rtl88x2eu/${IFACE}"
+
+# Discover the first rtl8xxx driver proc path matching our interface
+PROC_BASE=$(ls -d /proc/net/*8*/* 2>/dev/null | grep "/${IFACE}$" | head -n1)
+if [ -z "$PROC_BASE" ]; then
+    echo "✗ Unable to locate /proc/net/*8*/${IFACE}." >&2
+    exit 1
+fi
 
 print_status() {
     cat "${PROC_BASE}/ack_timeout"
