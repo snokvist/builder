@@ -1,5 +1,5 @@
 #!/bin/sh
-# set_distance.sh  –  distance‑based ACK/CTS timeout updater + status viewer
+# set_distance.sh  –  distance-based ACK/CTS timeout updater + status viewer
 #                  Updates are logged to /tmp/webui.log (overwritten).
 #
 # Usage:
@@ -32,8 +32,12 @@ arg="$1"
 # Status mode
 case "$arg" in
     status|print)
-        print_status
+        # Print and log status
+        print_status | tee "$LOG"
         exit 0
+        ;;
+    *)
+        # proceed to distance setting
         ;;
 esac
 
@@ -63,10 +67,10 @@ CTS_TIMEOUT=$((BASE_CTS + CTS_EXTRA))
 echo "${ACK_TIMEOUT}" > "${PROC_BASE}/ack_timeout"
 echo "${CTS_TIMEOUT}" > "${PROC_BASE}/cts2_timeout"
 
-# Print and log
+# Print and log results
 {
     echo "Distance: ${DIST} m"
     echo "Set ACK Timeout  = ${ACK_TIMEOUT} us"
     echo "Set CTS2 Timeout = ${CTS_TIMEOUT} us"
     print_status
-} | tee "${LOG}"
+} | tee "$LOG"
