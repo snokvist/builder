@@ -11,12 +11,23 @@ NC_TIMEOUT=${NC_TIMEOUT:-2}         # seconds
 LOGFILE=/tmp/webui.log              # fresh log each time
 ###############################################################################
 
+# -----------------------------------------------------------------------------#
+# Your full MODE_LIST definition goes here, exactly as in your original script #
+# (omitted for brevity)                                                        #
+# -----------------------------------------------------------------------------#
+# MODE_LIST=$(cat <<'EOF'
+# 4:3 720p 60
+# ... all your modes ...
+# 16:9 1080p 120
+# EOF
+# )
+
 usage() {
     cat <<EOF
 Usage:
   $(basename "$0") --get-current
   $(basename "$0") --get-all
-  $(basename "$0") INDEX              # falls back to plain set logic
+  $(basename "$0") INDEX                 # falls back to plain set logic
   $(basename "$0") 16:9-1344p-90-50HzAC   (etc)
 
 Environment:
@@ -24,8 +35,34 @@ Environment:
 EOF
 }
 
+# -----------------------------------------------------------------------------#
+# 1) Handle --get-all before we start tee’ing, so it does NOT go into the log  #
+# -----------------------------------------------------------------------------#
+if [ "$1" = "--get-all" ]; then
+    RAW=$(printf 'get_all_video_modes\n' \
+          | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
+
+    ARR='['
+    FIRST=1
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        ESC=$(printf '%s' "$line" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        if [ $FIRST -eq 1 ]; then
+            ARR="${ARR}\"${ESC}\""
+            FIRST=0
+        else
+            ARR="${ARR},\"${ESC}\""
+        fi
+    done <<EOF
+$RAW
+EOF
+    ARR="${ARR}]"
+    printf '{"available_modes":%s}\n' "$ARR"
+    exit 0
+fi
+
 ###############################################################################
-# Everything below runs inside one block that is piped to tee once
+# Everything below runs inside one block that is piped to tee (and logged)   #
 ###############################################################################
 {
     if [ "$#" -eq 0 ]; then
@@ -35,59 +72,30 @@ EOF
 
     case "$1" in
         --get-current)
-            # ask device...
-            RAW=$(printf 'get_current_video_mode\n' | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
-            # determine JSON value
+            RAW=$(printf 'get_current_video_mode\n' \
+                  | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
             if echo "$RAW" | grep -q 'Current mode file not found'; then
                 MODE="unknown"
             else
-                # strip any trailing newline
                 MODE=$(printf '%s' "$RAW" | tr -d '\r\n')
             fi
-            # escape backslashes and quotes
             ESC=$(printf '%s' "$MODE" | sed 's/\\/\\\\/g; s/"/\\"/g')
             printf '{"current_mode":"%s"}\n' "$ESC"
-            exit 0
-            ;;
-        --get-all)
-            # ask device...
-            RAW=$(printf 'get_all_video_modes\n' | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
-            # build JSON array
-            ARR='['
-            FIRST=1
-            while IFS= read -r line; do
-                [ -z "$line" ] && continue
-                # escape backslashes and quotes
-                ESC_LINE=$(printf '%s' "$line" | sed 's/\\/\\\\/g; s/"/\\"/g')
-                if [ "$FIRST" -eq 1 ]; then
-                    ARR="${ARR}\"${ESC_LINE}\""
-                    FIRST=0
-                else
-                    ARR="${ARR},\"${ESC_LINE}\""
-                fi
-            done <<EOF
-$RAW
-EOF
-            ARR="${ARR}]"
-            printf '{"available_modes":%s}\n' "$ARR"
             exit 0
             ;;
         -h|--help)
             usage
             exit 0
             ;;
-    *)  # decide how the mode was specified…
-        if [ "$#" -eq 1 ] && echo "$1" | grep -qE '^[0-9]+$'; then
-            # numeric index → existing logic
-            MODE=$(echo "$MODE_LIST" | sed -n "${1}p")
-            [ -n "$MODE" ] || { echo "Index $1 out of range" >&2; exit 1; }
-        else
-            # convert underscores back to colons, hyphens to spaces
-            # (and if there were multiple args, join them with spaces)
-            ARG="$*"
-            MODE=$(printf '%s\n' "$ARG" | tr '_' ':' | tr '-' ' ')
-        fi
-        CMD="set_simple_video_mode $MODE"
+        *)
+            if [ "$#" -eq 1 ] && echo "$1" | grep -qE '^[0-9]+$'; then
+                MODE=$(echo "$MODE_LIST" | sed -n "${1}p")
+                [ -n "$MODE" ] || { echo "Index $1 out of range" >&2; exit 1; }
+            else
+                ARG="$*"
+                MODE=$(printf '%s\n' "$ARG" | tr '_' ':' | tr '-' ' ')
+            fi
+            CMD="set_simple_video_mode $MODE"
             ;;
     esac
 
