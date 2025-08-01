@@ -53,6 +53,8 @@ ieee80211n=1
 ieee80211ac=1
 require_ht=0
 require_vht=0
+#capab
+
 wmm_enabled=1
 wpa=2
 rsn_pairwise=CCMP
