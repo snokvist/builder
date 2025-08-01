@@ -1,9 +1,8 @@
 #!/bin/sh
-# file: /usr/bin/set_video.sh
-# BusyBox‑compatible wrapper for the video‑mode TCP service
-# – supports index, dashed or spaced mode strings – logs everything.
+# file: /usr/bin/set_video_json.sh
+# BusyBox-compatible wrapper for the video-mode TCP service, with JSON output for gets
 
-set -o pipefail                     # propagate errors through the one‑tee pipeline
+set -o pipefail                     # propagate errors through the one-tee pipeline
 
 ###############################################################################
 TARGET_IP=${TARGET_IP:-192.168.0.1}
@@ -12,64 +11,16 @@ NC_TIMEOUT=${NC_TIMEOUT:-2}         # seconds
 LOGFILE=/tmp/webui.log              # fresh log each time
 ###############################################################################
 
-# ---------------------------------------------------------------- mode list --
-MODE_LIST=$(cat <<'EOF'
-4:3 720p 60
-4:3 720p 60 50HzAC
-4:3 960p 60
-4:3 960p 60 50HzAC
-4:3 1080p 60
-4:3 1080p 60 50HzAC
-4:3 1440p 60
-4:3 1440p 60 50HzAC
-4:3 1920p 60
-4:3 1920p 60 50HzAC
-4:3 720p 90
-4:3 720p 90 50HzAC
-4:3 960p 90
-4:3 960p 90 50HzAC
-4:3 1080p 90
-4:3 1080p 90 50HzAC
-4:3 1440p 90
-4:3 1440p 90 50HzAC
-4:3 540p 120
-4:3 720p 120
-4:3 960p 120
-4:3 1080p 120
-16:9 540p 60
-16:9 540p 60 50HzAC
-16:9 720p 60
-16:9 720p 60 50HzAC
-16:9 1080p 60
-16:9 1080p 60 50HzAC
-16:9 1440p 60
-16:9 1440p 60 50HzAC
-16:9 540p 90
-16:9 540p 90 50HzAC
-16:9 720p 90
-16:9 720p 90 50HzAC
-16:9 1080p 90
-16:9 1080p 90 50HzAC
-16:9 1344p 90
-16:9 1344p 90 50HzAC
-16:9 540p 120
-16:9 720p 120
-16:9 1080p 120
-EOF
-)
-
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") INDEX              # e.g. 37
-  $(basename "$0") 16:9-1344p-90-50HzAC
-  $(basename "$0") "16:9 1344p 90 50HzAC"
-
   $(basename "$0") --get-current
   $(basename "$0") --get-all
+  $(basename "$0") INDEX              # falls back to plain set logic
+  $(basename "$0") 16:9-1344p-90-50HzAC   (etc)
 
 Environment:
-  TARGET_IP, TARGET_PORT, NC_TIMEOUT   Override defaults
+  TARGET_IP, TARGET_PORT, NC_TIMEOUT
 EOF
 }
 
@@ -77,7 +28,6 @@ EOF
 # Everything below runs inside one block that is piped to tee once
 ###############################################################################
 {
-    # -------------------------------------------------------------- arguments -
     if [ "$#" -eq 0 ]; then
         usage >&2
         exit 1
@@ -85,15 +35,41 @@ EOF
 
     case "$1" in
         --get-current)
-            CMD="get_current_video_mode"
+            # ask device...
+            RAW=$(printf 'get_current_video_mode\n' | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
+            # determine JSON value
+            if echo "$RAW" | grep -q 'Current mode file not found'; then
+                MODE="unknown"
+            else
+                # strip any trailing newline
+                MODE=$(printf '%s' "$RAW" | tr -d '\r\n')
+            fi
+            # escape backslashes and quotes
+            ESC=$(printf '%s' "$MODE" | sed 's/\\/\\\\/g; s/"/\\"/g')
+            printf '{"current_mode":"%s"}\n' "$ESC"
+            exit 0
             ;;
         --get-all)
-            idx=1
-            printf '[%s] Available video modes:\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-            echo "$MODE_LIST" | while IFS= read -r m; do
-                printf '%2d: %s\n' "$idx" "$m"
-                idx=$((idx+1))
-            done
+            # ask device...
+            RAW=$(printf 'get_all_video_modes\n' | timeout "$NC_TIMEOUT" nc "$TARGET_IP" "$TARGET_PORT" 2>&1)
+            # build JSON array
+            ARR='['
+            FIRST=1
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                # escape backslashes and quotes
+                ESC_LINE=$(printf '%s' "$line" | sed 's/\\/\\\\/g; s/"/\\"/g')
+                if [ "$FIRST" -eq 1 ]; then
+                    ARR="${ARR}\"${ESC_LINE}\""
+                    FIRST=0
+                else
+                    ARR="${ARR},\"${ESC_LINE}\""
+                fi
+            done <<EOF
+$RAW
+EOF
+            ARR="${ARR}]"
+            printf '{"available_modes":%s}\n' "$ARR"
             exit 0
             ;;
         -h|--help)
@@ -101,6 +77,7 @@ EOF
             exit 0
             ;;
         *)
+            # fallback to your existing “set” logic
             # Decide how the mode was specified
             if [ "$#" -eq 1 ] && echo "$1" | grep -qE '^[0-9]+$'; then
                 MODE=$(echo "$MODE_LIST" | sed -n "${1}p")
