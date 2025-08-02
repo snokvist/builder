@@ -100,7 +100,8 @@ Fail:  ${n.fail}
 
           json.nodes.forEach(n => {
             const ip = n.ip;
-            const rssiVal = Math.max(0, Math.min(100, n.rssi + 100));
+            // n.rssi is now expected to be in the positive 0‑100 range already
+            const rssiVal = Math.max(0, Math.min(100, n.rssi));
             const isActiveNow = (ip === activeIP);
 
             if (!nodeMap[ip]) {
@@ -129,56 +130,56 @@ Fail:  ${n.fail}
     }
 
     function drawChart() {
-    const W = canvas.width  = canvas.offsetWidth;
-    const H = canvas.height = 200;
+      const W = canvas.width  = canvas.offsetWidth;
+      const H = canvas.height = 200;
 
-    ctx.clearRect(0, 0, W, H);
+      ctx.clearRect(0, 0, W, H);
 
-    Object.entries(nodeMap).forEach(([ip, data]) => {
+      Object.entries(nodeMap).forEach(([ip, data]) => {
         const vals = data.rssiHistory;
         if (vals.length < 2) return;
 
         for (let i = 1; i < vals.length; i++) {
-        const prev = vals[i - 1];
-        const curr = vals[i];
+          const prev = vals[i - 1];
+          const curr = vals[i];
 
-        const prevX = (i - 1) / (maxPoints - 1) * W;
-        const prevY = H - prev.value / 100 * H;
-        const currX = i / (maxPoints - 1) * W;
-        const currY = H - curr.value / 100 * H;
+          const prevX = (i - 1) / (maxPoints - 1) * W;
+          const prevY = H - prev.value / 100 * H;
+          const currX = i / (maxPoints - 1) * W;
+          const currY = H - curr.value / 100 * H;
 
-        ctx.beginPath();
-        ctx.moveTo(prevX, prevY);
-        ctx.lineTo(currX, currY);
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(currX, currY);
 
-        if (prev.isActive && curr.isActive) {
+          if (prev.isActive && curr.isActive) {
             ctx.strokeStyle = '#00cc00'; // solid green
             ctx.lineWidth = 3;
             ctx.setLineDash([]);
-        } else {
+          } else {
             ctx.strokeStyle = data.color;
             ctx.lineWidth = 2;
             ctx.setLineDash([4, 3]);     // dotted style
-        }
+          }
 
-        ctx.stroke();
+          ctx.stroke();
         }
 
         ctx.setLineDash([]); // reset after each node
-    });
+      });
 
-    // Guide lines
-    ctx.strokeStyle = '#ccc';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([2, 2]);
-    [25, 50, 75].forEach(p => {
+      // Guide lines
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      [25, 50, 75].forEach(p => {
         const y = H - (p / 100 * H);
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(W, y);
         ctx.stroke();
-    });
-    ctx.setLineDash([]); // reset dash
+      });
+      ctx.setLineDash([]); // reset dash
     }
 
     setInterval(updateStatus, 500);
