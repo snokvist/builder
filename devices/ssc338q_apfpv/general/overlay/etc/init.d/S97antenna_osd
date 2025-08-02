@@ -17,8 +17,6 @@ case "$1" in
         fi
 
         echo "Starting antenna_osd..."
-        #forcing mcs0 for "android" mode
-        echo "0xFF" > "$(ls /proc/net/*/wlan0/rate_ctl)"
         killall antenna_osd
         sleep 1
         antenna_osd &
