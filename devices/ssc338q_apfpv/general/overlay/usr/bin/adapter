@@ -30,7 +30,7 @@ fi
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
 chan=$(fw_printenv -n wlanchan || echo 157)
-wlanpwr=$(fw_printenv -n wlanpwr || echo 250)
+wlanpwr=$(fw_printenv -n wlanpwr || echo 1350)
 region=$(fw_printenv -n wlanregion || echo US)
 master=$(fw_printenv -n master_ip || echo 192.168.0.10)
 port=$(fw_printenv -n master_port || echo 5600)
