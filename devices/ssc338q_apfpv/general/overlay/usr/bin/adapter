@@ -18,12 +18,20 @@ if [ -z "$mode" ]; then
     echo "fw_printenv: mode undefined – setting default to manual again (previous aalink)"
     fw_setenv mode manual
     mode=manual
+
 fi
+
+if [ "$mode" = "manual" ]; then
+    echo "Mode is manual – executing manual-mode operations (previous aalink)"
+    echo "0x0C" > "$(ls /proc/net/*/wlan0/rate_ctl)";cat "$(ls /proc/net/*/wlan0/rate_ctl)"
+fi
+
 msp_tty=$(fw_printenv -n msposd_tty 2>/dev/null)
 if [ -z "$msp_tty" ]; then
     echo "fw_printenv: msposd_tty undefined – setting default to standalone"
     fw_setenv msposd_tty standalone
     msp_tty=standalone
+
 fi
 
 
