@@ -3,8 +3,8 @@
 #                  Updates are logged to /tmp/webui.log (overwritten).
 #
 # Usage:
-#   set_distance.sh <distance_in_meters>
-#   set_distance.sh status        # or:  set_distance.sh print
+#   set_distance.sh [--quiet] <distance_in_meters>
+#   set_distance.sh [--quiet] status | print
 #
 # Notes:
 # - Distance must be a non-negative integer (meters).
@@ -15,6 +15,13 @@
 
 LOG=/tmp/webui.log
 IFACE=wlan0
+
+# Parse optional --quiet
+QUIET=0
+if [ "$1" = "--quiet" ]; then
+    QUIET=1
+    shift
+fi
 
 # Discover the first rtl8xxx driver proc path matching our interface
 PROC_BASE=$(ls -d /proc/net/*8*/* 2>/dev/null | grep "/${IFACE}$" | head -n1)
@@ -30,7 +37,7 @@ print_status() {
 
 # Check arguments
 [ $# -ne 1 ] && {
-    echo "Usage: $0 <distance_in_meters> | status" >&2
+    echo "Usage: $0 [--quiet] <distance_in_meters> | status" >&2
     exit 1
 }
 arg="$1"
@@ -38,12 +45,12 @@ arg="$1"
 # Status mode
 case "$arg" in
     status|print)
-        # Print and log status
-        print_status | tee "$LOG"
+        if [ "$QUIET" -eq 1 ]; then
+            print_status > /dev/null
+        else
+            print_status | tee "$LOG"
+        fi
         exit 0
-        ;;
-    *)
-        # proceed to distance setting
         ;;
 esac
 
@@ -73,10 +80,19 @@ CTS_TIMEOUT=$((BASE_CTS + CTS_EXTRA))
 echo "${ACK_TIMEOUT}" > "${PROC_BASE}/ack_timeout"
 echo "${CTS_TIMEOUT}" > "${PROC_BASE}/cts2_timeout"
 
-# Print and log results
-{
-    echo "Distance: ${DIST} m"
-    echo "Set ACK Timeout  = ${ACK_TIMEOUT} us"
-    echo "Set CTS2 Timeout = ${CTS_TIMEOUT} us"
-    print_status
-} | tee "$LOG"
+# Print and log results (or suppress if quiet)
+if [ "$QUIET" -eq 1 ]; then
+    {
+        echo "Distance: ${DIST} m"
+        echo "Set ACK Timeout  = ${ACK_TIMEOUT} us"
+        echo "Set CTS2 Timeout = ${CTS_TIMEOUT} us"
+        print_status
+    } > /dev/null
+else
+    {
+        echo "Distance: ${DIST} m"
+        echo "Set ACK Timeout  = ${ACK_TIMEOUT} us"
+        echo "Set CTS2 Timeout = ${CTS_TIMEOUT} us"
+        print_status
+    } | tee "$LOG"
+fi
