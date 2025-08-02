@@ -4,7 +4,7 @@ case "$1" in
   mode-manual)
     echo "Setting link control to manual, mcs0 static, ACK_T 100us, CTS_T 54us." | tee /tmp/webui.log
     echo "0x0C" > "$(ls /proc/net/*/wlan0/rate_ctl)";cat "$(ls /proc/net/*/wlan0/rate_ctl)"
-    set_distance.sh --quiet 10000
+    set_distance.sh --quiet 3000 2> /dev/null
     fw_setenv mode "manual"
     ;;
   
