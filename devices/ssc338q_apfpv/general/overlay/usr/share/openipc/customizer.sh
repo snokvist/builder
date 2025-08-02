@@ -10,10 +10,10 @@ fw_setenv upgrade 'https://github.com/OpenIPC/builder/releases/download/latest/o
 #
 # Set custom majestic settings
 #
-cli -s .isp.exposure 8
+cli -s .isp.exposure 7
 cli -s .video0.fps 60
 cli -s .video0.size 1280x960
-cli -s .video0.bitrate 3233
+cli -s .video0.bitrate 2400
 cli -s .video0.codec h265
 cli -s .video0.rcMode cbr
 cli -s .video0.gopSize 1.25
