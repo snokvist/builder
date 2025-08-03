@@ -5,55 +5,17 @@
   <title>Live Link Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --blue:#007bff; --blue-dk:#0056b3;
-      --bg:#eef4fb; --txt:#003366;
-    }
-
-    body {
-      margin: 0; padding: 1em;
-      font-family: sans-serif;
-      background: var(--bg);
-      color: var(--txt);
-    }
-
-    h2 {
-      text-align: center;
-      margin: 0.5em 0 1em;
-      font-size: 1.2em;
-      color: var(--blue-dk);
-    }
-
-    .section {
-      margin: 1em 0;
-    }
-
-    .fail-box {
-      display: inline-block;
-      margin: .3em .6em .3em 0;
-      padding: .4em .6em;
-      border-radius: 6px;
-      background: #f2f2f2;
-      font-size: .85em;
-      white-space: pre-line;
-      min-width: 110px;
-    }
-
-    .fail-box.active {
-      font-weight: bold;
-      color: #007700;
-      background: #e6ffe6;
-      border: 1px solid #0a0;
-    }
-
-    canvas {
-      width: 100%;
-      max-width: 800px;
-      height: 200px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
+    :root { --blue:#007bff; --blue-dk:#0056b3; --bg:#eef4fb; --txt:#003366; }
+    body { margin:0; padding:1em; font-family:sans-serif; background:var(--bg); color:var(--txt); }
+    h2 { text-align:center; margin:0.5em 0 1em; font-size:1.2em; color:var(--blue-dk); }
+    .section { margin:1em 0; }
+    .fail-box { display:inline-block; margin:.3em .6em .3em 0; padding:.4em .6em; border-radius:6px; background:#f2f2f2; font-size:.85em; white-space:pre-line; min-width:110px; }
+    .fail-box.active { font-weight:bold; color:#007700; background:#e6ffe6; border:1px solid #0a0; }
+    canvas { width:100%; max-width:800px; height:200px; background:#fff; border:1px solid #ccc; border-radius:6px; }
+    /* legend */
+    #retryLegend { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; }
+    .legend-item { display:inline-flex; align-items:center; margin:3px 1em 3px 0; font-size:.8em; }
+    .swatch { width:14px; height:14px; border-radius:2px; margin-right:.35em; border:1px solid #0002; }
   </style>
 </head>
 <body>
@@ -61,23 +23,72 @@
 
   <div class="section" id="infoTop">(loading...)</div>
   <div class="section" id="failBox"></div>
+
+  <!-- RSSI chart -->
   <div class="section">
     <canvas id="chartCanvas"></canvas>
   </div>
 
+  <!-- Retry / Fail chart -->
+  <div class="section">
+    <canvas id="retryCanvas"></canvas>
+  </div>
+
+  <!-- Legend now BELOW the chart -->
+  <div class="section" id="retryLegend"></div>
+
+  <!-- Text summary -->
+  <div class="section" id="summaryText"></div>
+
   <script>
-    const infoTop  = document.getElementById('infoTop');
-    const failBox  = document.getElementById('failBox');
+    const infoTop      = document.getElementById('infoTop');
+    const failBox      = document.getElementById('failBox');
+    const retryLegend  = document.getElementById('retryLegend');
+
+    // First chart (RSSI)
     const canvas   = document.getElementById('chartCanvas');
     const ctx      = canvas.getContext('2d');
-    const maxPoints = 150;  // ← extended by 50%
 
-    const nodeMap = {};
+    // Second chart (Retry + fails)
+    const retryCanvas = document.getElementById('retryCanvas');
+    const ctxRetry    = retryCanvas.getContext('2d');
+
+    const summaryText = document.getElementById('summaryText');
+
+    const maxPoints = 150;
+
+    // Pre‑defined distinct palette for up to 10 stations
+    const PALETTE = [
+      '#1f77b4', // blue
+      '#2ca02c', // green
+      '#9467bd', // purple
+      '#d62728', // red
+      '#17becf', // cyan
+      '#ff7f0e', // orange
+      '#8c564b', // brown
+      '#e377c2', // pink
+      '#7f7f7f', // gray
+      '#bcbd22'  // olive
+    ];
+    let paletteIndex = 0;
+
+    const nodeMap = {};           // keyed by ip { rssiHistory, retryHistory, color }
+    const cckFailHistory  = [];
+    const ofdmFailHistory = [];
     let activeIP = null;
 
-    function colorForIP(ip) {
-      const h = [...ip].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-      return `hsl(${h}, 70%, 45%)`;
+    const GLOBAL_LINES = [
+      { label: 'CCK Fail',  color: '#e41a1c', hist: cckFailHistory }, // vivid red
+      { label: 'OFDM Fail', color: '#ff8c00', hist: ofdmFailHistory }  // vivid orange
+    ];
+
+    const clamp100 = v => Math.max(0, Math.min(100, v));
+
+    function assignColor(ip) {
+      if (nodeMap[ip]?.color) return nodeMap[ip].color;
+      const color = PALETTE[paletteIndex % PALETTE.length];
+      paletteIndex++;
+      return color;
     }
 
     function updateStatus() {
@@ -87,41 +98,34 @@
           activeIP = json.active;
           infoTop.textContent = `Role: ${json.role}   |   Active: ${activeIP}`;
 
+          // ------ Station boxes ------
           failBox.innerHTML = json.nodes.map(n => {
-            const isActive = n.ip === activeIP;
-            const className = 'fail-box' + (isActive ? ' active' : '');
-            return `<div class="${className}">
-${n.ip}
-RSSI:  ${n.rssi}
-Succ:  ${n.succ}
-Fail:  ${n.fail}
-</div>`;
+            const cls = 'fail-box' + (n.ip === activeIP ? ' active' : '');
+            return `<div class="${cls}">\n${n.ip}\nRSSI:  ${n.rssi}\nRetry: ${n.retry}\nSucc:  ${n.succ}\nFail:  ${n.fail}\n</div>`;
           }).join('');
 
+          // ------ Histories per STA ------
           json.nodes.forEach(n => {
-            const ip = n.ip;
-            // n.rssi is now expected to be in the positive 0‑100 range already
-            const rssiVal = Math.max(0, Math.min(100, n.rssi));
-            const isActiveNow = (ip === activeIP);
-
-            if (!nodeMap[ip]) {
-              nodeMap[ip] = {
-                rssiHistory: [],
-                color: colorForIP(ip)
-              };
-            }
-
-            nodeMap[ip].rssiHistory.push({
-              value: rssiVal,
-              isActive: isActiveNow
-            });
-
-            if (nodeMap[ip].rssiHistory.length > maxPoints) {
-              nodeMap[ip].rssiHistory.shift();
-            }
+            if (!nodeMap[n.ip]) nodeMap[n.ip] = { rssiHistory:[], retryHistory:[], color: assignColor(n.ip) };
+            const nm = nodeMap[n.ip];
+            nm.rssiHistory.push({ value: clamp100(n.rssi),  isActive: n.ip===activeIP });
+            nm.retryHistory.push({ value: clamp100(n.retry), isActive: n.ip===activeIP });
+            if (nm.rssiHistory.length  > maxPoints) nm.rssiHistory.shift();
+            if (nm.retryHistory.length > maxPoints) nm.retryHistory.shift();
           });
 
+          // ------ Global fail histories ------
+          cckFailHistory.push(clamp100(json.cck_fail));
+          ofdmFailHistory.push(clamp100(json.ofdm_fail));
+          if (cckFailHistory.length  > maxPoints) cckFailHistory.shift();
+          if (ofdmFailHistory.length > maxPoints) ofdmFailHistory.shift();
+
+          // ------ Summary text ------
+          summaryText.textContent = `Tx Power: ${json.txpwr}   |   False Alarm: ${json.false_alarm}`;
+
           drawChart();
+          drawRetryChart();
+          buildRetryLegend();
         })
         .catch(err => {
           infoTop.textContent = '(error fetching status)';
@@ -129,59 +133,40 @@ Fail:  ${n.fail}
         });
     }
 
+    // ---------------- Drawing functions ----------------
     function drawChart() {
       const W = canvas.width  = canvas.offsetWidth;
       const H = canvas.height = 200;
-
-      ctx.clearRect(0, 0, W, H);
-
-      Object.entries(nodeMap).forEach(([ip, data]) => {
-        const vals = data.rssiHistory;
-        if (vals.length < 2) return;
-
-        for (let i = 1; i < vals.length; i++) {
-          const prev = vals[i - 1];
-          const curr = vals[i];
-
-          const prevX = (i - 1) / (maxPoints - 1) * W;
-          const prevY = H - prev.value / 100 * H;
-          const currX = i / (maxPoints - 1) * W;
-          const currY = H - curr.value / 100 * H;
-
-          ctx.beginPath();
-          ctx.moveTo(prevX, prevY);
-          ctx.lineTo(currX, currY);
-
-          if (prev.isActive && curr.isActive) {
-            ctx.strokeStyle = '#00cc00'; // solid green
-            ctx.lineWidth = 3;
-            ctx.setLineDash([]);
-          } else {
-            ctx.strokeStyle = data.color;
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 3]);     // dotted style
-          }
-
-          ctx.stroke();
-        }
-
-        ctx.setLineDash([]); // reset after each node
-      });
-
-      // Guide lines
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([2, 2]);
-      [25, 50, 75].forEach(p => {
-        const y = H - (p / 100 * H);
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
-        ctx.stroke();
-      });
-      ctx.setLineDash([]); // reset dash
+      ctx.clearRect(0,0,W,H);
+      Object.values(nodeMap).forEach(data=>drawLine(ctx,data.rssiHistory,data.color,H,W));
+      drawGuides(ctx,H,W);
     }
 
+    function drawRetryChart() {
+      const W = retryCanvas.width  = retryCanvas.offsetWidth;
+      const H = retryCanvas.height = 200;
+      ctxRetry.clearRect(0,0,W,H);
+      Object.values(nodeMap).forEach(data=>drawLine(ctxRetry,data.retryHistory,data.color,H,W));
+      // global lines (solid)
+      GLOBAL_LINES.forEach(g=>drawGlobal(ctxRetry,g.hist,g.color,H,W));
+      drawGuides(ctxRetry,H,W);
+    }
+
+    function drawLine(c,hist,color,H,W){ if(hist.length<2)return; for(let i=1;i<hist.length;i++){const a=hist[i-1],b=hist[i];const ax=(i-1)/(maxPoints-1)*W,ay=H-a.value/100*H;const bx=i/(maxPoints-1)*W,by=H-b.value/100*H;c.beginPath();c.moveTo(ax,ay);c.lineTo(bx,by); if(a.isActive&&b.isActive){ c.strokeStyle='#00cc00'; c.lineWidth=3; c.setLineDash([]);} else { c.strokeStyle=color; c.lineWidth=2; c.setLineDash([4,3]);} c.stroke();} c.setLineDash([]);}    
+
+    function drawGlobal(c,hist,color,H,W){ if(hist.length<2)return; c.strokeStyle=color; c.lineWidth=2; c.setLineDash([]); c.beginPath(); hist.forEach((v,i)=>{const x=i/(maxPoints-1)*W, y=H-v/100*H; i?c.lineTo(x,y):c.moveTo(x,y);}); c.stroke(); }
+
+    function drawGuides(c,H,W){ c.strokeStyle='#ccc'; c.lineWidth=1; c.setLineDash([2,2]); [25,50,75].forEach(p=>{const y=H-p/100*H; c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke();}); c.setLineDash([]);} 
+
+    // ---------------- Legend builder ----------------
+    function buildRetryLegend(){
+      const items=[];
+      Object.entries(nodeMap).forEach(([ip,data])=>items.push({label:`Retry ${ip}`,color:data.color}));
+      GLOBAL_LINES.forEach(g=>items.push({label:g.label,color:g.color}));
+      retryLegend.innerHTML=items.map(it=>`<span class="legend-item"><span class="swatch" style="background:${it.color}"></span>${it.label}</span>`).join('');
+    }
+
+    // ---------------- init ----------------
     setInterval(updateStatus, 500);
     updateStatus();
   </script>
