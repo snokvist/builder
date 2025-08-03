@@ -19,7 +19,7 @@
       margin:.7em 0 .3em;
       color:var(--txt);
     }
-    
+
     /* ------- tab buttons ------------------------------------------------ */
     .tabs { display:flex; max-width:340px; width:90%; margin:1em auto 0; }
     .tab-btn {
@@ -86,7 +86,7 @@
       width:24px; height:24px; background:var(--blue);
       border:none; border-radius:50%; cursor:pointer; touch-action:none;
     }
-    
+
     /* ---- coloured thumb + filled track for txPowerSlider ---- */
 #txPowerSlider {
   /* JS sets --thumb-color and inline background gradient */
@@ -112,7 +112,7 @@
     }
     #inactiveMask.visible { opacity:1; pointer-events:auto; }
 
-    
+
     /* ------- info box --------------------------------------------------- */
     .info-box { margin-top:1em; background:#dceaff; border:1px solid #339;
                 border-radius:6px; padding:1em; min-height:6em;
@@ -147,7 +147,7 @@
 
   <!-- Section heading ---------------------------------------------------- -->
   <div class="section-title">Adaptive Link Control</div>
- 
+
   <!-- throughput slider ---------------------------------------------------- -->
   <div class="row slider-container">
     <label for="throughputSlider">Bandwidth Utilization %: <span id="throughputValue">50</span></label>
@@ -169,17 +169,17 @@
       <input type="checkbox" id="signalbarToggle">
       Show Signal Bar
     </label>
-  
+
   </div>
 
-  
-  
-  
 
 
-  
 
-  
+
+
+
+
+
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
 
@@ -206,7 +206,7 @@
     <option value="ch36-20 --make-permanent">ch36‑20</option>
     <option value="ch40-20 --make-permanent">ch40‑20</option>
     <option value="ch48-20 --make-permanent">ch48‑20</option>
-    
+
     <!-- UNII‑2A (DFS) -->
     <!--
     <option value="ch52 --make-permanent">ch52</option>
@@ -248,12 +248,12 @@
     <option value="ch169-20 --make-permanent">ch169‑20</option>
     <option value="ch173-20 --make-permanent">ch173‑20</option>
     -->
-    
+
   </select>
 </div>
 
 
-  
+
     <!-- Region filter ------------------------------------------------------ -->
   <div class="row" id="regionRow">
     <!-- default -->
@@ -271,10 +271,10 @@
     <!-- Worldwide superset -->
     <label style="user-select:none;"><input type="radio" name="region" value="00"> World</label>
   </div>
-  
-  
-  
-  
+
+
+
+
 <!-- TX-Power (mW) SLIDER 250 - 2500 -->
 <div class="row slider-container">
   <label for="txPowerSlider">
@@ -307,8 +307,8 @@
       <option value="mode-aalink">VRX Groundstation</option>
     </select>
   </div>
-  
-  
+
+
   <!-- Video Resolution -->
   <div class="row">
     <button class="btn" onclick="goArg('set_video', videoSel.value)">Set Video</button>
@@ -316,10 +316,10 @@
       <option value="">Loading…</option>
     </select>
   </div>
-  
-  
-  
-  
+
+
+
+
     <!-- Additional Settings ------------------------------------------------- -->
   <div class="row slider-container" id="additionalSettings">
 
@@ -338,15 +338,15 @@
     </div>
 
   </div>
-  
 
-  <!-- Show Info 
+
+  <!-- Show Info
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
             onclick="go('sysinfo')">Show Info</button>
   </div>
   -->
-  
+
   <pre class="info-box" id="infoSetup">(no log yet)</pre>
 </div>
 
@@ -375,7 +375,7 @@
       <option value="vtx_reload_majestic">VTX reload majestic</option>
     </select>
   </div>
-  
+
   <!-- Exec VRX master cmd -->
   <div class="row">
     <button class="btn" onclick="goArg('control_cmd', sendVRXCmd.value)">VRX CMD</button>
@@ -390,7 +390,7 @@
     <button class="btn" onclick="goArg('masterip', masterip.value)">Set Master IP</button>
     <input id="masterip" placeholder="192.168.0.10">
   </div>
-  
+
   <div class="row">
     <button class="btn" onclick="goArg('set_externalosd', sendExternalosdvalue.value)">External OSD</button>
     <select id="sendExternalosdvalue">
@@ -413,7 +413,7 @@
     </select>
   </div>
 
-  
+
   <!-- Section heading ---------------------------------------------------- -->
   <div class="section-title">Advanced AAlink Settings</div>
 
@@ -430,7 +430,7 @@
     <option value="set_mcsff">Set Radio control (0xFF)</option>
   </select>
 </div>
-  
+
   <!-- set distance -->
   <div class="row">
     <button class="btn" onclick="goArg('set_distance', setDistance.value)">Set Distance</button>
@@ -442,7 +442,7 @@
       <option value="2000">2000m</option>
       <option value="5000">5000m</option>
       <option value="32000">32000m</option>
-      
+
     </select>
   </div>
 
@@ -498,7 +498,7 @@
     </button>
   </div>
 
-  
+
   <!-- Show Info -->
   <div class="row">
     <button class="btn info" style="width:100%;flex:1"
@@ -512,10 +512,10 @@
       Show aalink Settings
     </button>
   </div>
-  
-  
-  
-<!--‑‑ Show current settings 
+
+
+
+<!--‑‑ Show current settings
 <div class="row">
   <button class="btn info" style="width:100%;flex:1"
           onclick="goArg('set_apalink', 'print')">
@@ -548,10 +548,10 @@
 
 
 
-  
+
 </div>
 
-  
+
 <script>
 
 
@@ -781,7 +781,7 @@ function setActiveState(state) {
     });
 }
 
-  
+
   /* fire fn() only for real user interaction */
   function ifUser(e, fn) {
     if (e && e.isTrusted) fn();
@@ -808,7 +808,7 @@ function setActiveState(state) {
     setTimeout(() => { logPollPaused = false; }, ms);
   }
 
-  
+
   /* --- drop this near the top of the <script> --------------------------- */
 // Treat AbortError or explicit 'timeout' as benign.
 function isBenignAbort(err) {
@@ -818,9 +818,9 @@ function isBenignAbort(err) {
     /aborted/i.test(err.message)            // “The user aborted a request …”
   );
 }
-  
-  
-  
+
+
+
   // ---------------------------------------------------------------------
   // INFO / LOG HANDLING
   // ---------------------------------------------------------------------
@@ -836,7 +836,7 @@ function render(txt) {
 
   function updateLog() {
     if (logPollPaused) return;
-  
+
     fetchJSONOrText('/log', {}, 1500)
       .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))
       .then(txt => {
@@ -847,7 +847,7 @@ function render(txt) {
       .catch(e => {
         console.error('Log fetch error:', e);
         render('Log error: ' + e);
-  
+
         // after 2 consecutive failures, declare inactive
         if (++failCount >= 2) setActiveState(false);
       });
@@ -932,7 +932,7 @@ function goArg(name, arg) {
   const throughputValue  = document.getElementById('throughputValue');
 
   let lastThroughput = null;                       // <‑‑ NEW
-  
+
   const sendThroughput = () => {
     const v = throughputSlider.value;
     if (v === lastThroughput) return;              // <‑‑ NEW
@@ -964,7 +964,7 @@ function goArg(name, arg) {
   const osdValue  = document.getElementById('osdValue');
 
   let lastOsdSize = null;
-  
+
   const sendOsdSize = () => {
     const v = osdSlider.value;
     if (v === lastOsdSize) return;
@@ -998,7 +998,7 @@ function goArg(name, arg) {
   const osdLevelValue  = document.getElementById('osdLevelValue');
 
   let lastOsdLevel = null;
-  
+
   const sendOsdLevelSize = () => {
     const v = osdLevelSlider.value;
     if (v === lastOsdLevel) return;
@@ -1024,9 +1024,9 @@ function goArg(name, arg) {
     max:      3,
     endpoint: '/value/aalink_osd_level'
   });
-  
 
-  
+
+
 /* ---------- HT MODE DROPDOWN ---------------- */
 const htModeBtn = document.getElementById('htModeBtn');
 const htModeSel = document.getElementById('htModeSel');
@@ -1037,8 +1037,8 @@ htModeBtn.addEventListener('click', () => {
   // call it directly (no extra args)
   go(cmd);
 });
-  
-  
+
+
 /* ---------- TX-POWER SLIDER 250-2500 mW ---------------- */
 const txPowerSlider = document.getElementById('txPowerSlider');
 const txPowerValue  = document.getElementById('txPowerValue');
@@ -1075,7 +1075,7 @@ function paintTxSlider() {
 
   // 4) apply gradient up to exactly that pct
   slider.style.setProperty('--thumb-color', col);
-  slider.style.background = 
+  slider.style.background =
     `linear-gradient(
        to right,
        ${col} 0%,
@@ -1114,9 +1114,9 @@ initSlider({
   endpoint: '/value/tx_power'
 });
 
-  
-  
-  
+
+
+
 // ---------------------------------------------------------------------
 // SIGNAL‑BAR TOGGLE LOGIC
 // ---------------------------------------------------------------------
@@ -1331,7 +1331,7 @@ function fetchWlanChan() {
 }
 //fetchWlanChan();
 
- 
+
  /* run the initialisers 50 ms apart */
 [
   () => initDefaultRetry(ssidInput, '/value/ssid'),
@@ -1341,8 +1341,8 @@ function fetchWlanChan() {
   fetchWlanChan,
   initVideoModes
 ].forEach((fn, i) => setTimeout(fn, i * 50));
- 
- 
+
+
   // ---------------------------------------------------------------------
   // PERIODIC LOG POLL
   // ---------------------------------------------------------------------
