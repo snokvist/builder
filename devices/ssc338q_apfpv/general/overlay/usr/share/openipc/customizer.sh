@@ -61,3 +61,5 @@ chmod +x /usr/bin/set_externalosd.sh
 chmod +x /usr/bin/linkmgdr
 chmod +x /usr/bin/set_distance.sh
 chmod +x /usr/bin/sta_monitor
+chmod +x /usr/bin/set_bw.sh
+
