@@ -88,6 +88,7 @@ if printf '%s\n' "$arg" | grep -q '^mcs_[0-7]$'; then
             -e "s/^MAX_MCS_${R}=.*/MAX_MCS_${R}=${MCS20_R}/" \
             -e "s/^MAX_MCS_40_${R}=.*/MAX_MCS_40_${R}=${MCS40_R}/" \
             "$CONF"
+            kill -SIGHUP "$(pidof aalink)" 2>/dev/null
     done
 fi
 
@@ -97,6 +98,7 @@ case "$arg" in
     threshold_min)    THRESH=$THRESH_MIN ;;
     threshold_medium) THRESH=$THRESH_MED ;;
     threshold_max)    THRESH=$THRESH_MAX ;;
+    kill -SIGHUP "$(pidof aalink)" 2>/dev/null
     mcs_*) ;;  # already handled above
     *) echo "✗  Invalid argument: $arg" >&2
        echo "    Use mcs_0…mcs_7, threshold_min|medium|max, or status" >&2
