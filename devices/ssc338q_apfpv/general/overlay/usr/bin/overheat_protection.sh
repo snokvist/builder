@@ -1,7 +1,7 @@
 #!/bin/sh
 # Define temperature thresholds:
 NORMAL_THRESHOLD=85    # Normal if below 85°C
-REBOOT_THRESHOLD=100   # Reboot if 100°C or higher
+REBOOT_THRESHOLD=110   # Reboot if 110°C or higher
 
 # --- Get Adapter info ---
 for card in $(lsusb | awk '{print $6}' | sort | uniq); do
@@ -63,8 +63,8 @@ while true; do
     if [ "$max_temp" -lt "$NORMAL_THRESHOLD" ]; then
         echo "All is well... Nothing to do."
     elif [ "$max_temp" -lt "$REBOOT_THRESHOLD" ]; then
-        killall -q aalink
-        echo "Warning: High temperature was detected. aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F32" > /tmp/MSPOSD.msg
+        #killall -q aalink
+        #echo "Warning: High temperature was detected. aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F32" > /tmp/MSPOSD.msg
     else
         killall -q aalink
         echo "VTX will reboot due to thermal state... aalink disabled.\nVTX Temp:&T WifiTemp:&W &L30 &G8 &F32.\nRebooting in 15 seconds..." > /tmp/MSPOSD.msg
