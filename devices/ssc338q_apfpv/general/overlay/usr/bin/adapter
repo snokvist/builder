@@ -109,7 +109,7 @@ case "$1" in
 		hostapd /tmp/hostapd.conf -B
 		udhcpd -S
 		sleep 2
-		#route del default;route add default gw 192.168.0.10 wlan0
+		route del default;route add default gw 192.168.0.10 wlan0
 		;;
 
 	stop)
