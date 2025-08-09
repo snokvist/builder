@@ -3,12 +3,15 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
     case "$card" in
         "0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
             driver=88XXau
+			sed -i '/^#capab$/{N s/\n.*$/\n/}' /usr/bin/adapter
             ;;
         "0bda:a81a")
             driver=8812eu
+			sed -i '/^#capab$/{N s/\n.*$/\nht_capab=\[HT40+\]\[SHORT-GI-20\]\[SHORT-GI-40\]\[TX-STBC\]\[RX-STBC1\]\[LDPC\]/}' /usr/bin/adapter
             ;;
         "0bda:f72b" | "0bda:b733")
             driver=8733bu
+			sed -i '/^#capab$/{N s/\n.*$/\nht_capab=\[HT40+\]\[SHORT-GI-20\]\[SHORT-GI-40\]/}' /usr/bin/adapter
             ;;
     esac
 done
