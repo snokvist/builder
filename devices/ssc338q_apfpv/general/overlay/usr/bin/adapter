@@ -7,7 +7,8 @@ for card in $(lsusb | awk '{print $6}' | uniq); do
             ;;
         "0bda:a81a")
             driver=8812eu
-			sed -i '/^#capab$/{N s/\n.*$/\nht_capab=\[TX-STBC\]\[RX-STBC1\]\[LDPC\]/}' /usr/bin/adapter
+			#sed -i '/^#capab$/{N s/\n.*$/\nht_capab=\[TX-STBC\]\[RX-STBC1\]\[LDPC\]/}' /usr/bin/adapter
+			sed -i '/^#capab$/{N s/\n.*$/\nht_capab=\[TX-STBC\]\[RX-STBC1\]\[LDPC\]\[40MHz-HT\]\[HT40+\]/}' /usr/bin/adapter
             ;;
         "0bda:f72b" | "0bda:b733")
             driver=8733bu
@@ -40,7 +41,7 @@ fi
 
 ssid=$(fw_printenv -n wlanssid || echo OpenIPC)
 pass=$(fw_printenv -n wlanpass || echo 12345678)
-chan=$(fw_printenv -n wlanchan || echo 157)
+#chan=$(fw_printenv -n wlanchan || echo 157)
 wlanpwr=$(fw_printenv -n wlanpwr || echo 1350)
 region=$(fw_printenv -n wlanregion || echo US)
 master=$(fw_printenv -n master_ip || echo 192.168.0.10)
@@ -48,7 +49,7 @@ port=$(fw_printenv -n master_port || echo 5600)
 protocol=$(fw_printenv -n master_protocol || echo udp)
 set80211n=1
 
-[ "$chan" -le 13 ] && mode=g || mode=a
+#[ "$chan" -le 13 ] && mode=g || mode=a
 
 set_config() {
 cat <<EOF > /tmp/hostapd.conf
@@ -56,8 +57,8 @@ ctrl_interface=/var/run/hostapd
 interface=wlan0
 ssid=$ssid
 wpa_passphrase=$pass
-hw_mode=$mode
-channel=$chan
+hw_mode=a
+channel=165
 country_code=US
 ieee80211d=1
 ieee80211n=1
@@ -65,7 +66,7 @@ ieee80211ac=1
 require_ht=0
 require_vht=0
 #capab
-
+ht_capab=[TX-STBC][RX-STBC1][LDPC][40MHz-HT][HT40+]
 wmm_enabled=1
 wpa=2
 rsn_pairwise=CCMP
@@ -108,7 +109,22 @@ case "$1" in
 		cli -s .outgoing.server $protocol://$master:$port
                 control_cmd.sh aalink_ip_dest $master
 		set_config
+
+	###### logic to switch to 165 20MHz right away ######
 		hostapd /tmp/hostapd.conf -B
+		#wait for AP to go up and have a channel
+		i=0
+		while [ $i -lt 20 ]; do
+			info="$(iw dev wlan0 info 2>/dev/null)"
+			echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" && break
+			i=$((i+1)); sleep 1
+		done
+		echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" || exit 1
+	############################
+		
+		hostapd_cli -i wlan0 chan_switch 5 5825 ht
+		
+		
 		udhcpd -S
 		sleep 2
 		route del default;route add default gw 192.168.0.10 wlan0
