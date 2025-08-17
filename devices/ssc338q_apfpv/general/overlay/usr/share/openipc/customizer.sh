@@ -66,3 +66,4 @@ chmod +x /usr/bin/set_bw.sh
 chmod +x /usr/bin/set_active.sh
 chmod +x /usr/bin/ch_helper.sh
 chmod +x /usr/bin/file2json.sh
+chmod +x /usr/bin/set_ap_channel.sh
