@@ -65,3 +65,4 @@ chmod +x /usr/bin/sta_monitor
 chmod +x /usr/bin/set_bw.sh
 chmod +x /usr/bin/set_active.sh
 chmod +x /usr/bin/ch_helper.sh
+chmod +x /usr/bin/file2json.sh
