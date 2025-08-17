@@ -173,13 +173,6 @@
   </div>
 
 
-
-
-
-
-
-
-
   <pre class="info-box" id="infoControl">(no log yet)</pre>
 </div>
 
@@ -200,55 +193,9 @@
 
 <!-- Channel -->
 <div class="row">
-  <button class="btn" onclick="goArg('set_channel', chSel.value)">Set&nbsp;Chan</button>
+  <button class="btn" onclick="goArg('set_ap_channel', chSel.value)">Set&nbsp;Chan</button>
   <select id="chSel">
-    <!-- UNII‑1 -->
-    <option value="ch36-20 --make-permanent">ch36‑20</option>
-    <option value="ch40-20 --make-permanent">ch40‑20</option>
-    <option value="ch48-20 --make-permanent">ch48‑20</option>
-
-    <!-- UNII‑2A (DFS) -->
-    <!--
-    <option value="ch52 --make-permanent">ch52</option>
-    <option value="ch52-20 --make-permanent">ch52‑20</option>
-    <option value="ch56-20 --make-permanent">ch56‑20</option>
-    <option value="ch60 --make-permanent">ch60</option>
-    <option value="ch60-20 --make-permanent">ch60‑20</option>
-    <option value="ch64-20 --make-permanent">ch64‑20</option>
-    -->
-    <!-- UNII‑2C / 2‑Extended (DFS) -->
-     <!--
-    <option value="ch100 --make-permanent">ch100</option>
-    <option value="ch100-20 --make-permanent">ch100‑20</option>
-    <option value="ch104-20 --make-permanent">ch104‑20</option>
-    <option value="ch108 --make-permanent">ch108</option>
-    <option value="ch108-20 --make-permanent">ch108‑20</option>
-    <option value="ch112-20 --make-permanent">ch112‑20</option>
-    <option value="ch116 --make-permanent">ch116</option>
-    <option value="ch116-20 --make-permanent">ch116‑20</option>
-    <option value="ch120-20 --make-permanent">ch120‑20</option>
-    <option value="ch124 --make-permanent">ch124</option>
-    <option value="ch124-20 --make-permanent">ch124‑20</option>
-    <option value="ch128-20 --make-permanent">ch128‑20</option>
-    <option value="ch132 --make-permanent">ch132</option>
-    <option value="ch132-20 --make-permanent">ch132‑20</option>
-    <option value="ch136-20 --make-permanent">ch136‑20</option>
-    <option value="ch140 --make-permanent">ch140</option>
-    <option value="ch140-20 --make-permanent">ch140‑20</option>
-    <option value="ch144-20 --make-permanent">ch144‑20</option>
-    -->
-    <!-- UNII‑3 / UNII‑4 -->
-    <option value="ch149-20 --make-permanent">ch149‑20</option>
-    <option value="ch153-20 --make-permanent">ch153‑20</option>
-    <option value="ch157-20 --make-permanent">ch157‑20</option>
-    <option value="ch161-20 --make-permanent">ch161‑20</option>
-    <option value="ch165-20 --make-permanent">ch165‑20</option>
-    <!--
-    <option value="ch169 --make-permanent">ch169</option>
-    <option value="ch169-20 --make-permanent">ch169‑20</option>
-    <option value="ch173-20 --make-permanent">ch173‑20</option>
-    -->
-
+    <option value="">Loading…</option>
   </select>
 </div>
 
@@ -630,93 +577,79 @@ statusBtn.addEventListener('click', () => {
 });
 
 
-
-
-/* 5 GHz channel whitelist per regulatory domain
-   ─────────────────────────────────────────── */
-const regionChannels = {
-  /* FCC (United States, default) */
-  US: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140','ch144',
-    'ch149','ch153','ch157','ch161','ch165',
-    'ch169','ch173'                      // new upper-UNII in 6 GHz interim use
-  ],
-
-  /* ETSI EU domains — France, Sweden, Germany, UK, etc. */
-  FR: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140'
-  ],
-  SE: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140'
-  ],
-  DE: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140'
-  ],
-  GB: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140'
-  ],
-
-  /* Australia — same as FCC minus 169/173 (not yet adopted) */
-  AU: [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140','ch144',
-    'ch149','ch153','ch157','ch161','ch165'
-  ],
-
-  /* World (regdomain 00) — superset of the widest common subset */
-  '00': [
-    'ch36','ch40','ch44','ch48',
-    'ch52','ch56','ch60','ch64',
-    'ch100','ch104','ch108','ch112','ch116','ch120','ch124','ch128',
-    'ch132','ch136','ch140','ch144',
-    'ch149','ch153','ch157','ch161','ch165',
-    'ch169','ch173'
-  ]
+/* 5 GHz channel whitelist (new format: singles "36", pairs "36+40") */
+const REGION_SINGLE = {
+  US: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140','144','149','153','157','161','165','169','173'],
+  FR: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140'],
+  SE: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140'],
+  DE: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140'],
+  GB: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140'],
+  AU: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140','144','149','153','157','161','165'],
+  '00':['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140','144','149','153','157','161','165','169','173']
 };
-
 
 const chSel        = document.getElementById('chSel');
 const regionRadios = document.querySelectorAll('input[name="region"]');
 
-function updateChannels() {
-  const region  = document.querySelector('input[name="region"]:checked').value;
-  const allowed = regionChannels[region];
+let allChannels = [];   // e.g. ["36","40","...","36+40",...]
+let currentChan = '';   // e.g. "165" or "36+40"
 
-  Array.from(chSel.options).forEach(opt => {
-    /* option value looks like "ch157 --make-permanent" – we only need "ch157" */
-    const chan = opt.value.split(' ')[0];
-    const base = chan.replace(/-20$/, '');          // treat 20 MHz variant same
-    const mayUse = allowed.includes(base);
-    opt.disabled = opt.hidden = !mayUse;
+/* label/value helpers (pass only the channel string) */
+function labelFor(v){ return v; }
+function valueFor(v){ return v; }
+
+/* region filter: keep singles that are allowed; keep pairs only if both halves allowed */
+function filterByRegion(list, region){
+  const allow = new Set(REGION_SINGLE[region] || []);
+  return list.filter(v=>{
+    if(v.includes('+')){ const [a,b]=v.split('+'); return allow.has(a)&&allow.has(b); }
+    return allow.has(v);
   });
+}
 
-  /* ensure dropdown never sits on a disabled item */
-  if (chSel.selectedOptions[0]?.disabled) {
-    const firstGood = Array.from(chSel.options).find(o => !o.disabled);
-    if (firstGood) chSel.value = firstGood.value;
+function renderChannels(){
+  const region = document.querySelector('input[name="region"]:checked').value;
+  const items  = filterByRegion(allChannels, region);
+  chSel.innerHTML = '';
+
+  if(items.length === 0){
+    chSel.innerHTML = `<option value="165">165</option>`;
+    return;
+  }
+
+  for(const v of items){
+    const opt = document.createElement('option');
+    opt.value = valueFor(v);     // "165" or "36+40"
+    opt.textContent = labelFor(v);
+    chSel.appendChild(opt);
+  }
+
+  if(currentChan){
+    const hit = Array.from(chSel.options).find(o=>o.value===currentChan);
+    if(hit) chSel.value = currentChan;
   }
 }
 
-/* hook listeners + initialise once */
-regionRadios.forEach(r => r.addEventListener('change', updateChannels));
-updateChannels();
+function loadChannels(){
+  // fetch full list
+  fetchRetry('/value/wlan_channels', {}, 1200, 4, 400)
+    .then(r => r.ok ? r.json() : Promise.reject('HTTP '+r.status))
+    .then(j => { allChannels = Array.isArray(j.values) ? j.values.map(String) : []; })
+    .catch(()=>{ allChannels = []; })
+    .then(()=> // fetch current
+      fetchRetry('/value/current_wlan_channel', {}, 1000, 3, 300)
+        .then(r => r.ok ? r.json() : Promise.reject('HTTP '+r.status))
+        .then(j => { currentChan = String((j.values||[])[0] || ''); })
+        .catch(()=>{ currentChan = ''; })
+    )
+    .finally(renderChannels);
+}
+
+/* re-filter when region changes */
+regionRadios.forEach(r => r.addEventListener('change', renderChannels));
+
+/* initial kick */
+loadChannels();
 
 
 
@@ -1332,13 +1265,12 @@ function fetchWlanChan() {
 //fetchWlanChan();
 
 
- /* run the initialisers 50 ms apart */
 [
   () => initDefaultRetry(ssidInput, '/value/ssid'),
   () => initDefaultRetry(passInput, '/value/passw'),
   () => initDefaultRetry(ttySel,    '/value/msposd_tty'),
   () => initDefaultRetry(linkSel,   '/value/mode'),
-  fetchWlanChan,
+  loadChannels,
   initVideoModes
 ].forEach((fn, i) => setTimeout(fn, i * 50));
 
