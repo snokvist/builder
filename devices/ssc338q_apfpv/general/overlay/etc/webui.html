@@ -577,7 +577,7 @@ statusBtn.addEventListener('click', () => {
 });
 
 
-/* 5 GHz channel whitelist (new format: singles "36", pairs "36+40") */
+/* 5 GHz channel whitelist (singles "36", pairs "36_40" or legacy "36+40") */
 const REGION_SINGLE = {
   US: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140','144','149','153','157','161','165','169','173'],
   FR: ['36','40','44','48','52','56','60','64','100','104','108','112','116','120','124','128','132','136','140'],
@@ -591,18 +591,23 @@ const REGION_SINGLE = {
 const chSel        = document.getElementById('chSel');
 const regionRadios = document.querySelectorAll('input[name="region"]');
 
-let allChannels = [];   // e.g. ["36","40","...","36+40",...]
-let currentChan = '';   // e.g. "165" or "36+40"
+let allChannels = [];   // e.g. ["36","40",...,"36_40",...]
+let currentChan = '';   // e.g. "165" or "36_40"
 
-/* label/value helpers (pass only the channel string) */
+/* helpers: pass-through value & label */
 function labelFor(v){ return v; }
 function valueFor(v){ return v; }
 
-/* region filter: keep singles that are allowed; keep pairs only if both halves allowed */
+/* treat a value as "pair" if it contains '_' or '+'; split by either */
+const PAIR_RE = /[+_]/;
+function isPair(v){ return PAIR_RE.test(v); }
+function splitPair(v){ return v.split(PAIR_RE); }
+
+/* region filter: singles must be allowed; pairs allowed iff both halves allowed */
 function filterByRegion(list, region){
   const allow = new Set(REGION_SINGLE[region] || []);
   return list.filter(v=>{
-    if(v.includes('+')){ const [a,b]=v.split('+'); return allow.has(a)&&allow.has(b); }
+    if(isPair(v)){ const [a,b] = splitPair(v); return allow.has(a) && allow.has(b); }
     return allow.has(v);
   });
 }
@@ -619,7 +624,7 @@ function renderChannels(){
 
   for(const v of items){
     const opt = document.createElement('option');
-    opt.value = valueFor(v);     // "165" or "36+40"
+    opt.value = valueFor(v);     // "165" or "36_40"
     opt.textContent = labelFor(v);
     chSel.appendChild(opt);
   }
