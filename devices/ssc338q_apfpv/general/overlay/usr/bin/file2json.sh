@@ -2,7 +2,7 @@
 # file2json.sh — INI→JSON object; or lines→{"<key>":[...]} (strings by default)
 # Usage: file2json.sh [-k KEY] [--typed-lines] [FILE|-]  (FILE omitted or "-" = stdin)
 
-key="lines"
+key="values"
 typed_lines=0
 
 while [ $# -gt 0 ]; do
