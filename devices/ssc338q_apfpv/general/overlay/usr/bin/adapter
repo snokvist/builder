@@ -110,17 +110,21 @@ case "$1" in
                 control_cmd.sh aalink_ip_dest $master
 		set_config
 
-	###### logic to switch to 165 20MHz right away ######
-		hostapd /tmp/hostapd.conf -B
-		#wait for AP to go up and have a channel
-		i=0
-		while [ $i -lt 20 ]; do
-			info="$(iw dev wlan0 info 2>/dev/null)"
-			echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" && break
-			i=$((i+1)); sleep 1
-		done
-		echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" || exit 1
-	############################
+	  ###### logic to switch to 165 20MHz right away ######
+	    hostapd /tmp/hostapd.conf -B
+	    #wait for AP to go up and have a channel
+	    i=0
+	    while [ $i -lt 20 ]; do
+	      info="$(iw dev wlan0 info 2>/dev/null)"
+	      echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" && break
+	      i=$((i+1)); sleep 1
+	    done
+	    echo "$info" | grep -q "type AP" && echo "$info" | grep -q "channel" || exit 1
+	    
+	    hostapd_cli -i wlan0 chan_switch 5 5825 ht
+	  
+	########################
+
 		
 		hostapd_cli -i wlan0 chan_switch 5 5825 ht
 		
