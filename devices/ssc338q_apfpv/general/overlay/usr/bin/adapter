@@ -49,7 +49,7 @@ port=$(fw_printenv -n master_port || echo 5600)
 protocol=$(fw_printenv -n master_protocol || echo udp)
 set80211n=1
 
-#[ "$chan" -le 13 ] && mode=g || mode=a
+[ "$chan" -le 13 ] && mode=g || mode=a
 
 set_config() {
 cat <<EOF > /tmp/hostapd.conf
@@ -57,7 +57,7 @@ ctrl_interface=/var/run/hostapd
 interface=wlan0
 ssid=$ssid
 wpa_passphrase=$pass
-hw_mode=a
+hw_mode=$mode
 channel=165
 country_code=US
 ieee80211d=1
@@ -95,8 +95,8 @@ case "$1" in
 
 	        if [ "$driver" != "88XXau" ]; then
 	            echo "Rate..."
-		    #rate=0x8D
-	            #echo "$rate" > "$(ls /proc/net/*/wlan0/rate_ctl)"
+				
+
 	        fi
 
 		iw wlan0 set txpower fixed $wlanpwr
