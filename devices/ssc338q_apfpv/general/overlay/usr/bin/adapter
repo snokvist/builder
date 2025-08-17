@@ -49,7 +49,7 @@ port=$(fw_printenv -n master_port || echo 5600)
 protocol=$(fw_printenv -n master_protocol || echo udp)
 set80211n=1
 
-[ "$chan" -le 13 ] && mode=g || mode=a
+#[ "$chan" -le 13 ] && mode=g || mode=a
 
 set_config() {
 cat <<EOF > /tmp/hostapd.conf
@@ -57,7 +57,7 @@ ctrl_interface=/var/run/hostapd
 interface=wlan0
 ssid=$ssid
 wpa_passphrase=$pass
-hw_mode=$mode
+hw_mode=a
 channel=165
 country_code=US
 ieee80211d=1
@@ -124,10 +124,6 @@ case "$1" in
 	    hostapd_cli -i wlan0 chan_switch 5 5825 ht
 	  
 	########################
-
-		
-		hostapd_cli -i wlan0 chan_switch 5 5825 ht
-		
 		
 		udhcpd -S
 		sleep 2
