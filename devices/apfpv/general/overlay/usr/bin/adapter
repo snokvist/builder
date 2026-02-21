@@ -1,56 +1,320 @@
 #!/bin/sh
+# adapter - Wi-Fi bringup/teardown helper for ifupdown
+#
+# Option A recommended behavior:
+#  - wlan0 is "manual" in /etc/network/interfaces.d
+#  - adapter owns Wi-Fi + DHCP (or static if enabled below)
+#  - wlan0 should NOT install a default route (eth0 stays primary)
+#  - wlan0 should NOT overwrite system DNS by default
+#
+# Pair with /etc/network/interfaces.d/wlan0:
+#   iface wlan0 inet manual
+#       pre-up adapter setup
+#       up adapter start
+#       down adapter stop
 
-set_config() {
-cat << EOF > /tmp/wpa_supplicant.conf
-network={
-	mode=2
-	frequency=$(fw_printenv -n wlanfreq || echo 5200)
-	ssid="$(fw_printenv -n wlanssid || echo OpenIPC)"
-	psk="$(fw_printenv -n wlanpass || echo 12345678)"
+set -eu
+
+# ---------------- configuration knobs ----------------
+# If set (non-empty), DHCP is skipped and a static address is configured instead.
+# Set like: STATIC_IP_OPTION=10.6.0.50  (defaults to /24), or 10.6.0.50/24
+STATIC_IP_OPTION="10.6.0.50"
+
+# If set (non-empty), lock association to this AP MAC (BSSID) for faster reconnect + no roaming.
+# Find it with:
+#   iw dev wlan0 link     -> "Connected to xx:xx:xx:xx:xx:xx"
+#   wpa_cli -i wlan0 status | grep ^bssid=
+BSSID_OPTION=""
+
+# -----------------------------------------------------
+
+IFACE="${IFACE:-wlan0}"
+
+WPACONF="/tmp/wpa_supplicant.conf"
+WPAPID="/var/run/wpa_supplicant.${IFACE}.pid"
+UDHCPPID="/var/run/udhcpc.${IFACE}.pid"
+UDHCPSCRIPT="/tmp/udhcpc.${IFACE}.script"
+
+# -------- helpers --------
+
+fw_get() { fw_printenv -n "$1" 2>/dev/null || echo "$2"; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+pid_is_running() {
+    [ -f "$1" ] || return 1
+    pid="$(cat "$1" 2>/dev/null || true)"
+    [ -n "${pid:-}" ] || return 1
+    kill -0 "$pid" 2>/dev/null
 }
-EOF
+
+kill_pidfile() {
+    [ -f "$1" ] || return 0
+    pid="$(cat "$1" 2>/dev/null || true)"
+    if [ -n "${pid:-}" ]; then
+        kill "$pid" 2>/dev/null || true
+    fi
+    rm -f "$1"
 }
+
+static_cidr() {
+    # Outputs CIDR to stdout if STATIC_IP_OPTION is set, else outputs empty.
+    # Accepts "A.B.C.D" (assumes /24) or "A.B.C.D/NN"
+    if [ -z "${STATIC_IP_OPTION:-}" ]; then
+        echo ""
+        return 0
+    fi
+    case "$STATIC_IP_OPTION" in
+        */*) echo "$STATIC_IP_OPTION" ;;
+        *)   echo "${STATIC_IP_OPTION}/24" ;;
+    esac
+}
+
+stop_dhcp_clients() {
+    # Stop udhcpc for this iface if running
+    if pid_is_running "$UDHCPPID"; then
+        echo "[wifi] Stopping udhcpc (pid $(cat "$UDHCPPID"))"
+        kill_pidfile "$UDHCPPID"
+    else
+        rm -f "$UDHCPPID" 2>/dev/null || true
+    fi
+
+    # Stop dhcpcd for this iface if present (iface-specific)
+    if have dhcpcd; then
+        dhcpcd -k "$IFACE" 2>/dev/null || true
+    fi
+}
+
+apply_static_ip() {
+    cidr="$(static_cidr)"
+    [ -n "$cidr" ] || return 1
+
+    echo "[wifi] Static mode enabled: $IFACE = $cidr"
+    stop_dhcp_clients
+
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    ip addr add "$cidr" dev "$IFACE" 2>/dev/null || true
+    ip link set "$IFACE" up 2>/dev/null || true
+
+    # Ensure no default route via wlan0 (Option A behavior)
+    ip route del default dev "$IFACE" 2>/dev/null || true
+
+    # Intentionally DO NOT overwrite /etc/resolv.conf here.
+    return 0
+}
+
+ensure_udhcpc_script() {
+    # Wrapper script that:
+    #  - configures address
+    #  - DOES NOT set default route
+    #  - DOES NOT overwrite resolv.conf
+    cat >"$UDHCPSCRIPT" <<'EOF'
+#!/bin/sh
+[ -n "$interface" ] || interface="$1"
 
 case "$1" in
-	setup)
-		for card in $(lsusb | awk '{print $6}' | uniq); do
-			case "$card" in
-				"0bda:8812" | "0bda:881a" | "0b05:17d2" | "2357:0101" | "2604:0012")
-					driver=8812au
-					;;
+  deconfig)
+    ip addr flush dev "$interface" 2>/dev/null || true
+    ;;
+  bound|renew)
+    ip addr flush dev "$interface" 2>/dev/null || true
+    ip addr add "$ip/$subnet" dev "$interface" 2>/dev/null || true
+    ip link set "$interface" up 2>/dev/null || true
 
-				"0bda:a81a")
-					driver=8812eu
-					;;
-
-				"0bda:f72b" | "0bda:b733")
-					driver=8733bu
-					;;
-			esac
-		done
-
-		if [ -z "$driver" ]; then
-			echo "Wireless module not detected!"
-			exit 1
-		fi
-
-		echo "Detected driver: $driver"
-		modprobe "$driver" rtw_tx_pwr_by_rate=0 rtw_tx_pwr_lmt_enable=0
-		;;
-
-	start)
-		iw wlan0 set txpower fixed $(fw_printenv -n wlanpwr || echo 1500)
-		set_config
-		wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf
-		udhcpd -S
-		;;
-
-	stop)
-		killall -q udhcpd wpa_supplicant
-		;;
-
-	*)
-		echo "Usage: $0 {setup|start|stop}"
-		exit 1
-		;;
+    # Intentionally DO NOT install default route here.
+    # Intentionally DO NOT overwrite /etc/resolv.conf here.
+    ;;
 esac
+exit 0
+EOF
+    chmod +x "$UDHCPSCRIPT"
+}
+
+set_config() {
+    SSID="$(fw_printenv -n wlanssid 2>/dev/null || echo waybeam-01)"
+    PSK="$(fw_printenv -n wlanpass 2>/dev/null || echo waybeam-01)"
+
+    {
+        echo 'update_config=0'
+        echo 'ctrl_interface=/var/run/wpa_supplicant'
+        echo 'ap_scan=1'
+        echo 'fast_reauth=1'
+        echo 'scan_cur_freq=1'
+        echo 'bss_expiration_age=600'
+        echo 'bss_expiration_scan_count=10'
+        echo ''
+        echo 'network={'
+        echo "    ssid=\"$SSID\""
+        echo "    psk=\"$PSK\""
+        echo '    key_mgmt=WPA-PSK'
+        echo '    proto=RSN'
+        echo '    pairwise=CCMP'
+        echo '    group=CCMP'
+        # Lock to a specific AP (BSSID) for fastest reconnect + no roaming
+        if [ -n "${BSSID_OPTION:-}" ]; then
+            echo "    bssid=${BSSID_OPTION}"
+        fi
+        echo '}'
+    } > "$WPACONF"
+}
+
+detect_and_load_driver() {
+    driver=""
+
+    for card in $(lsusb 2>/dev/null | awk '{print $6}' | sort -u); do
+        case "$card" in
+            "148f:7612"|"148f:761a"|"0e8d:7612"|"0e8d:761a") driver="mt76x2u" ;;
+            "0bda:8812"|"0bda:881a"|"0b05:17d2"|"2357:0101"|"2604:0012") driver="8812au" ;;
+            "0bda:a81a") driver="8812eu" ;;
+            "0bda:f72b"|"0bda:b733") driver="8733bu" ;;
+        esac
+    done
+
+    if [ -z "$driver" ]; then
+        echo "Wireless module not detected (lsusb)."
+        echo "Tip: set DRIVER=... in env if needed."
+        driver="${DRIVER:-}"
+    fi
+
+    [ -n "$driver" ] || exit 1
+
+    echo "Detected/selected driver: $driver"
+    if have modprobe; then
+        modprobe "$driver" 2>/dev/null || true
+    fi
+}
+
+start_client() {
+    if ! have ip || ! have iw || ! have wpa_supplicant; then
+        echo "Missing required tools (need ip/iw/wpa_supplicant)."
+        exit 1
+    fi
+
+    PWR="$(fw_get wlanpwr "1500")"
+
+    echo "[wifi] Bringing up $IFACE"
+    ip link set "$IFACE" up 2>/dev/null || true
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+
+    # Keep NIC awake; reduces “silent” dropouts and AP kicking us during doze
+    iw dev "$IFACE" set power_save off 2>/dev/null || true
+
+    # If a previous dhcpcd instance exists, stop it so it doesn't fight us.
+    if have dhcpcd; then
+        dhcpcd -k "$IFACE" 2>/dev/null || true
+    fi
+
+    iw "$IFACE" set txpower fixed "$PWR" 2>/dev/null || true
+
+    set_config
+
+    if pid_is_running "$WPAPID"; then
+        echo "[wifi] Stopping existing wpa_supplicant (pid $(cat "$WPAPID"))"
+        kill_pidfile "$WPAPID"
+    else
+        rm -f "$WPAPID" 2>/dev/null || true
+    fi
+
+    echo "[wifi] Starting wpa_supplicant on $IFACE"
+    wpa_supplicant -B -i "$IFACE" -c "$WPACONF" -P "$WPAPID"
+
+    # ---- Static vs DHCP ----
+    if [ -n "$(static_cidr)" ]; then
+        apply_static_ip
+    else
+        ensure_udhcpc_script
+
+        if have udhcpc; then
+            if pid_is_running "$UDHCPPID"; then
+                echo "[wifi] udhcpc already running (pid $(cat "$UDHCPPID")), skipping"
+            else
+                rm -f "$UDHCPPID" 2>/dev/null || true
+                echo "[wifi] Starting DHCP client (udhcpc) on $IFACE (no default route)"
+
+                # -R: do not install default route from DHCP
+                # -b: background
+                # -p: pidfile
+                # -s: script
+                udhcpc -i "$IFACE" -b -p "$UDHCPPID" -s "$UDHCPSCRIPT" -R
+            fi
+        elif have dhcpcd; then
+            echo "[wifi] Starting DHCP client (dhcpcd) on $IFACE"
+            dhcpcd -B "$IFACE"
+            # If dhcpcd adds a default route, remove it (Option A behavior)
+            ip route del default dev "$IFACE" 2>/dev/null || true
+        else
+            echo "[wifi] No DHCP client found (need udhcpc or dhcpcd)."
+            exit 1
+        fi
+    fi
+
+    echo "[wifi] Started. SSID=$(fw_get wlanssid "OpenIPC")"
+}
+
+stop_client() {
+    echo "[wifi] Stopping DHCP client (iface-specific only)"
+    stop_dhcp_clients
+
+    echo "[wifi] Stopping wpa_supplicant (iface-specific only)"
+    if pid_is_running "$WPAPID"; then
+        echo "[wifi] Stopping wpa_supplicant (pid $(cat "$WPAPID"))"
+        kill_pidfile "$WPAPID"
+    else
+        rm -f "$WPAPID" 2>/dev/null || true
+    fi
+
+    echo "[wifi] Clearing $IFACE"
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    ip link set "$IFACE" down 2>/dev/null || true
+}
+
+status_client() {
+    cidr="$(static_cidr || true)"
+    echo "=== mode ==="
+    if [ -n "$cidr" ]; then
+        echo "static ($cidr)"
+    else
+        echo "dhcp"
+    fi
+
+    echo "=== link ==="
+    ip link show "$IFACE" || true
+
+    echo "=== addr ==="
+    ip -4 addr show dev "$IFACE" || true
+
+    echo "=== route ==="
+    ip -4 route show dev "$IFACE" || true
+
+    echo "=== wpa ==="
+    if have wpa_cli; then
+        wpa_cli -i "$IFACE" status || true
+    else
+        ps | grep "[w]pa_supplicant.*$IFACE" || true
+    fi
+
+    echo "=== dhcp ==="
+    if pid_is_running "$UDHCPPID"; then
+        echo "udhcpc running: pid $(cat "$UDHCPPID")"
+    else
+        echo "udhcpc not running (or no pidfile)"
+    fi
+
+    echo "=== config ==="
+    echo "STATIC_IP_OPTION=${STATIC_IP_OPTION:-}"
+    echo "BSSID_OPTION=${BSSID_OPTION:-}"
+    echo "WPACONF=$WPACONF"
+}
+
+case "${1:-}" in
+    setup) detect_and_load_driver ;;
+    start) start_client ;;
+    stop) stop_client ;;
+    restart) stop_client; start_client ;;
+    status) status_client ;;
+    *)
+        echo "Usage: $0 {setup|start|stop|restart|status}"
+        echo "Env overrides: IFACE=wlan0 DRIVER=mt76x2u"
+        exit 1
+        ;;
+esac
+
