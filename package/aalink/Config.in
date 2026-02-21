@@ -1,0 +1,11 @@
+config BR2_PACKAGE_AALINK
+	bool "aalink"
+	help
+	  aalink - adaptive link binary distribution.
+
+	  Installs:
+	    - /usr/bin/aalink
+	    - /etc/aalink.conf
+	    - SysV init script: /etc/init.d/S99aalink
+
+	  https://github.com/sickgreg/OpenIPC_sickgregFPV_apfpv
