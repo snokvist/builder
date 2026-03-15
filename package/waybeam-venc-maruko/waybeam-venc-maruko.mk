@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WAYBEAM_VENC_MARUKO_VERSION = master
+WAYBEAM_VENC_MARUKO_VERSION = 4a1352f97df9b1f54ca363f07e2ebb8a5a115c14
 WAYBEAM_VENC_MARUKO_SITE = https://github.com/OpenIPC/waybeam_venc.git
 WAYBEAM_VENC_MARUKO_SITE_METHOD = git
 WAYBEAM_VENC_MARUKO_LICENSE = Autod Personal Use License
@@ -13,8 +13,8 @@ define WAYBEAM_VENC_MARUKO_BUILD_CMDS
 	$(MAKE) -C $(@D) build \
 		SOC_BUILD=maruko \
 		MARUKO_CC="$(TARGET_CC)" \
-		MARUKO_MI_LIB_DIR="$(STAGING_DIR)/usr/lib" \
-		MARUKO_COMMON_LIB_DIR="$(STAGING_DIR)/usr/lib"
+		MARUKO_MI_LIB_DIR="$(@D)/libs/maruko" \
+		MARUKO_COMMON_LIB_DIR="$(@D)/libs/maruko"
 endef
 
 define WAYBEAM_VENC_MARUKO_INSTALL_TARGET_CMDS
