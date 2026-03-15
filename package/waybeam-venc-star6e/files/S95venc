@@ -55,6 +55,17 @@ is_running() {
     [ -n "$(get_pids)" ]
 }
 
+# Check if all pids are stuck in D (uninterruptible) state
+is_stuck() {
+    pids=$(get_pids)
+    [ -n "$pids" ] || return 1
+    for p in $pids; do
+        state=$(cat /proc/$p/status 2>/dev/null | grep '^State:' | awk '{print $2}')
+        [ "$state" != "D" ] && return 1
+    done
+    return 0
+}
+
 start() {
     if is_running; then
         echo "$DAEMON already running (PIDs: $(get_pids))"
@@ -63,7 +74,7 @@ start() {
 
     echo -n "Starting $DAEMON: "
     "$DAEMON_PATH" -c "$DAEMON_CONF" >/dev/null 2>&1 &
-    sleep 0.5
+    sleep 3
 
     if is_running; then
         echo "OK (PIDs: $(get_pids))"
@@ -84,19 +95,22 @@ stop() {
     PIDS="$(get_pids)"
     kill $PIDS 2>/dev/null
 
-    for _ in 1 2 3 4 5; do
-        sleep 0.2
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        sleep 0.5
         is_running || { echo "OK"; return 0; }
     done
 
     kill -9 $(get_pids) 2>/dev/null
-    sleep 0.2
+    sleep 2
     if is_running; then
-        echo "FAIL"
-        return 1
+        if is_stuck; then
+            echo "OK (D-state zombie, will clear on reboot)"
+        else
+            echo "FAIL"
+            return 1
+        fi
     else
         echo "OK"
-        return 0
     fi
 }
 
@@ -112,7 +126,7 @@ reload() {
 case "$1" in
     start)   configure_sensor; start ;;
     stop)    stop ;;
-    restart) stop; sleep 1; start ;;
+    restart) stop; sleep 3; configure_sensor; start ;;
     reload)  reload ;;
     *)
         echo "Usage: $0 {start|stop|restart|reload}"
