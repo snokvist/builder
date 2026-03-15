@@ -38,6 +38,8 @@ define WAYBEAM_HUB_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/waybeam_hub/waybeam_vehicle.conf
 	$(INSTALL) -m 0644 -D $(@D)/configs/waybeam_osd.json \
 		$(TARGET_DIR)/etc/waybeam_osd.json
+	$(INSTALL) -m 0644 -D $(@D)/configs/modes_imx335.ini \
+		$(TARGET_DIR)/etc/sensors/modes.ini
 	$(INSTALL) -m 0644 -D $(@D)/web/waybeam_vehicle.html \
 		$(TARGET_DIR)/var/www/waybeam_vehicle.html
 	$(INSTALL) -m 0755 -D $(@D)/scripts/S97waybeam-hub_vehicle \
