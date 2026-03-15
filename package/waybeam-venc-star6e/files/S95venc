@@ -1,0 +1,68 @@
+#!/bin/sh
+
+DAEMON="venc"
+DAEMON_PATH="/usr/bin/venc"
+DAEMON_CONF="/etc/venc.json"
+JSON_CLI="/usr/bin/json_cli"
+
+# Detect which sensor is loaded
+detect_sensor() {
+    if lsmod 2>/dev/null | grep -q "sensor_imx335"; then
+        echo "imx335"
+    elif lsmod 2>/dev/null | grep -q "sensor_imx415"; then
+        echo "imx415"
+    fi
+}
+
+# Auto-detect sensor, configure sensorBin and modes symlink
+configure_sensor() {
+    sensor=$(detect_sensor)
+    [ -n "$sensor" ] || return 0
+
+    # Symlink modes file (always, regardless of sensorBin state)
+    modes="/etc/sensors/modes_${sensor}.ini"
+    if [ -f "$modes" ]; then
+        ln -sf "$modes" /etc/sensors/modes.ini
+        echo "[venc] Linked modes: $modes"
+    fi
+
+    # Set sensorBin only if not already configured
+    [ -x "$JSON_CLI" ] && [ -f "$DAEMON_CONF" ] || return 0
+    current=$("$JSON_CLI" -g .isp.sensorBin -i "$DAEMON_CONF" --raw 2>/dev/null)
+    [ -z "$current" ] || [ "$current" = '""' ] || return 0
+
+    case "$sensor" in
+        imx335) bin="/etc/sensors/imx335_greg_fpvVII-gpt200.bin" ;;
+        imx415) bin="/etc/sensors/imx415_greg_fpvXVIII-gpt200.bin" ;;
+        *)      return 0 ;;
+    esac
+
+    if [ -f "$bin" ]; then
+        echo "[venc] Auto-detected $sensor, setting sensorBin=$bin"
+        "$JSON_CLI" -s .isp.sensorBin "\"$bin\"" -i "$DAEMON_CONF"
+    fi
+}
+
+start() {
+    echo -n "Starting $DAEMON: "
+    killall "$DAEMON" 2>/dev/null
+    sleep 8
+    "$DAEMON_PATH" -c "$DAEMON_CONF" &
+    echo "OK"
+}
+
+stop() {
+    echo -n "Stopping $DAEMON: "
+    killall "$DAEMON" 2>/dev/null
+    echo "OK"
+}
+
+case "$1" in
+    start)   configure_sensor; start ;;
+    stop)    stop ;;
+    restart) configure_sensor; start ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac

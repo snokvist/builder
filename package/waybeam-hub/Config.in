@@ -1,0 +1,7 @@
+config BR2_PACKAGE_WAYBEAM_HUB
+	bool "waybeam-hub"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	help
+	  Modular C daemon for the Waybeam FPV ecosystem.
+	  Vehicle build: OSD overlay (LVGL+MI_RGN), telemetry bridge,
+	  PWM servo, SSE server, WebUI, menu, metrics, link adaptation.
