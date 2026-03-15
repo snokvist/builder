@@ -43,93 +43,26 @@ configure_sensor() {
     fi
 }
 
-get_pids() {
-    if command -v pidof >/dev/null 2>&1; then
-        pidof "$DAEMON"
-    else
-        pgrep -x "$DAEMON" || pgrep -f "^${DAEMON_PATH}[ ]"
-    fi
-}
-
-is_running() {
-    [ -n "$(get_pids)" ]
-}
-
-# Check if all pids are stuck in D (uninterruptible) state
-is_stuck() {
-    pids=$(get_pids)
-    [ -n "$pids" ] || return 1
-    for p in $pids; do
-        state=$(cat /proc/$p/status 2>/dev/null | grep '^State:' | awk '{print $2}')
-        [ "$state" != "D" ] && return 1
-    done
-    return 0
-}
-
 start() {
-    if is_running; then
-        echo "$DAEMON already running (PIDs: $(get_pids))"
-        return 0
-    fi
-
     echo -n "Starting $DAEMON: "
-    "$DAEMON_PATH" -c "$DAEMON_CONF" >/dev/null 2>&1 &
-    sleep 3
-
-    if is_running; then
-        echo "OK (PIDs: $(get_pids))"
-        return 0
-    else
-        echo "FAIL"
-        return 1
-    fi
+    killall "$DAEMON" 2>/dev/null
+    sleep 1
+    "$DAEMON_PATH" -c "$DAEMON_CONF" &
+    echo "OK"
 }
 
 stop() {
-    if ! is_running; then
-        echo "$DAEMON is not running"
-        return 0
-    fi
-
     echo -n "Stopping $DAEMON: "
-    PIDS="$(get_pids)"
-    kill $PIDS 2>/dev/null
-
-    for _ in 1 2 3 4 5 6 7 8 9 10; do
-        sleep 0.5
-        is_running || { echo "OK"; return 0; }
-    done
-
-    kill -9 $(get_pids) 2>/dev/null
-    sleep 2
-    if is_running; then
-        if is_stuck; then
-            echo "OK (D-state zombie, will clear on reboot)"
-        else
-            echo "FAIL"
-            return 1
-        fi
-    else
-        echo "OK"
-    fi
-}
-
-reload() {
-    if ! is_running; then
-        echo "$DAEMON is not running"
-        return 1
-    fi
-    echo -n "Reloading $DAEMON (SIGHUP): "
-    kill -HUP $(get_pids) 2>/dev/null && echo "OK" || echo "FAIL"
+    killall "$DAEMON" 2>/dev/null
+    echo "OK"
 }
 
 case "$1" in
     start)   configure_sensor; start ;;
     stop)    stop ;;
-    restart) stop; sleep 3; configure_sensor; start ;;
-    reload)  reload ;;
+    restart) configure_sensor; start ;;
     *)
-        echo "Usage: $0 {start|stop|restart|reload}"
+        echo "Usage: $0 {start|stop|restart}"
         exit 1
         ;;
 esac
