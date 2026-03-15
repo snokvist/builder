@@ -23,6 +23,12 @@ configure_sensor() {
     if [ -n "$sensor" ] && [ -f "$bin" ]; then
         echo "[venc] Auto-detected $sensor, setting sensorBin=$bin"
         "$JSON_CLI" -s .isp.sensorBin "\"$bin\"" -i "$DAEMON_CONF"
+        # Symlink matching modes file
+        modes="/etc/sensors/modes_${sensor}.ini"
+        if [ -f "$modes" ]; then
+            ln -sf "$modes" /etc/sensors/modes.ini
+            echo "[venc] Linked modes: $modes"
+        fi
     fi
 }
 
