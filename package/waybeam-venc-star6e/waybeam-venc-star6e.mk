@@ -8,13 +8,13 @@ WAYBEAM_VENC_STAR6E_VERSION = master
 WAYBEAM_VENC_STAR6E_SITE = https://github.com/OpenIPC/waybeam_venc.git
 WAYBEAM_VENC_STAR6E_SITE_METHOD = git
 WAYBEAM_VENC_STAR6E_LICENSE = Autod Personal Use License
-WAYBEAM_VENC_STAR6E_DEPENDENCIES = sigmastar-osdrv-infinity6e-libs
 
+# Links against vendored MI libs in libs/star6e (no staging dep needed)
 define WAYBEAM_VENC_STAR6E_BUILD_CMDS
 	$(MAKE) -C $(@D) build \
 		SOC_BUILD=star6e \
 		STAR6E_CC="$(TARGET_CC)" \
-		STAR6E_DRV="$(STAGING_DIR)/usr/lib"
+		STAR6E_DRV="$(@D)/libs/star6e"
 endef
 
 define WAYBEAM_VENC_STAR6E_INSTALL_TARGET_CMDS

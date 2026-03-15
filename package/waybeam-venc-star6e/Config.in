@@ -1,7 +1,6 @@
 config BR2_PACKAGE_WAYBEAM_VENC_STAR6E
 	bool "waybeam-venc-star6e"
 	depends on BR2_TOOLCHAIN_HAS_THREADS
-	select BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E_LIBS
 	help
 	  Standalone H.265 video encoder & streamer for Infinity6E
 	  (SSC338Q/SSC30KQ). Dual-backend, sensor unlock, HTTP API.
@@ -9,5 +8,3 @@ config BR2_PACKAGE_WAYBEAM_VENC_STAR6E
 	  Installs:
 	    - /usr/bin/venc
 	    - /etc/venc.json
-	    - /etc/init.d/S95venc
-	    - Sensor kernel modules and config files

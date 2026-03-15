@@ -8,20 +8,19 @@ WAYBEAM_HUB_VERSION = main
 WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-hub.git
 WAYBEAM_HUB_SITE_METHOD = git
 WAYBEAM_HUB_LICENSE = Autod Personal Use License
-WAYBEAM_HUB_DEPENDENCIES = sigmastar-osdrv-infinity6e-libs
 
 # LVGL is a git submodule — fetch it
 WAYBEAM_HUB_GIT_SUBMODULES = YES
 
 # Vehicle cross-compile: use the Buildroot toolchain directly
-# The Makefile's vehicle target expects VEHICLE_CC and paths to SDK/sysroot
+# Links against vendored MI libs in vendor/sigmastar/lib (no staging dep needed)
 define WAYBEAM_HUB_BUILD_CMDS
 	$(MAKE) -C $(@D) vehicle \
 		VEHICLE_CC="$(TARGET_CC)" \
 		VEHICLE_TOOLCHAIN="$(HOST_DIR)" \
 		VEHICLE_SYSROOT="$(STAGING_DIR)" \
 		VEHICLE_SDK="$(@D)/vendor/sigmastar" \
-		VEHICLE_DRV="$(STAGING_DIR)/usr/lib" \
+		VEHICLE_DRV="$(@D)/vendor/sigmastar/lib" \
 		LVGL_DIR="$(@D)/lvgl"
 	# json_cli tool (standalone, no SDK deps)
 	$(MAKE) -C $(@D) json_cli CC="$(TARGET_CC)"
