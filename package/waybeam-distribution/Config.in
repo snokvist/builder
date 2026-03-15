@@ -1,0 +1,8 @@
+config BR2_PACKAGE_WAYBEAM_DISTRIBUTION
+	bool "waybeam-distribution"
+	help
+	  Waybeam distribution package — sensor configs, firmware assets,
+	  and other files not distributed by individual Waybeam packages.
+
+	  Installs:
+	    - /etc/sensors/*.bin (IMX335/IMX415 tuning profiles)
