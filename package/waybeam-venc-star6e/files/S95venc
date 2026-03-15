@@ -3,6 +3,28 @@
 DAEMON="venc"
 DAEMON_PATH="/usr/bin/venc"
 DAEMON_CONF="/etc/venc.json"
+JSON_CLI="/usr/bin/json_cli"
+
+# Auto-detect sensor and configure sensorBin if not already set
+configure_sensor() {
+    [ -x "$JSON_CLI" ] && [ -f "$DAEMON_CONF" ] || return 0
+    current=$("$JSON_CLI" get "$DAEMON_CONF" isp.sensorBin 2>/dev/null)
+    [ -z "$current" ] || [ "$current" = '""' ] || return 0
+
+    sensor=""
+    if lsmod 2>/dev/null | grep -q "sensor_imx335"; then
+        sensor="imx335"
+        bin="/etc/sensors/imx335_greg_fpvVII-gpt200.bin"
+    elif lsmod 2>/dev/null | grep -q "sensor_imx415"; then
+        sensor="imx415"
+        bin="/etc/sensors/imx415_greg_fpvXVIII-gpt200.bin"
+    fi
+
+    if [ -n "$sensor" ] && [ -f "$bin" ]; then
+        echo "[venc] Auto-detected $sensor, setting sensorBin=$bin"
+        "$JSON_CLI" set "$DAEMON_CONF" isp.sensorBin "$bin"
+    fi
+}
 
 get_pids() {
     if command -v pidof >/dev/null 2>&1; then
@@ -71,7 +93,7 @@ reload() {
 }
 
 case "$1" in
-    start)   start ;;
+    start)   configure_sensor; start ;;
     stop)    stop ;;
     restart) stop; sleep 1; start ;;
     reload)  reload ;;
