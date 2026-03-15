@@ -46,7 +46,7 @@ configure_sensor() {
 start() {
     echo -n "Starting $DAEMON: "
     killall "$DAEMON" 2>/dev/null
-    sleep 1
+    sleep 8
     "$DAEMON_PATH" -c "$DAEMON_CONF" &
     echo "OK"
 }
