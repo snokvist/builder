@@ -5,7 +5,8 @@
 ################################################################################
 
 WAYBEAM_HUB_VERSION = main
-WAYBEAM_HUB_SITE = $(call github,snokvist,waybeam-hub,$(WAYBEAM_HUB_VERSION))
+WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-hub.git
+WAYBEAM_HUB_SITE_METHOD = git
 WAYBEAM_HUB_LICENSE = Autod Personal Use License
 WAYBEAM_HUB_DEPENDENCIES = sigmastar-osdrv-infinity6e-libs
 
