@@ -1,0 +1,334 @@
+#!/bin/sh
+# adapter - Wi-Fi bringup/teardown helper for ifupdown
+#
+# Supports two modes controlled by fw_printenv wlanmode:
+#   "ap"     -> hostapd access point
+#   "client" -> wpa_supplicant station (default)
+#
+# Configuration via u-boot env:
+#   wlanssid  - SSID (default: waybeam-01)
+#   wlanpass  - PSK  (default: waybeam-01)
+#   wlanmode  - "ap" or "client" (default: ap)
+#   wlanpwr   - TX power in mBm (default: 1500)
+#   wlanchan  - AP channel (default: 149)
+#   wlanhtmode - AP HT mode: HT20/HT40+/HT40- (default: HT20)
+#
+# Pair with /etc/network/interfaces.d/wlan0:
+#   iface wlan0 inet manual
+#       pre-up adapter setup
+#       up adapter start
+#       down adapter stop
+
+set -eu
+
+# ---------------- configuration knobs ----------------
+# Static IP when in AP mode (always), or client fallback when set
+STATIC_IP_AP="10.6.0.1/24"
+STATIC_IP_CLIENT=""
+
+# Lock to specific BSSID in client mode (empty = scan all)
+BSSID_OPTION=""
+# -----------------------------------------------------
+
+IFACE="${IFACE:-wlan0}"
+
+WPACONF="/tmp/wpa_supplicant.conf"
+WPAPID="/var/run/wpa_supplicant.${IFACE}.pid"
+HOSTAPDCONF="/tmp/hostapd.conf"
+HOSTAPDPID="/var/run/hostapd.${IFACE}.pid"
+UDHCPPID="/var/run/udhcpc.${IFACE}.pid"
+UDHCPSCRIPT="/tmp/udhcpc.${IFACE}.script"
+UDHCPDCONF="/tmp/udhcpd.${IFACE}.conf"
+
+# -------- helpers --------
+
+fw_get() { fw_printenv -n "$1" 2>/dev/null || echo "$2"; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+pid_is_running() {
+    [ -f "$1" ] || return 1
+    pid="$(cat "$1" 2>/dev/null || true)"
+    [ -n "${pid:-}" ] || return 1
+    kill -0 "$pid" 2>/dev/null
+}
+
+kill_pidfile() {
+    [ -f "$1" ] || return 0
+    pid="$(cat "$1" 2>/dev/null || true)"
+    if [ -n "${pid:-}" ]; then
+        kill "$pid" 2>/dev/null || true
+        sleep 0.3
+        kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+    fi
+    rm -f "$1"
+}
+
+stop_all_wifi() {
+    kill_pidfile "$WPAPID"
+    kill_pidfile "$HOSTAPDPID"
+    kill_pidfile "$UDHCPPID"
+    killall -q udhcpd 2>/dev/null || true
+    if have dhcpcd; then
+        dhcpcd -k "$IFACE" 2>/dev/null || true
+    fi
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    ip link set "$IFACE" down 2>/dev/null || true
+}
+
+detect_and_load_driver() {
+    driver=""
+
+    for card in $(lsusb 2>/dev/null | awk '{print $6}' | sort -u); do
+        case "$card" in
+            "148f:7612"|"148f:761a"|"0e8d:7612"|"0e8d:761a") driver="mt76x2u" ;;
+            "0bda:8812"|"0bda:881a"|"0b05:17d2"|"2357:0101"|"2604:0012") driver="8812au" ;;
+            "0bda:a81a") driver="8812eu" ;;
+            "0bda:c811"|"0bda:c82c") driver="8821cu" ;;
+            "0bda:f72b"|"0bda:b733") driver="8733bu" ;;
+        esac
+    done
+
+    if [ -z "$driver" ]; then
+        echo "[wifi] Wireless module not detected (lsusb)"
+        driver="${DRIVER:-}"
+    fi
+
+    [ -n "$driver" ] || { echo "[wifi] No driver found"; exit 1; }
+
+    echo "[wifi] Loading driver: $driver"
+    if have modprobe; then
+        modprobe "$driver" 2>/dev/null || true
+    fi
+}
+
+# -------- client mode (wpa_supplicant) --------
+
+write_wpa_conf() {
+    SSID="$(fw_get wlanssid waybeam-01)"
+    PSK="$(fw_get wlanpass waybeam-01)"
+
+    cat > "$WPACONF" <<EOF
+update_config=0
+ctrl_interface=/var/run/wpa_supplicant
+ap_scan=1
+fast_reauth=1
+scan_cur_freq=1
+bss_expiration_age=600
+bss_expiration_scan_count=10
+
+network={
+    ssid="$SSID"
+    psk="$PSK"
+    key_mgmt=WPA-PSK
+    proto=RSN
+    pairwise=CCMP
+    group=CCMP
+$([ -n "${BSSID_OPTION:-}" ] && echo "    bssid=${BSSID_OPTION}")
+}
+EOF
+}
+
+ensure_udhcpc_script() {
+    cat > "$UDHCPSCRIPT" <<'UEOF'
+#!/bin/sh
+[ -n "$interface" ] || interface="$1"
+case "$1" in
+  deconfig)
+    ip addr flush dev "$interface" 2>/dev/null || true
+    ;;
+  bound|renew)
+    ip addr flush dev "$interface" 2>/dev/null || true
+    ip addr add "$ip/$subnet" dev "$interface" 2>/dev/null || true
+    ip link set "$interface" up 2>/dev/null || true
+    # Do NOT install default route (eth0 stays primary)
+    ;;
+esac
+exit 0
+UEOF
+    chmod +x "$UDHCPSCRIPT"
+}
+
+start_client() {
+    if ! have wpa_supplicant; then
+        echo "[wifi] wpa_supplicant not found"; exit 1
+    fi
+
+    PWR="$(fw_get wlanpwr 1500)"
+
+    echo "[wifi] Client mode on $IFACE"
+    ip link set "$IFACE" up 2>/dev/null || true
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    iw dev "$IFACE" set power_save off 2>/dev/null || true
+    iw "$IFACE" set txpower fixed "$PWR" 2>/dev/null || true
+
+    write_wpa_conf
+    kill_pidfile "$WPAPID"
+
+    echo "[wifi] Starting wpa_supplicant"
+    wpa_supplicant -B -i "$IFACE" -c "$WPACONF" -P "$WPAPID"
+
+    if [ -n "${STATIC_IP_CLIENT:-}" ]; then
+        echo "[wifi] Static IP: $STATIC_IP_CLIENT"
+        ip addr add "$STATIC_IP_CLIENT" dev "$IFACE" 2>/dev/null || true
+        ip route del default dev "$IFACE" 2>/dev/null || true
+    else
+        ensure_udhcpc_script
+        if have udhcpc; then
+            echo "[wifi] Starting DHCP client"
+            udhcpc -i "$IFACE" -b -p "$UDHCPPID" -s "$UDHCPSCRIPT" -R
+        fi
+    fi
+
+    echo "[wifi] Client started. SSID=$(fw_get wlanssid waybeam-01)"
+}
+
+# -------- AP mode (hostapd) --------
+
+write_hostapd_conf() {
+    SSID="$(fw_get wlanssid waybeam-01)"
+    PSK="$(fw_get wlanpass waybeam-01)"
+    CHAN="$(fw_get wlanchan 149)"
+    HTMODE="$(fw_get wlanhtmode HT20)"
+
+    # Determine band from channel
+    if [ "$CHAN" -ge 36 ] 2>/dev/null; then
+        HW_MODE="a"
+        VHT="1"
+    else
+        HW_MODE="g"
+        VHT="0"
+    fi
+
+    cat > "$HOSTAPDCONF" <<EOF
+interface=$IFACE
+driver=nl80211
+ssid=$SSID
+hw_mode=$HW_MODE
+channel=$CHAN
+ieee80211n=1
+ht_capab=[$HTMODE][SHORT-GI-20][SHORT-GI-40]
+$([ "$VHT" = "1" ] && echo "ieee80211ac=1")
+wmm_enabled=1
+auth_algs=1
+wpa=2
+wpa_passphrase=$PSK
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+country_code=US
+EOF
+}
+
+write_udhcpd_conf() {
+    # Extract base IP for DHCP range from STATIC_IP_AP
+    BASE=$(echo "$STATIC_IP_AP" | cut -d'/' -f1 | sed 's/\.[0-9]*$/./')
+
+    cat > "$UDHCPDCONF" <<EOF
+start ${BASE}2
+end ${BASE}20
+interface $IFACE
+lease_file /tmp/udhcpd.leases
+opt dns ${BASE}1
+opt router ${BASE}1
+opt subnet 255.255.255.0
+EOF
+    touch /tmp/udhcpd.leases
+}
+
+start_ap() {
+    if ! have hostapd; then
+        echo "[wifi] hostapd not found"; exit 1
+    fi
+
+    PWR="$(fw_get wlanpwr 1500)"
+
+    echo "[wifi] AP mode on $IFACE"
+    ip link set "$IFACE" up 2>/dev/null || true
+    ip addr flush dev "$IFACE" 2>/dev/null || true
+    iw dev "$IFACE" set power_save off 2>/dev/null || true
+    iw "$IFACE" set txpower fixed "$PWR" 2>/dev/null || true
+
+    # Static IP for AP
+    ip addr add "$STATIC_IP_AP" dev "$IFACE" 2>/dev/null || true
+
+    write_hostapd_conf
+    kill_pidfile "$HOSTAPDPID"
+
+    echo "[wifi] Starting hostapd"
+    hostapd -B -P "$HOSTAPDPID" "$HOSTAPDCONF"
+
+    # Start DHCP server for clients
+    if have udhcpd; then
+        write_udhcpd_conf
+        echo "[wifi] Starting DHCP server"
+        udhcpd "$UDHCPDCONF"
+    fi
+
+    echo "[wifi] AP started. SSID=$(fw_get wlanssid waybeam-01) CH=$(fw_get wlanchan 149)"
+}
+
+# -------- status --------
+
+status_wifi() {
+    MODE="$(fw_get wlanmode ap)"
+    echo "=== mode: $MODE ==="
+
+    echo "=== link ==="
+    ip link show "$IFACE" 2>/dev/null || true
+
+    echo "=== addr ==="
+    ip -4 addr show dev "$IFACE" 2>/dev/null || true
+
+    echo "=== route ==="
+    ip -4 route show dev "$IFACE" 2>/dev/null || true
+
+    if [ "$MODE" = "ap" ]; then
+        echo "=== hostapd ==="
+        if pid_is_running "$HOSTAPDPID"; then
+            echo "running (pid $(cat "$HOSTAPDPID"))"
+        else
+            echo "not running"
+        fi
+    else
+        echo "=== wpa ==="
+        if have wpa_cli; then
+            wpa_cli -i "$IFACE" status 2>/dev/null || true
+        fi
+    fi
+}
+
+# -------- main --------
+
+case "${1:-}" in
+    setup)
+        detect_and_load_driver
+        ;;
+    start)
+        MODE="$(fw_get wlanmode ap)"
+        case "$MODE" in
+            ap)     start_ap ;;
+            *)      start_client ;;
+        esac
+        ;;
+    stop)
+        stop_all_wifi
+        echo "[wifi] Stopped"
+        ;;
+    restart)
+        stop_all_wifi
+        sleep 0.5
+        MODE="$(fw_get wlanmode ap)"
+        case "$MODE" in
+            ap)     start_ap ;;
+            *)      start_client ;;
+        esac
+        ;;
+    status)
+        status_wifi
+        ;;
+    *)
+        echo "Usage: $0 {setup|start|stop|restart|status}"
+        echo "Mode: fw_setenv wlanmode ap|client"
+        echo "Config: fw_setenv wlanssid/wlanpass/wlanchan/wlanhtmode/wlanpwr"
+        exit 1
+        ;;
+esac

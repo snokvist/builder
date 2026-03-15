@@ -1,0 +1,4 @@
+iface wlan0 inet manual
+    pre-up adapter setup
+    up adapter start
+    down adapter stop
