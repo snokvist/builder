@@ -22,8 +22,11 @@ define WAYBEAM_HUB_BUILD_CMDS
 		VEHICLE_SDK="$(@D)/vendor/sigmastar" \
 		VEHICLE_DRV="$(@D)/vendor/sigmastar/lib" \
 		LVGL_DIR="$(@D)/lvgl"
-	# json_cli tool (standalone, no SDK deps)
-	$(MAKE) -C $(@D) json_cli CC="$(TARGET_CC)"
+	# json_cli tool (standalone, single .c file)
+	mkdir -p $(@D)/build/tools
+	$(TARGET_CC) -Os -Wall -Wextra -std=c11 -D_GNU_SOURCE \
+		-I$(@D)/tools -o $(@D)/build/tools/json_cli \
+		$(@D)/tools/json_cli.c -lm
 endef
 
 define WAYBEAM_HUB_INSTALL_TARGET_CMDS
