@@ -22,12 +22,6 @@ define WAYBEAM_VENC_STAR6E_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/usr/bin/venc
 	$(INSTALL) -m 0644 -D $(@D)/config/venc.default.json \
 		$(TARGET_DIR)/etc/venc.json
-	# Sensor kernel modules
-	$(INSTALL) -d $(TARGET_DIR)/lib/modules
-	$(INSTALL) -m 0644 $(@D)/sensors/drv_ms_cus_imx335_MIPI.ko \
-		$(TARGET_DIR)/lib/modules/
-	$(INSTALL) -m 0644 $(@D)/sensors/drv_ms_cus_imx415_MIPI.ko \
-		$(TARGET_DIR)/lib/modules/
 endef
 
 define WAYBEAM_VENC_STAR6E_INSTALL_INIT_SYSV
