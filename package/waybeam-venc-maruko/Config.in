@@ -1,0 +1,11 @@
+config BR2_PACKAGE_WAYBEAM_VENC_MARUKO
+	bool "waybeam-venc-maruko"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6C
+	help
+	  Standalone H.265 video encoder & streamer for Infinity6C
+	  (SSC378QE/Maruko). Dual-backend, sensor unlock, HTTP API.
+
+	  Installs:
+	    - /usr/bin/venc
+	    - /etc/venc.json
