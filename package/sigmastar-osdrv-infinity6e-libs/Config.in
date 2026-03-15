@@ -1,0 +1,7 @@
+config BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E_LIBS
+	bool "sigmastar-osdrv-infinity6e userspace libs"
+	help
+	  Installs the prebuilt SigmaStar Infinity6E userspace MI libraries
+	  from OpenIPC/firmware into:
+	    - staging: /usr/lib (for linking)
+	    - target:  /usr/lib (for runtime)

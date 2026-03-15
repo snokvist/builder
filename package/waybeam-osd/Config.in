@@ -1,0 +1,10 @@
+config BR2_PACKAGE_WAYBEAM_OSD
+	bool "waybeam-osd"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	help
+	  LVGL-based transparent OSD driven by UDP JSON payloads.
+
+	  Installs:
+	    - /usr/bin/waybeam-osd   (renamed from lvgltest)
+	    - /etc/waybeam_osd.json  (default config)
+	    - /etc/init.d/S96waybeam-osd (SysV init script)
