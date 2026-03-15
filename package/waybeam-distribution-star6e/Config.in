@@ -1,0 +1,9 @@
+config BR2_PACKAGE_WAYBEAM_DISTRIBUTION_STAR6E
+	bool "waybeam-distribution-star6e"
+	help
+	  Waybeam distribution package for Infinity6E (SSC338Q/SSC30KQ).
+	  Sensor tuning profiles and platform-specific assets.
+
+	  Installs:
+	    - /etc/sensors/imx335_greg_fpvVII-gpt200.bin
+	    - /etc/sensors/imx415_greg_fpvXVIII-gpt200.bin

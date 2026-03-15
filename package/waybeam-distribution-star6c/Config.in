@@ -1,0 +1,5 @@
+config BR2_PACKAGE_WAYBEAM_DISTRIBUTION_STAR6C
+	bool "waybeam-distribution-star6c"
+	help
+	  Waybeam distribution package for Infinity6C (SSC378QE).
+	  Platform-specific assets not distributed by other packages.
