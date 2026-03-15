@@ -25,7 +25,7 @@ define WAYBEAM_HUB_BUILD_CMDS
 	# json_cli tool (standalone, single .c file)
 	mkdir -p $(@D)/build/tools
 	$(TARGET_CC) -Os -Wall -Wextra -std=c11 -D_GNU_SOURCE \
-		-I$(@D)/tools -o $(@D)/build/tools/json_cli \
+		-include stddef.h -I$(@D)/tools -o $(@D)/build/tools/json_cli \
 		$(@D)/tools/json_cli.c -lm
 endef
 
