@@ -25,8 +25,8 @@ define WAYBEAM_VENC_STAR6E_INSTALL_TARGET_CMDS
 endef
 
 define WAYBEAM_VENC_STAR6E_INSTALL_INIT_SYSV
-	$(INSTALL) -m 0755 -D $(@D)/scripts/S99mountSD \
-		$(TARGET_DIR)/etc/init.d/S99mountSD
+	$(INSTALL) -m 0755 -D $(WAYBEAM_VENC_STAR6E_PKGDIR)/files/S95venc \
+		$(TARGET_DIR)/etc/init.d/S95venc
 endef
 
 $(eval $(generic-package))
