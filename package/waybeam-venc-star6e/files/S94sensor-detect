@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# Detect camera sensor from loaded kernel module and set ISP bin path
+# in venc.json. Runs before S95venc.
+#
+
+VENC_CONF="/etc/venc.json"
+SENSOR_DIR="/etc/sensors"
+
+detect_sensor() {
+    lsmod | grep -o 'sensor_imx[0-9]*' | head -1 | sed 's/sensor_//'
+}
+
+sensor_bin_path() {
+    case "$1" in
+        imx335) echo "${SENSOR_DIR}/imx335_greg_fpvVII-gpt200.bin" ;;
+        imx415) echo "${SENSOR_DIR}/imx415_greg_fpvXVIII-gpt200.bin" ;;
+        *)      echo "" ;;
+    esac
+}
+
+start() {
+    SENSOR=$(detect_sensor)
+    if [ -z "$SENSOR" ]; then
+        echo "sensor-detect: no IMX sensor module found, skipping"
+        return 0
+    fi
+
+    BIN=$(sensor_bin_path "$SENSOR")
+    if [ -z "$BIN" ]; then
+        echo "sensor-detect: unknown sensor $SENSOR, skipping"
+        return 0
+    fi
+
+    if [ ! -f "$BIN" ]; then
+        echo "sensor-detect: $BIN not found, skipping"
+        return 0
+    fi
+
+    echo "sensor-detect: $SENSOR -> $BIN"
+    json_cli -i "$VENC_CONF" -s .isp.sensorBin "\"$BIN\""
+}
+
+case "$1" in
+    start)   start ;;
+    stop)    ;;
+    restart) start ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
