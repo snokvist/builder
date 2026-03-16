@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WAYBEAM_HUB_VERSION = main
+WAYBEAM_HUB_VERSION = HEAD
 WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-hub.git
 WAYBEAM_HUB_SITE_METHOD = git
 WAYBEAM_HUB_LICENSE = Autod Personal Use License
@@ -34,16 +34,10 @@ define WAYBEAM_HUB_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/usr/bin/waybeam_hub
 	$(INSTALL) -m 0755 -D $(@D)/build/tools/json_cli \
 		$(TARGET_DIR)/usr/bin/json_cli
-	$(INSTALL) -m 0644 -D $(@D)/configs/waybeam_vehicle.conf \
+	$(INSTALL) -m 0644 -D $(WAYBEAM_HUB_PKGDIR)/files/waybeam_vehicle.conf \
 		$(TARGET_DIR)/etc/waybeam_hub/waybeam_vehicle.conf
-	$(INSTALL) -m 0644 -D $(@D)/configs/waybeam_osd.json \
+	$(INSTALL) -m 0644 -D $(WAYBEAM_HUB_PKGDIR)/files/waybeam_osd.json \
 		$(TARGET_DIR)/etc/waybeam_osd.json
-	$(INSTALL) -m 0644 -D $(@D)/configs/modes_imx335.ini \
-		$(TARGET_DIR)/etc/sensors/modes_imx335.ini
-	$(INSTALL) -m 0644 -D $(@D)/configs/modes_imx415.ini \
-		$(TARGET_DIR)/etc/sensors/modes_imx415.ini
-	$(INSTALL) -m 0644 -D $(@D)/web/waybeam_vehicle.html \
-		$(TARGET_DIR)/var/www/waybeam_vehicle.html
 	$(INSTALL) -m 0755 -D $(@D)/scripts/S97waybeam-hub_vehicle \
 		$(TARGET_DIR)/etc/init.d/S97waybeam-hub
 endef

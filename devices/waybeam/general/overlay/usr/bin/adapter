@@ -202,6 +202,7 @@ write_hostapd_conf() {
     cat > "$HOSTAPDCONF" <<EOF
 interface=$IFACE
 driver=nl80211
+ctrl_interface=/var/run/hostapd
 ssid=$SSID
 hw_mode=$HW_MODE
 channel=$CHAN
