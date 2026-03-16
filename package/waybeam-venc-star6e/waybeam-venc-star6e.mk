@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-WAYBEAM_VENC_STAR6E_VERSION = 98efe00
-WAYBEAM_VENC_STAR6E_SITE = https://github.com/OpenIPC/waybeam_venc.git
+WAYBEAM_VENC_STAR6E_VERSION = main
+WAYBEAM_VENC_STAR6E_SITE = https://github.com/snokvist/waybeam_venc.git
 WAYBEAM_VENC_STAR6E_SITE_METHOD = git
 WAYBEAM_VENC_STAR6E_LICENSE = Autod Personal Use License
 
