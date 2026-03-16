@@ -20,7 +20,7 @@ endef
 define WAYBEAM_VENC_STAR6E_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 -D $(@D)/out/star6e/venc \
 		$(TARGET_DIR)/usr/bin/venc
-	$(INSTALL) -m 0644 -D $(@D)/config/venc.default.json \
+	$(INSTALL) -m 0644 -D $(WAYBEAM_VENC_STAR6E_PKGDIR)/files/venc.json \
 		$(TARGET_DIR)/etc/venc.json
 endef
 

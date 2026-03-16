@@ -20,7 +20,7 @@ endef
 define WAYBEAM_VENC_MARUKO_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 -D $(@D)/out/maruko/venc \
 		$(TARGET_DIR)/usr/bin/venc
-	$(INSTALL) -m 0644 -D $(@D)/config/venc.default.json \
+	$(INSTALL) -m 0644 -D $(WAYBEAM_VENC_MARUKO_PKGDIR)/files/venc.json \
 		$(TARGET_DIR)/etc/venc.json
 	# Maruko uclibc shim
 	$(INSTALL) -m 0755 -D $(@D)/tools/libmaruko_uclibc_shim.so \
