@@ -5,7 +5,7 @@
 ################################################################################
 
 WAYBEAM_VENC_MARUKO_VERSION = main
-WAYBEAM_VENC_MARUKO_SITE = https://github.com/snokvist/waybeam_venc.git
+WAYBEAM_VENC_MARUKO_SITE = https://github.com/OpenIPC/waybeam_venc.git
 WAYBEAM_VENC_MARUKO_SITE_METHOD = git
 WAYBEAM_VENC_MARUKO_LICENSE = Autod Personal Use License
 
