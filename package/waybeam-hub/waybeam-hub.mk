@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WAYBEAM_HUB_VERSION = main
+WAYBEAM_HUB_VERSION = HEAD
 WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-hub.git
 WAYBEAM_HUB_SITE_METHOD = git
 WAYBEAM_HUB_LICENSE = Autod Personal Use License
