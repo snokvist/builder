@@ -18,6 +18,10 @@ wait_exit() {
 }
 
 start() {
+    if pidof "$DAEMON" >/dev/null 2>&1; then
+        echo "$DAEMON already running"
+        return 0
+    fi
     echo -n "Starting $DAEMON: "
     "$DAEMON_PATH" -c "$DAEMON_CONF" &
     echo "OK"
