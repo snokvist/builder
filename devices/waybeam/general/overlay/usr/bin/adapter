@@ -173,7 +173,7 @@ UEOF
 
 start_client() {
     if ! have wpa_supplicant; then
-        log_warn "wpa_supplicant not found"; exit 1
+        log_warn "wpa_supplicant not found"; return 1
     fi
 
     PWR="$(fw_get wlanpwr 1500)"
@@ -272,7 +272,7 @@ EOF
 
 start_ap() {
     if ! have hostapd; then
-        log_warn "hostapd not found"; exit 1
+        log_warn "hostapd not found"; return 1
     fi
 
     PWR="$(fw_get wlanpwr 1500)"
