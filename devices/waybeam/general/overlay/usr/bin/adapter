@@ -2,15 +2,15 @@
 # adapter - Wi-Fi bringup/teardown helper for ifupdown
 #
 # Supports two modes controlled by fw_printenv wlanmode:
-#   "ap"     -> hostapd access point
-#   "client" -> wpa_supplicant station (default)
+#   "ap"     -> hostapd access point (default)
+#   "client" -> wpa_supplicant station
 #
 # Configuration via u-boot env:
-#   wlanssid  - SSID (default: waybeam-01)
-#   wlanpass  - PSK  (default: waybeam-01)
-#   wlanmode  - "ap" or "client" (default: ap)
-#   wlanpwr   - TX power in mBm (default: 1500)
-#   wlanchan  - AP channel (default: 149)
+#   wlanssid   - SSID (default: waybeam-01)
+#   wlanpass   - PSK  (default: waybeam-01)
+#   wlanmode   - "ap" or "client" (default: ap)
+#   wlanpwr    - TX power in mBm (default: 1500)
+#   wlanchan   - AP channel (default: 149)
 #   wlanhtmode - AP HT mode: HT20/HT40+/HT40- (default: HT20)
 #
 # Pair with /etc/network/interfaces.d/wlan0:
@@ -19,8 +19,6 @@
 #       up adapter start
 #       down adapter stop
 
-set -eu
-
 # ---------------- configuration knobs ----------------
 # Static IP when in AP mode (always), or client fallback when set
 STATIC_IP_AP="10.6.0.1/24"
@@ -28,6 +26,12 @@ STATIC_IP_CLIENT=""
 
 # Lock to specific BSSID in client mode (empty = scan all)
 BSSID_OPTION=""
+
+# Seconds between watchdog health checks
+MONITOR_INTERVAL=5
+
+# Client mode: seconds before hard restart of wpa_supplicant on disconnect
+CLIENT_RECONNECT_TIMEOUT=60
 # -----------------------------------------------------
 
 IFACE="${IFACE:-wlan0}"
@@ -39,8 +43,14 @@ HOSTAPDPID="/var/run/hostapd.${IFACE}.pid"
 UDHCPPID="/var/run/udhcpc.${IFACE}.pid"
 UDHCPSCRIPT="/tmp/udhcpc.${IFACE}.script"
 UDHCPDCONF="/tmp/udhcpd.${IFACE}.conf"
+MONITORPID="/var/run/adapter-monitor.pid"
+
+TAG="adapter"
 
 # -------- helpers --------
+
+log_info() { echo "[$TAG] $*"; logger -t "$TAG" "$*" 2>/dev/null; }
+log_warn() { echo "[$TAG] WARN: $*"; logger -t "$TAG" "WARN: $*" 2>/dev/null; }
 
 fw_get() { fw_printenv -n "$1" 2>/dev/null || echo "$2"; }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -63,11 +73,24 @@ kill_pidfile() {
     rm -f "$1"
 }
 
+# Find PIDs of a process name bound to our interface (BusyBox-compatible)
+_find_pids_for_iface() {
+    ps w 2>/dev/null | grep "$1" | grep -v grep | \
+        grep -- "$IFACE" | awk '{print $1}'
+}
+
 stop_all_wifi() {
+    # Stop monitor first
+    monitor_stop
+
     kill_pidfile "$WPAPID"
     kill_pidfile "$HOSTAPDPID"
     kill_pidfile "$UDHCPPID"
-    killall -q udhcpd 2>/dev/null || true
+
+    # Kill only udhcpd for our interface, not system-wide
+    _pids=$(_find_pids_for_iface udhcpd)
+    [ -n "$_pids" ] && kill $_pids 2>/dev/null || true
+
     if have dhcpcd; then
         dhcpcd -k "$IFACE" 2>/dev/null || true
     fi
@@ -89,13 +112,13 @@ detect_and_load_driver() {
     done
 
     if [ -z "$driver" ]; then
-        echo "[wifi] Wireless module not detected (lsusb)"
+        log_warn "Wireless module not detected (lsusb)"
         driver="${DRIVER:-}"
     fi
 
-    [ -n "$driver" ] || { echo "[wifi] No driver found"; exit 1; }
+    [ -n "$driver" ] || { log_warn "No driver found"; exit 1; }
 
-    echo "[wifi] Loading driver: $driver"
+    log_info "Loading driver: $driver"
     if have modprobe; then
         modprobe "$driver" 2>/dev/null || true
     fi
@@ -109,12 +132,12 @@ write_wpa_conf() {
 
     cat > "$WPACONF" <<EOF
 update_config=0
-ctrl_interface=/var/run/wpa_supplicant
 ap_scan=1
 fast_reauth=1
-scan_cur_freq=1
-bss_expiration_age=600
-bss_expiration_scan_count=10
+
+# Sticky connection: aggressive scan on disconnect, no roaming
+autoscan=periodic:3
+bgscan=""
 
 network={
     ssid="$SSID"
@@ -150,12 +173,12 @@ UEOF
 
 start_client() {
     if ! have wpa_supplicant; then
-        echo "[wifi] wpa_supplicant not found"; exit 1
+        log_warn "wpa_supplicant not found"; exit 1
     fi
 
     PWR="$(fw_get wlanpwr 1500)"
 
-    echo "[wifi] Client mode on $IFACE"
+    log_info "Client mode on $IFACE"
     ip link set "$IFACE" up 2>/dev/null || true
     ip addr flush dev "$IFACE" 2>/dev/null || true
     iw dev "$IFACE" set power_save off 2>/dev/null || true
@@ -164,22 +187,22 @@ start_client() {
     write_wpa_conf
     kill_pidfile "$WPAPID"
 
-    echo "[wifi] Starting wpa_supplicant"
+    log_info "Starting wpa_supplicant"
     wpa_supplicant -B -i "$IFACE" -c "$WPACONF" -P "$WPAPID"
 
     if [ -n "${STATIC_IP_CLIENT:-}" ]; then
-        echo "[wifi] Static IP: $STATIC_IP_CLIENT"
+        log_info "Static IP: $STATIC_IP_CLIENT"
         ip addr add "$STATIC_IP_CLIENT" dev "$IFACE" 2>/dev/null || true
         ip route del default dev "$IFACE" 2>/dev/null || true
     else
         ensure_udhcpc_script
         if have udhcpc; then
-            echo "[wifi] Starting DHCP client"
+            log_info "Starting DHCP client"
             udhcpc -i "$IFACE" -b -p "$UDHCPPID" -s "$UDHCPSCRIPT" -R
         fi
     fi
 
-    echo "[wifi] Client started. SSID=$(fw_get wlanssid waybeam-01)"
+    log_info "Client started. SSID=$(fw_get wlanssid waybeam-01)"
 }
 
 # -------- AP mode (hostapd) --------
@@ -216,6 +239,18 @@ wpa_passphrase=$PSK
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP
 country_code=US
+
+# --- FPV link stability ---
+# Never disconnect station due to low ACK rate (signal varies in flight)
+disassoc_low_ack=0
+# Long inactivity timeout — UDP video/telemetry is invisible to hostapd
+ap_max_inactivity=86400
+# Limit clients to prevent bandwidth dilution
+max_num_sta=4
+# Disable power-save advertisement (latency-sensitive link)
+uapsd_advertisement_enabled=0
+# Skip ACS scans that interrupt service
+noscan=1
 EOF
 }
 
@@ -237,12 +272,12 @@ EOF
 
 start_ap() {
     if ! have hostapd; then
-        echo "[wifi] hostapd not found"; exit 1
+        log_warn "hostapd not found"; exit 1
     fi
 
     PWR="$(fw_get wlanpwr 1500)"
 
-    echo "[wifi] AP mode on $IFACE"
+    log_info "AP mode on $IFACE"
     ip link set "$IFACE" up 2>/dev/null || true
     ip addr flush dev "$IFACE" 2>/dev/null || true
     iw dev "$IFACE" set power_save off 2>/dev/null || true
@@ -254,17 +289,132 @@ start_ap() {
     write_hostapd_conf
     kill_pidfile "$HOSTAPDPID"
 
-    echo "[wifi] Starting hostapd"
+    log_info "Starting hostapd"
     hostapd -B -P "$HOSTAPDPID" "$HOSTAPDCONF"
 
     # Start DHCP server for clients
     if have udhcpd; then
         write_udhcpd_conf
-        echo "[wifi] Starting DHCP server"
+        log_info "Starting DHCP server"
         udhcpd "$UDHCPDCONF"
     fi
 
-    echo "[wifi] AP started. SSID=$(fw_get wlanssid waybeam-01) CH=$(fw_get wlanchan 149)"
+    log_info "AP started. SSID=$(fw_get wlanssid waybeam-01) CH=$(fw_get wlanchan 149)"
+}
+
+# -------- watchdog monitor --------
+
+monitor_start() {
+    # Don't double-start
+    if [ -f "$MONITORPID" ]; then
+        _pid=$(cat "$MONITORPID")
+        if kill -0 "$_pid" 2>/dev/null; then
+            return 0
+        fi
+        rm -f "$MONITORPID"
+    fi
+
+    MODE="$(fw_get wlanmode ap)"
+    log_info "Starting WiFi monitor (mode=$MODE, interval=${MONITOR_INTERVAL}s)"
+
+    (
+        trap 'exit 0' TERM INT
+        _fail_count=0
+        _was_connected=1
+
+        while true; do
+            if [ "$_fail_count" -gt 0 ]; then
+                sleep 2
+            else
+                sleep "$MONITOR_INTERVAL"
+            fi
+
+            case "$MODE" in
+                ap)
+                    # Check if hostapd is still running
+                    if ! pid_is_running "$HOSTAPDPID"; then
+                        log_warn "Monitor: hostapd not running, restarting..."
+                        start_ap 2>/dev/null || true
+                        _fail_count=0
+                        continue
+                    fi
+
+                    # Check if interface still has IP
+                    if ! ip -4 addr show dev "$IFACE" 2>/dev/null | grep -q "inet"; then
+                        log_warn "Monitor: AP IP lost, re-adding..."
+                        ip addr add "$STATIC_IP_AP" dev "$IFACE" 2>/dev/null || true
+                    fi
+                    _fail_count=0
+                    ;;
+                *)
+                    # Client mode watchdog
+                    if ! pid_is_running "$WPAPID"; then
+                        log_warn "Monitor: wpa_supplicant not running, restarting..."
+                        start_client 2>/dev/null || true
+                        _fail_count=0
+                        _was_connected=0
+                        continue
+                    fi
+
+                    # Check association
+                    if ! iw dev "$IFACE" link 2>/dev/null | grep -q "Connected"; then
+                        _fail_count=$((_fail_count + 1))
+                        if [ "$_fail_count" -eq 1 ]; then
+                            log_warn "Monitor: lost association, waiting for reconnect..."
+                            _was_connected=0
+                        fi
+                        if [ "$((_fail_count % 5))" -eq 0 ]; then
+                            log_info "Monitor: still disconnected (${_fail_count}x2s)..."
+                        fi
+                        _max_polls=$((CLIENT_RECONNECT_TIMEOUT / 2))
+                        if [ "$_fail_count" -ge "$_max_polls" ]; then
+                            log_warn "Monitor: no association for ${CLIENT_RECONNECT_TIMEOUT}s, restarting..."
+                            kill_pidfile "$WPAPID"
+                            kill_pidfile "$UDHCPPID"
+                            start_client 2>/dev/null || true
+                            _fail_count=0
+                            _was_connected=0
+                        fi
+                        continue
+                    fi
+
+                    # Reconnected
+                    if [ "$_was_connected" -eq 0 ]; then
+                        log_info "Monitor: reconnected"
+                        # Re-acquire DHCP
+                        if [ -z "${STATIC_IP_CLIENT:-}" ]; then
+                            kill_pidfile "$UDHCPPID"
+                            ensure_udhcpc_script
+                            if have udhcpc; then
+                                udhcpc -i "$IFACE" -b -p "$UDHCPPID" -s "$UDHCPSCRIPT" -R 2>/dev/null || true
+                            fi
+                        fi
+                        _was_connected=1
+                    fi
+                    _fail_count=0
+                    ;;
+            esac
+        done
+    ) &
+
+    echo $! > "$MONITORPID"
+    log_info "WiFi monitor started (PID $(cat "$MONITORPID"))"
+}
+
+monitor_stop() {
+    if [ -f "$MONITORPID" ]; then
+        _pid=$(cat "$MONITORPID")
+        if kill -0 "$_pid" 2>/dev/null; then
+            kill "$_pid" 2>/dev/null || true
+            _w=0
+            while [ "$_w" -lt 5 ] && kill -0 "$_pid" 2>/dev/null; do
+                sleep 1
+                _w=$((_w + 1))
+            done
+            kill -9 "$_pid" 2>/dev/null || true
+        fi
+        rm -f "$MONITORPID"
+    fi
 }
 
 # -------- status --------
@@ -286,14 +436,29 @@ status_wifi() {
         echo "=== hostapd ==="
         if pid_is_running "$HOSTAPDPID"; then
             echo "running (pid $(cat "$HOSTAPDPID"))"
+            # Show connected stations
+            echo "=== stations ==="
+            iw dev "$IFACE" station dump 2>/dev/null | \
+                grep -E "Station|signal:|inactive time:" | \
+                sed 's/^/  /' || echo "  (none)"
         else
             echo "not running"
         fi
     else
         echo "=== wpa ==="
-        if have wpa_cli; then
-            wpa_cli -i "$IFACE" status 2>/dev/null || true
+        if pid_is_running "$WPAPID"; then
+            echo "running (pid $(cat "$WPAPID"))"
+            iw dev "$IFACE" link 2>/dev/null || true
+        else
+            echo "not running"
         fi
+    fi
+
+    echo "=== monitor ==="
+    if pid_is_running "$MONITORPID"; then
+        echo "running (pid $(cat "$MONITORPID"))"
+    else
+        echo "not running"
     fi
 }
 
@@ -309,10 +474,11 @@ case "${1:-}" in
             ap)     start_ap ;;
             *)      start_client ;;
         esac
+        monitor_start
         ;;
     stop)
         stop_all_wifi
-        echo "[wifi] Stopped"
+        log_info "Stopped"
         ;;
     restart)
         stop_all_wifi
@@ -322,6 +488,7 @@ case "${1:-}" in
             ap)     start_ap ;;
             *)      start_client ;;
         esac
+        monitor_start
         ;;
     status)
         status_wifi
