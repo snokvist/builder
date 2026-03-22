@@ -249,8 +249,6 @@ ap_max_inactivity=86400
 max_num_sta=4
 # Disable power-save advertisement (latency-sensitive link)
 uapsd_advertisement_enabled=0
-# Skip ACS scans that interrupt service
-noscan=1
 EOF
 }
 
