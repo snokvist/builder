@@ -132,12 +132,12 @@
       "enabled": false,
       "id": 6,
       "orientation": "right",
-      "image_path": "/usr/share/osd/splash.png",
+      "image_paths": ["/usr/share/osd/splash.png", "/usr/share/osd/info.png", "/usr/share/osd/warning.png"],
       "anchor": "top-right",
       "offset_x": -158,
       "offset_y": 38,
       "opacity": 100,
-      "scale_pct": 100
+      "scale_pct": 300
     },
     {
       "type": "text",
