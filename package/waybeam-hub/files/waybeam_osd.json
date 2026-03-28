@@ -132,7 +132,7 @@
       "enabled": false,
       "id": 6,
       "orientation": "right",
-      "image_path": "/usr/share/fonts/solid.png",
+      "image_path": "/usr/share/osd/splash.png",
       "anchor": "top-right",
       "offset_x": -158,
       "offset_y": 38,
