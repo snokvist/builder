@@ -78,11 +78,11 @@
       "offset_y": 36,
       "width": 200,
       "height": 12,
-      "min": 30,
+      "min": 65,
       "max": 95,
       "background": "white",
       "opacity": 30,
-      "bar_color": "black",
+      "bar_color": "red",
       "text_color": "black"
     },
     {
