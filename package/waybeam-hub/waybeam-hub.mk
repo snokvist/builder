@@ -9,10 +9,11 @@ WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-releases/releases/downloa
 WAYBEAM_HUB_SOURCE = waybeam-hub-vehicle-arm.tar.gz
 WAYBEAM_HUB_LICENSE = Autod Personal Use License
 
-# json_cli: built from single C source file bundled in package/files/
+# json_cli: built from source files bundled in package/files/
 define WAYBEAM_HUB_BUILD_CMDS
 	$(TARGET_CC) -Os -Wall -Wextra -std=c11 -D_GNU_SOURCE \
-		-include stddef.h -o $(@D)/json_cli \
+		-include stddef.h -I$(WAYBEAM_HUB_PKGDIR)/files \
+		-o $(@D)/json_cli \
 		$(WAYBEAM_HUB_PKGDIR)/files/json_cli.c -lm
 endef
 
