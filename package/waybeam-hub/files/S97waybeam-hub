@@ -1,0 +1,143 @@
+#!/bin/sh
+# Simple control script for waybeam-hub
+
+DAEMON_NAME="waybeam_hub"
+DAEMON_PATH="/usr/bin/waybeam_hub"
+DAEMON_CONF="/etc/waybeam_hub/waybeam_vehicle.conf"
+
+get_pids() {
+    if command -v pidof >/dev/null 2>&1; then
+        pidof "$DAEMON_NAME"
+    else
+        pgrep -x "$DAEMON_NAME" || pgrep -f "^${DAEMON_PATH}[ ]" || pgrep -f "^${DAEMON_NAME}[ ]"
+    fi
+}
+
+is_running() {
+    [ -n "$(get_pids)" ]
+}
+
+configure_metrics() {
+    command -v json_cli >/dev/null 2>&1 || return 0
+    [ -f "$DAEMON_CONF" ] || return 0
+    CLI="json_cli -i $DAEMON_CONF"
+
+    # Detect WiFi interface
+    WLAN=""
+    for iface in wlan0 wlan1; do
+        [ -d "/sys/class/net/$iface" ] && WLAN="$iface" && break
+    done
+    [ -z "$WLAN" ] && return 0
+
+    # Detect WiFi driver proc path (rtl88x2eu, rtl8821cu, etc.)
+    DRIVER_DIR=""
+    for d in /proc/net/rtl88x2eu /proc/net/rtl8821cu /proc/net/rtl88x2bu; do
+        [ -d "$d/$WLAN" ] && DRIVER_DIR="$d/$WLAN" && break
+    done
+
+    # Configure rtl8812eu source (rssi_a/rssi_b per-chain RSSI)
+    if [ -n "$DRIVER_DIR" ] && [ -f "$DRIVER_DIR/rssi_a" ]; then
+        $CLI -s .metrics.sources.rtl8812eu.enabled true
+        $CLI -s .metrics.sources.rtl8812eu.iface "$WLAN"
+    fi
+
+    # Configure ini source (rx_signal: rssi, signal_strength, signal_qual)
+    if [ -n "$DRIVER_DIR" ] && [ -f "$DRIVER_DIR/rx_signal" ]; then
+        $CLI -s .metrics.sources.ini.enabled true
+        $CLI -s .metrics.sources.ini.paths "[\"$DRIVER_DIR/rx_signal\"]"
+    fi
+
+    # Configure hostapd source if ctrl socket exists
+    if [ -S "/var/run/hostapd/$WLAN" ]; then
+        $CLI -s .metrics.sources.hostapd.enabled true
+        $CLI -s .metrics.sources.hostapd.iface "$WLAN"
+        # sta left empty = auto-discover first connected client
+        $CLI -s .metrics.sources.hostapd.sta '""'
+    fi
+
+    # Configure venc metrics (waybeam_venc on port 80)
+    if [ -f /usr/bin/venc ]; then
+        $CLI -s .metrics.sources.venc.enabled true
+        $CLI -s .metrics.sources.venc.url '"http://127.0.0.1/metrics/isp"'
+    fi
+}
+
+wait_venc_ready() {
+    # Wait for waybeam_venc VPE pipeline to be ready (HTTP API responding).
+    # The hub's OSD render needs VPE initialized to auto-detect resolution.
+    i=0
+    while [ $i -lt 20 ]; do
+        wget -qO- http://127.0.0.1/api/v1/version >/dev/null 2>&1 && return 0
+        sleep 0.5
+        i=$((i + 1))
+    done
+    echo "Warning: venc not ready after 10s, starting hub anyway"
+}
+
+start() {
+    if is_running; then
+        echo "$DAEMON_NAME already running (PIDs: $(get_pids))"
+        return 0
+    fi
+
+    wait_venc_ready
+    configure_metrics
+
+    echo -n "Starting $DAEMON_NAME: "
+    "$DAEMON_PATH" -c "$DAEMON_CONF" >/dev/null 2>&1 &
+    sleep 0.2
+
+    if is_running; then
+        echo "OK (PIDs: $(get_pids))"
+        return 0
+    else
+        echo "FAIL"
+        return 1
+    fi
+}
+
+stop() {
+    if ! is_running; then
+        echo "$DAEMON_NAME is not running"
+        return 0
+    fi
+
+    echo -n "Stopping $DAEMON_NAME: "
+    PIDS="$(get_pids)"
+    kill $PIDS 2>/dev/null
+
+    for _ in 1 2 3 4 5; do
+        sleep 0.2
+        is_running || { echo "OK"; return 0; }
+    done
+
+    kill -9 $(get_pids) 2>/dev/null
+    sleep 0.2
+    if is_running; then
+        echo "FAIL"
+        return 1
+    else
+        echo "OK"
+        return 0
+    fi
+}
+
+reload() {
+    if ! is_running; then
+        echo "$DAEMON_NAME is not running"
+        return 1
+    fi
+    echo -n "Reloading $DAEMON_NAME (SIGHUP): "
+    kill -HUP $(get_pids) 2>/dev/null && echo "OK" || echo "FAIL"
+}
+
+case "$1" in
+    start)   start ;;
+    stop)    stop ;;
+    restart) stop; sleep 1; start ;;
+    reload)  reload ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+        ;;
+esac

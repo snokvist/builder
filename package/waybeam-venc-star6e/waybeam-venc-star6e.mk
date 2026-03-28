@@ -1,24 +1,16 @@
 ################################################################################
 #
-# waybeam-venc-star6e
+# waybeam-venc-star6e (pre-built binary from waybeam-releases)
 #
 ################################################################################
 
-WAYBEAM_VENC_STAR6E_VERSION = HEAD
-WAYBEAM_VENC_STAR6E_SITE = https://github.com/OpenIPC/waybeam_venc.git
-WAYBEAM_VENC_STAR6E_SITE_METHOD = git
+WAYBEAM_VENC_STAR6E_VERSION = v0.6.0-bundled-release
+WAYBEAM_VENC_STAR6E_SITE = https://github.com/snokvist/waybeam-releases/releases/download/$(WAYBEAM_VENC_STAR6E_VERSION)
+WAYBEAM_VENC_STAR6E_SOURCE = venc-star6e-arm.tar.gz
 WAYBEAM_VENC_STAR6E_LICENSE = Autod Personal Use License
 
-# Links against vendored MI libs in libs/star6e (no staging dep needed)
-define WAYBEAM_VENC_STAR6E_BUILD_CMDS
-	$(MAKE) -C $(@D) build \
-		SOC_BUILD=star6e \
-		STAR6E_CC="$(TARGET_CC)" \
-		STAR6E_DRV="$(@D)/libs/star6e"
-endef
-
 define WAYBEAM_VENC_STAR6E_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0755 -D $(@D)/out/star6e/venc \
+	$(INSTALL) -m 0755 -D $(@D)/venc_star6e \
 		$(TARGET_DIR)/usr/bin/venc
 	$(INSTALL) -m 0644 -D $(WAYBEAM_VENC_STAR6E_PKGDIR)/files/venc.json \
 		$(TARGET_DIR)/etc/venc.json
