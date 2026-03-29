@@ -13,7 +13,7 @@ detect_sensor() {
 
 sensor_bin_path() {
     case "$1" in
-        imx335) echo "${SENSOR_DIR}/imx335_greg_fpvVII-gpt200.bin" ;;
+        imx335) echo "${SENSOR_DIR}/imx335_spike5_colortrans.bin" ;;
         imx415) echo "${SENSOR_DIR}/imx415_greg_fpvXVIII-gpt200.bin" ;;
         *)      echo "" ;;
     esac
