@@ -1,35 +1,57 @@
 #!/bin/sh
 
 DAEMON="venc"
+RESPAWN="venc-resp"
 DAEMON_PATH="/usr/bin/venc"
 DAEMON_CONF="/etc/venc.json"
+LOG_PATH="/tmp/venc.log"
+
+# venc forks a respawn child on SIGHUP / API restart that changes its comm
+# to "venc-resp" so the new process can survive the parent's teardown.
+# pidof and killall match by comm, so any restart logic must cover both
+# names — otherwise stop() returns while the orphan respawn is still alive
+# and the next start() races against it for the pidfile flock.
+still_running() {
+    pidof "$DAEMON" "$RESPAWN" >/dev/null 2>&1
+}
 
 wait_exit() {
-    # Wait up to 15 seconds for venc to fully exit
+    # Wait up to 15 seconds for venc (and any orphan respawn) to fully exit.
     i=0
     while [ $i -lt 30 ]; do
-        pidof "$DAEMON" >/dev/null 2>&1 || return 0
+        still_running || return 0
         sleep 0.5
         i=$((i + 1))
     done
     echo "Warning: $DAEMON did not exit in time, killing"
-    killall -9 "$DAEMON" 2>/dev/null
+    killall -9 "$DAEMON" "$RESPAWN" 2>/dev/null
     sleep 1
 }
 
 start() {
-    if pidof "$DAEMON" >/dev/null 2>&1; then
+    if still_running; then
         echo "$DAEMON already running"
         return 0
     fi
     echo -n "Starting $DAEMON: "
-    "$DAEMON_PATH" -c "$DAEMON_CONF" &
-    echo "OK"
+    "$DAEMON_PATH" -c "$DAEMON_CONF" > "$LOG_PATH" 2>&1 &
+    # Verify we won the pidfile flock — venc exits with a clear message if
+    # an orphan respawn child grabbed the lock first, but the bg launch
+    # discards that exit status.  Poll briefly so a lost race surfaces as
+    # FAILED instead of silently leaving the old binary running.
+    i=0
+    while [ $i -lt 10 ]; do
+        sleep 0.3
+        still_running && { echo "OK"; return 0; }
+        i=$((i + 1))
+    done
+    echo "FAILED (lost pidfile race or crashed at init — see $LOG_PATH)"
+    return 1
 }
 
 stop() {
     echo -n "Stopping $DAEMON: "
-    killall "$DAEMON" 2>/dev/null
+    killall "$DAEMON" "$RESPAWN" 2>/dev/null
     wait_exit
     echo "OK"
 }
