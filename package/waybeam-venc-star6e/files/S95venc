@@ -3,14 +3,13 @@
 DAEMON="venc"
 RESPAWN="venc-resp"
 DAEMON_PATH="/usr/bin/venc"
-DAEMON_CONF="/etc/venc.json"
 LOG_PATH="/tmp/venc.log"
 
 # venc forks a respawn child on SIGHUP / API restart that changes its comm
 # to "venc-resp" so the new process can survive the parent's teardown.
 # pidof and killall match by comm, so any restart logic must cover both
 # names — otherwise stop() returns while the orphan respawn is still alive
-# and the next start() races against it for the pidfile flock.
+# and the next start() trips venc's /proc-walk duplicate-instance check.
 still_running() {
     pidof "$DAEMON" "$RESPAWN" >/dev/null 2>&1
 }
@@ -34,18 +33,20 @@ start() {
         return 0
     fi
     echo -n "Starting $DAEMON: "
-    "$DAEMON_PATH" -c "$DAEMON_CONF" > "$LOG_PATH" 2>&1 &
-    # Verify we won the pidfile flock — venc exits with a clear message if
-    # an orphan respawn child grabbed the lock first, but the bg launch
-    # discards that exit status.  Poll briefly so a lost race surfaces as
-    # FAILED instead of silently leaving the old binary running.
+    # venc reads /etc/venc.json from a fixed path; it has no -c flag.
+    "$DAEMON_PATH" > "$LOG_PATH" 2>&1 &
+    # Confirm the daemon survived the /proc-walk duplicate-instance
+    # gate.  If an orphan respawn child is still alive it will reject
+    # us with "venc already running... exiting" and the bg launch
+    # discards that exit status — poll briefly so a lost race surfaces
+    # as FAILED instead of silently leaving the old binary running.
     i=0
     while [ $i -lt 10 ]; do
         sleep 0.3
         still_running && { echo "OK"; return 0; }
         i=$((i + 1))
     done
-    echo "FAILED (lost pidfile race or crashed at init — see $LOG_PATH)"
+    echo "FAILED (lost duplicate-instance check or crashed at init — see $LOG_PATH)"
     return 1
 }
 
