@@ -74,6 +74,36 @@ wait_venc_ready() {
     echo "Warning: venc not ready after 10s, starting hub anyway"
 }
 
+configure_wfb_mode() {
+    # Boot-level link-stack gate. wfbmode=1 (firmware env) => wfb_ng's
+    # link_controller is the sole owner of MCS + venc bitrate, so the hub runs
+    # observe-only: disable mod_venc's bitrate writer (its FEC-blind
+    # aalink_mcs_to_bitrate*0.5 clobbers link_controller — e.g. 3250 vs the
+    # correct ~2250 at MCS0) and mod_aalink entirely, and make mod_link_controller
+    # the sole HUB_TOPIC_LINK_QUALITY publisher + OSD metrics source (so the
+    # daemon's two-publisher warning never fires). wfbmode=0 => standalone aalink,
+    # hub owns the link. The daemon never consults wfbmode (see waybeam-hub
+    # CLAUDE.md "WFB-NG system mode"); this script drives the config so the single
+    # 'vehicle' build serves both personalities. All keys exist in the shipped
+    # waybeam_vehicle.conf, so no json_cli new-field append.
+    command -v json_cli >/dev/null 2>&1 || return 0
+    [ -f "$DAEMON_CONF" ] || return 0
+    CLI="json_cli -i $DAEMON_CONF"
+    if [ "$(fw_printenv -n wfbmode 2>/dev/null)" = "1" ]; then
+        $CLI -s .venc.bitrate_enabled false
+        $CLI -s .aalink.enabled false
+        $CLI -s .link_controller.enabled true
+        $CLI -s .metrics.sources.aalink.enabled false
+        $CLI -s .metrics.sources.link_controller.enabled true
+    else
+        $CLI -s .venc.bitrate_enabled true
+        $CLI -s .aalink.enabled true
+        $CLI -s .link_controller.enabled false
+        $CLI -s .metrics.sources.aalink.enabled true
+        $CLI -s .metrics.sources.link_controller.enabled false
+    fi
+}
+
 start() {
     if is_running; then
         echo "$DAEMON_NAME already running (PIDs: $(get_pids))"
@@ -82,6 +112,7 @@ start() {
 
     wait_venc_ready
     configure_metrics
+    configure_wfb_mode
 
     echo -n "Starting $DAEMON_NAME: "
     "$DAEMON_PATH" -c "$DAEMON_CONF" >/dev/null 2>&1 &
