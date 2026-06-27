@@ -1,0 +1,15 @@
+config BR2_PACKAGE_FLASHD
+	bool "flashd"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	help
+	  Vendor-neutral on-device firmware flasher (Mode A agent).
+	  Serves a WebUI on :8070, browses firmware from the configured
+	  sources (waybeam-releases manifest), verifies the image locally
+	  and drives OpenIPC sysupgrade. Pre-built binary from
+	  waybeam-releases.
+
+	  Installs:
+	    - /usr/bin/flashd
+	    - /etc/flashd.json        (board_override stamped per SoC)
+	    - /etc/flashd/sources.json
+	    - /etc/init.d/S98flashd

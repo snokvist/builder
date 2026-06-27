@@ -1,10 +1,10 @@
 #!/bin/sh
 #
 # Detect camera sensor from loaded kernel module and set ISP bin path
-# in venc.json. Runs before S95venc.
+# in waybeam.json. Runs before S95waybeam.
 #
 
-VENC_CONF="/etc/venc.json"
+VENC_CONF="/etc/waybeam.json"
 SENSOR_DIR="/etc/sensors"
 
 detect_sensor() {

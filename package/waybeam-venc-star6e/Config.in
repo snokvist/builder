@@ -6,5 +6,5 @@ config BR2_PACKAGE_WAYBEAM_VENC_STAR6E
 	  (SSC338Q/SSC30KQ). Dual-backend, sensor unlock, HTTP API.
 
 	  Installs:
-	    - /usr/bin/venc
-	    - /etc/venc.json
+	    - /usr/bin/waybeam
+	    - /etc/waybeam.json

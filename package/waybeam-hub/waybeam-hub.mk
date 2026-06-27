@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WAYBEAM_HUB_VERSION = v0.6.0-bundled-release
+WAYBEAM_HUB_VERSION = v0.8.0
 WAYBEAM_HUB_SITE = https://github.com/snokvist/waybeam-releases/releases/download/$(WAYBEAM_HUB_VERSION)
 WAYBEAM_HUB_SOURCE = waybeam-hub-vehicle-arm.tar.gz
 WAYBEAM_HUB_LICENSE = Autod Personal Use License

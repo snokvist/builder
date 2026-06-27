@@ -29,9 +29,10 @@ configure_metrics() {
     done
     [ -z "$WLAN" ] && return 0
 
-    # Detect WiFi driver proc path (rtl88x2eu, rtl8821cu, etc.)
+    # Detect WiFi driver proc path (rtl88x2eu, rtl8821cu, rtl8812au, etc.)
     DRIVER_DIR=""
-    for d in /proc/net/rtl88x2eu /proc/net/rtl8821cu /proc/net/rtl88x2bu; do
+    for d in /proc/net/rtl88x2eu /proc/net/rtl8821cu /proc/net/rtl88x2bu \
+             /proc/net/rtl8812au /proc/net/rtl88x2cu; do
         [ -d "$d/$WLAN" ] && DRIVER_DIR="$d/$WLAN" && break
     done
 
@@ -55,10 +56,10 @@ configure_metrics() {
         $CLI -s .metrics.sources.hostapd.sta '""'
     fi
 
-    # Configure venc metrics (waybeam_venc on port 80)
+    # Configure venc metrics (consumed from mod_venc via HUB_TOPIC_VENC_STATE
+    # bus — mod_venc is the sole HTTP scraper of waybeam_venc).
     if [ -f /usr/bin/venc ]; then
         $CLI -s .metrics.sources.venc.enabled true
-        $CLI -s .metrics.sources.venc.url '"http://127.0.0.1/metrics/isp"'
     fi
 }
 
@@ -74,6 +75,17 @@ wait_venc_ready() {
     echo "Warning: venc not ready after 10s, starting hub anyway"
 }
 
+restore_iq_settings() {
+    IQ_FILE="/etc/iq_settings.json"
+    [ -f "$IQ_FILE" ] || return 0
+    # Import saved IQ params into venc (partial import, only touches saved params)
+    wget -q -O /dev/null --header="Content-Type: application/json" \
+        --post-file="$IQ_FILE" \
+        "http://127.0.0.1/api/v1/iq/import" 2>/dev/null && \
+        echo "IQ settings restored from $IQ_FILE" || \
+        echo "Warning: IQ settings restore failed"
+}
+
 configure_wfb_mode() {
     # Boot-level link-stack gate. wfbmode=1 (firmware env) => wfb_ng's
     # link_controller is the sole owner of MCS + venc bitrate, so the hub runs
@@ -82,7 +94,7 @@ configure_wfb_mode() {
     # correct ~2250 at MCS0) and mod_aalink entirely, and make mod_link_controller
     # the sole HUB_TOPIC_LINK_QUALITY publisher + OSD metrics source (so the
     # daemon's two-publisher warning never fires). wfbmode=0 => standalone aalink,
-    # hub owns the link. The daemon never consults wfbmode (see waybeam-hub
+    # hub owns the link. The daemon itself never consults wfbmode (see hub
     # CLAUDE.md "WFB-NG system mode"); this script drives the config so the single
     # 'vehicle' build serves both personalities. All keys exist in the shipped
     # waybeam_vehicle.conf, so no json_cli new-field append.
@@ -111,6 +123,7 @@ start() {
     fi
 
     wait_venc_ready
+    restore_iq_settings
     configure_metrics
     configure_wfb_mode
 

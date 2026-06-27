@@ -1,0 +1,33 @@
+{
+  "listen_port": 8070,
+  "bind": "0.0.0.0",
+
+  "_comment_sysupgrade": "Path to OpenIPC's sysupgrade. flashd invokes it as 'sysupgrade --archive=<image>' (adding -n on wipe_overlay, --force_all on a force flash) — no wrapper needed. Override only if sysupgrade lives elsewhere on your build.",
+  "sysupgrade_cmd": "/usr/sbin/sysupgrade",
+  "staging_dir": "/tmp/flashd",
+  "image_dir": "",
+  "_comment_staging": "staging_dir is tmpfs (RAM) on OpenIPC — the only reliably-writable scratch. Keep max_image_kb below its free space; the download is capped to it so tmpfs cannot be filled.",
+  "max_image_kb": 32768,
+  "allow_remote_apply": true,
+  "_comment_require_sha256": "default true. Set false to allow apply without a sha256 (relies on the flash tool's own validation, e.g. OpenIPC sysupgrade .md5sum checks) — for mirrors of a trusted upstream. A supplied sha256 is always verified.",
+  "require_sha256": true,
+
+  "_comment_wipe_overlay": "default true. Pass -n/--wipe_overlay to sysupgrade so the config overlay (mtd 'rootfs_data') is erased on flash and no stale data survives the upgrade. Set false to preserve /etc across a flash; an apply request may override per-flash with its own \"wipe_overlay\".",
+  "wipe_overlay": true,
+
+  "_comment_board_override": "REQUIRED on stock OpenIPC: os-release usually has no BOARD= so detection falls back to ID=buildroot and no image matches the board gate. Verify on the device with: cat /etc/openipc-release /etc/os-release; if BOARD=/VERSION are real you may leave this empty, else set the real board id (e.g. ssc338q).",
+  "board_override": "",
+  "_comment_flash_override": "nor|nand; empty = auto-detect from /sys/class/mtd/mtd0/type (standard MTD sysfs, normally reliable). Gates nand images off nor devices (and v.v.). Set only if detection is wrong/absent.",
+  "flash_override": "",
+  "role": "vehicle",
+  "vendor": "waybeam",
+
+  "_comment_sources": "Firmware sources are declared in sources_file (see configs/sources.json). cache_ttl_s is how long a fetched manifest is reused before re-fetching.",
+  "sources_file": "/etc/flashd/sources.json",
+  "cache_ttl_s": 900,
+
+  "webui": {
+    "enabled": true,
+    "bind": "0.0.0.0"
+  }
+}
