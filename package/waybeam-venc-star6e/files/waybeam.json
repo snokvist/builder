@@ -43,7 +43,7 @@
   },
   "outgoing": {
     "enabled": true,
-    "server": "",
+    "server": "udp://10.6.0.2:5600",
     "streamMode": "rtp",
     "maxPayloadSize": 1400,
     "connectedUdp": true,
