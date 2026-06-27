@@ -85,6 +85,27 @@ GitHub Actions workflow: `.github/workflows/master.yml`
 | `package/` | Extra Buildroot packages (Waybeam ecosystem) |
 | `archive/` | Local build output (gitignored) |
 
+## Firmware version stamp (flashd)
+
+`devices/waybeam/general/overlay/etc/openipc-release` carries a single
+`VERSION=YYYY.MM.DD` line. It is deployed to `/etc/openipc-release` on the
+camera and read by [flashd](https://github.com/snokvist/flashd) as the
+device's **current firmware version** — flashd checks `/etc/openipc-release`
+`VERSION` before falling back to os-release `VERSION_ID` (which is Buildroot's
+toolchain version, e.g. `2024.02.10`, and is useless for upgrade comparison).
+
+flashd compares versions numerically component-wise, so a date keeps it
+monotonic: a release whose `manifest.json` declares a later date is correctly
+shown as "newer". **Bump this date whenever you cut a new firmware build**, and
+keep it in step with the `--version` passed to `waybeam-releases`
+`gen-manifest.sh` / the release's manifest.
+
+(An auto-stamp at build time would have to override OpenIPC's re-cloned
+`general/scripts/rootfs_script.sh` or `openipc.fragment` — the device defconfig
+can't, because `make defconfig` concatenates the fragment *after* it so the
+fragment's `BR2_ROOTFS_POST_BUILD_SCRIPT` wins. The static overlay file avoids
+that divergence; the trade-off is the manual bump.)
+
 ## Branching rules
 
 - **Never commit directly to master.** Always use a feature branch.
