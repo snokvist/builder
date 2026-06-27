@@ -15,6 +15,16 @@
   "_comment_wipe_overlay": "default true. Pass -n/--wipe_overlay to sysupgrade so the config overlay (mtd 'rootfs_data') is erased on flash and no stale data survives the upgrade. Set false to preserve /etc across a flash; an apply request may override per-flash with its own \"wipe_overlay\".",
   "wipe_overlay": true,
 
+  "_comment_pre_flash_stop": "Commands run (best-effort, no shell — each whitespace-split into argv) right before the flash tool, to stop services that hold resources sysupgrade needs. On waybeam SigmaStar in wfbmode=1, S99wfb/venc/hub keep the SD card /mnt/mmcblk0p1 mounted and sysupgrade loops forever on 'umount: Device or resource busy' until they are stopped. Init names match this firmware's actual scripts.",
+  "pre_flash_stop": [
+    "/etc/init.d/S95waybeam stop",
+    "/etc/init.d/S99wfb stop",
+    "/etc/init.d/S97waybeam-hub stop"
+  ],
+
+  "_comment_apply_timeout_s": "Applying-phase watchdog (seconds): if the flash tool has not finished in this long, flashd abandons the wait so a wedged sysupgrade cannot leave the APPLYING state stuck forever. 600 = 10 min, comfortably above a NOR flash.",
+  "apply_timeout_s": 600,
+
   "_comment_board_override": "REQUIRED on stock OpenIPC: os-release usually has no BOARD= so detection falls back to ID=buildroot and no image matches the board gate. Verify on the device with: cat /etc/openipc-release /etc/os-release; if BOARD=/VERSION are real you may leave this empty, else set the real board id (e.g. ssc338q).",
   "board_override": "",
   "_comment_flash_override": "nor|nand; empty = auto-detect from /sys/class/mtd/mtd0/type (standard MTD sysfs, normally reliable). Gates nand images off nor devices (and v.v.). Set only if detection is wrong/absent.",
