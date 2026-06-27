@@ -21,7 +21,7 @@
 
   "log":   { "enabled": true, "_comment": "AIR-side only: enables the link_controller in-process SD session logger (writes to /mnt/mmcblk0p1, self-disables if no SD). NOT wired to the ground telemetry logger — ground sqlite telemetry is opt-in via the gs_supervisor.json `telemetry` block (with a non-overlay db path), so this flag never persists anything on a ground overlay rootfs." },
 
-  "venc":  { "shm": "local_shm", "auto_wire": true, "host": "127.0.0.1:80", "safe_startup_kbps": 4096,
+  "venc":  { "shm": "local_shm", "auto_wire": true, "host": "127.0.0.1:80", "safe_startup_kbps": 2580,
              "_comment": "auto_wire: air S99wfb sets venc outgoing.server=shm://<shm> if it differs (then SIGHUPs). No effect on ground. AIR-only fields: host (link_controller --venc, the venc HTTP API), safe_startup_kbps (initial bitrate clamp)." },
 
   "failsafe": { "uplink_s": 2.0,

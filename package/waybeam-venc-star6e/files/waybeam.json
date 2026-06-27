@@ -24,11 +24,11 @@
   },
   "video0": {
     "rcMode": "cbr",
-    "fps": 60,
-    "size": "auto",
-    "bitrate": 8192,
-    "gopSize": 1.0,
-    "qpDelta": -4,
+    "fps": 90,
+    "size": "1440x1080",
+    "bitrate": 2580,
+    "gopSize": 5.0,
+    "qpDelta": -12,
     "frameLost": true,
     "sceneThreshold": 0,
     "sceneHoldoff": 2,
@@ -42,7 +42,7 @@
     "stabKalmanR": 0.0
   },
   "outgoing": {
-    "enabled": false,
+    "enabled": true,
     "server": "",
     "streamMode": "rtp",
     "maxPayloadSize": 1400,
