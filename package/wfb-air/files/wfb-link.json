@@ -1,0 +1,35 @@
+{
+  "_comment": "Unified wfb link preset. Install as /etc/wfb-link.json on air and/or ground. EVERY field is optional — a missing or empty file ({}) yields exactly the shipped preset (the link comes up unchanged). The mega binary's `config-env` applet renders this into shell env for the startup script; defaults live in C (multicall/wfb_configenv.c). The values shown below ARE the built-in defaults. Link ids and fec/mcs/peek must match on both ends.",
+
+  "radio": { "channel": 161, "htmode": "HT20", "bw": 20, "txpower_mbm": 2000, "iface": "wlan0", "mtu": 4052,
+             "_comment": "htmode = iw channel WIDTH (RF), honored on both sides: GROUND (gs_supervisor overlay) and AIR (S99wfb). The GROUND should set HT40+ (decodes both 20 and 40 MHz on its primary; pick the channel-correct HT40+/HT40-); the AIR MUST stay HT20 — rtl8812eu has no working HT40 monitor mode, HT40 corrupts its TX. Shipped default HT20 is the air-safe value (this file is unified air+ground). bw = radiotap TX width — keep 20 while the air is HT20. iface is AIR-only (the monitor-mode wlan device S99wfb drives; ground picks interfaces per-tunnel in gs_supervisor.json). mtu (AIR-only) = monitor-iface MTU S99wfb sets after monitor mode; default 4052 = WLAN_DATA_MAXLEN, the rtl88x2eu driver hard max (its TX buffers are sized for it; this old kernel does not enforce max_mtu). Lifts the 1500 cap so RTP payloads above 1500 (adaptive fec.payload_max, sizer caps at the 3200 tier) don't overflow the link MTU and wedge wfb_tx injection; clamped to [1500,4052]." },
+
+  "key":   { "file": "/etc/drone.key", "seed": "Waybeam", "open": true,
+             "_comment": "file default is /etc/drone.key on air, /etc/gs.key on ground. If absent at boot, a deterministic shared key is derived from `seed` (INSECURE shared default — replace for production). open (AIR-only) = video downlink session crypto: true -> wfb_tx -xx (open/keyless, WFB_PACKET_SESSION_PLAIN announce; no key needed, any -x RX can view); false -> -x (encrypted session, RX needs the keypair). Shipped default true = open video. Uplink/probe stay encrypted regardless." },
+
+  "links": { "video": 207, "uplink": 208, "probe": 50, "probe_port": 50, "recovery": 209,
+             "_comment": "wfb link ids (video/uplink/probe must match the GS supervisor). probe_port (AIR-only) = the V+2 probe wfb_tx radio port (-p). recovery = the separate keyless/open (-xx) recovery-backdoor link id (must match the GS recovery tx tunnel)." },
+
+  "fec":   { "k": 8, "n": 12, "bitrate_min_kbps": 2200, "payload_max": 0, "payload_min": 576, "airtime_max_pct": 80, "airtime_preamble_us": 40,
+             "_comment": "k/n boot values only (link_controller retunes within ~2s). bitrate_min_kbps is the adaptive bitrate floor (default 2200): it bites only at MCS0 (its honest ~50%-margin budget); MCS1+ compute above it. Lower it (e.g. 2000) to give MCS0 more airtime headroom, raise it for a higher guaranteed-watchable minimum on the bottom rung; also live via /set fec.bitrate_min_kbps. payload_max=0 disables adaptive RTP payload sizing, >0 (576..4000) enables the bitrate->payload tier sizer (also live via /set fec.payload_max). airtime_max_pct caps target bitrate so on-air airtime stays under N% of the channel (0=off, default 80) — the per-MCS pps/airslot guard, non-binding at normal operating points; lower it to trade bitrate for low-MCS airtime headroom. airtime_preamble_us (default 40) = per-packet PHY preamble used in the estimate. Both also live via /set fec.airtime_max_pct / *_preamble_us; see docs/design/airtime-pps-guard.md" },
+
+  "mcs":   { "boot": 2, "min": 1, "max": 7 },
+
+  "probe": { "enabled": true, "_comment": "V+2 boundary probe; required for MCS adaptation. false -> link_controller --no-mcs" },
+
+  "peek":  { "profile": "close", "_comment": "per-frame FEC close: off | close" },
+
+  "log":   { "enabled": true, "_comment": "AIR-side only: enables the link_controller in-process SD session logger (writes to /mnt/mmcblk0p1, self-disables if no SD). NOT wired to the ground telemetry logger — ground sqlite telemetry is opt-in via the gs_supervisor.json `telemetry` block (with a non-overlay db path), so this flag never persists anything on a ground overlay rootfs." },
+
+  "venc":  { "shm": "local_shm", "auto_wire": true, "host": "127.0.0.1:80", "safe_startup_kbps": 2580,
+             "_comment": "auto_wire: air S99wfb sets venc outgoing.server=shm://<shm> if it differs (then SIGHUPs). No effect on ground. AIR-only fields: host (link_controller --venc, the venc HTTP API), safe_startup_kbps (initial bitrate clamp)." },
+
+  "failsafe": { "uplink_s": 2.0,
+             "_comment": "AIR-only. link_controller uplink-loss watchdog (seconds): drop MCS to mcs_min if no rx_ant heard for this long. Absorbs bursty -k1/-n2 uplink loss; raise if your uplink is lossier. Fractional values allowed." },
+
+  "ports": { "video_ctrl": 8000, "uplink_fwd": 5801, "uplink_rx_stats": 5811, "probe_ctrl": 8001, "probe_feed": 5750, "recovery": 5802,
+             "_comment": "AIR-only local UDP/control ports. video_ctrl = video wfb_tx control socket (link_controller CMD_SET_FEC/RADIO). uplink_fwd = decoded uplink + rx_ant listener (MCS scoring + WCMD). uplink_rx_stats = diagnostic uplink rx_ant (never feeds MCS). probe_ctrl/probe_feed = probe wfb_tx control + paced feed. recovery = link_controller recovery-backdoor listener (the keyless recovery wfb_rx forwards decoded frames here). Defaults rarely need changing; here for completeness/conflict avoidance." },
+
+  "recovery": { "enabled": true, "apfpv_cmd": "/etc/wfb/recovery-apfpv.sh",
+             "_comment": "AIR-only. UNAUTHENTICATED recovery backdoor on the separate keyless/open (-xx) recovery link: lets a ground operator arm boot-into-APFPV on the NEXT reboot even when the keyed uplink is dead (lost/mismatched drone.key). It can trigger ONLY this one safe, deferred action (link_controller recovery_dispatch fork+execs apfpv_cmd; the hook is firmware-provided and wires to the actual boot-mode switch). enabled defaults ON; set false to remove the open attack surface on hardened builds." }
+}

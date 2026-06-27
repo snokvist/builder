@@ -1,8 +1,6 @@
 {
-  "width": 1920,
-  "height": 1080,
-  "osd_x": 0,
-  "osd_y": 0,
+  "size": "1200x400",
+  "osd_offset": "top-mid",
   "margin": 12,
   "show_stats": false,
   "idle_ms": 100,

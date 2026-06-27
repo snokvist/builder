@@ -1,0 +1,118 @@
+#!/bin/sh
+# S98flashd — OpenIPC (BusyBox) init script for the flashd firmware flasher.
+#
+# Numbered S98 so it starts after the camera/encoder (S95) and waybeam-hub
+# (S97): the device is fully up before the flash agent becomes reachable.
+# Install to /etc/init.d/S98flashd (mode 0755) and ship /etc/flashd.json
+# (set board_override — OpenIPC os-release has no BOARD=).
+
+DAEMON_NAME="flashd"
+DAEMON_PATH="/usr/bin/flashd"
+CONF="/etc/flashd.json"
+LOG_PATH="/tmp/flashd.log"
+PORT="8070"
+
+get_pids() {
+    if command -v pidof >/dev/null 2>&1; then
+        pidof "$DAEMON_NAME"
+    else
+        # BusyBox pgrep -x is unreliable for this comm; match the path instead.
+        pgrep -f "^${DAEMON_PATH}" 2>/dev/null
+    fi
+}
+
+is_running() { [ -n "$(get_pids)" ]; }
+
+# Echo flashd's own FSM state (idle|downloading|verifying|applying|done|failed),
+# or nothing if the daemon is unreachable.
+flash_state() {
+    wget -qO- "http://127.0.0.1:${PORT}/firmware/status" 2>/dev/null \
+        | sed -n 's/.*"state":"\([a-z]*\)".*/\1/p'
+}
+
+start() {
+    if is_running; then
+        echo "$DAEMON_NAME already running (PIDs: $(get_pids))"
+        return 0
+    fi
+    echo -n "Starting $DAEMON_NAME: "
+    if [ -f "$CONF" ]; then
+        "$DAEMON_PATH" -c "$CONF" > "$LOG_PATH" 2>&1 &
+    else
+        # No config: flashd runs on built-in defaults (port 8070, /tmp/flashd
+        # staging). Board auto-detect is unreliable on OpenIPC (no BOARD= in
+        # os-release), so ship /etc/flashd.json with board_override for a real
+        # vehicle deploy.
+        "$DAEMON_PATH" > "$LOG_PATH" 2>&1 &
+    fi
+    i=0
+    while [ $i -lt 10 ]; do
+        sleep 0.3
+        is_running && { echo "OK (PIDs: $(get_pids))"; return 0; }
+        i=$((i + 1))
+    done
+    echo "FAILED (see $LOG_PATH)"
+    return 1
+}
+
+stop() {
+    if ! is_running; then
+        echo "$DAEMON_NAME is not running"
+        return 0
+    fi
+    # NEVER force-kill flashd while it is APPLYING: the platform flash tool is
+    # mid-write and a single-slot device would brick. flashd already defers its
+    # own exit during APPLYING, so we send SIGTERM and wait — but never escalate
+    # to SIGKILL while a flash is in progress.
+    if [ "$(flash_state)" = "applying" ]; then
+        echo "$DAEMON_NAME is APPLYING a flash — refusing to stop (brick risk)"
+        return 1
+    fi
+    echo -n "Stopping $DAEMON_NAME: "
+    kill $(get_pids) 2>/dev/null
+    i=0
+    while [ $i -lt 15 ]; do
+        sleep 0.3
+        is_running || { echo "OK"; return 0; }
+        # A flash may have begun during shutdown — re-check and back off.
+        if [ "$(flash_state)" = "applying" ]; then
+            echo "now APPLYING — leaving it running (brick risk)"
+            return 1
+        fi
+        i=$((i + 1))
+    done
+    # Last resort, only reached when NOT applying.
+    kill -9 $(get_pids) 2>/dev/null
+    sleep 0.3
+    if is_running; then echo "FAIL"; return 1; else echo "OK"; return 0; fi
+}
+
+reload() {
+    if ! is_running; then
+        echo "$DAEMON_NAME is not running"
+        return 1
+    fi
+    echo -n "Reloading $DAEMON_NAME (SIGHUP): "
+    kill -HUP $(get_pids) 2>/dev/null && echo "OK" || echo "FAIL"
+}
+
+status() {
+    if is_running; then
+        echo "$DAEMON_NAME running (PIDs: $(get_pids)); flash state: $(flash_state)"
+        return 0
+    fi
+    echo "$DAEMON_NAME not running"
+    return 1
+}
+
+case "$1" in
+    start)   start ;;
+    stop)    stop ;;
+    restart) stop && { sleep 1; start; } ;;
+    reload)  reload ;;
+    status)  status ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+        ;;
+esac

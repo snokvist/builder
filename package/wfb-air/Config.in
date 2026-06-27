@@ -1,0 +1,20 @@
+config BR2_PACKAGE_WFB_AIR
+	bool "wfb-air (waybeam_wfb_ng mega binary)"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_LIBSODIUM
+	help
+	  Vehicle (air) build of the waybeam_wfb_ng "mega binary": a single
+	  busybox-style multicall ELF that provides all wfb-ng roles as
+	  applets (link controller, tx, rx, tx_cmd, keygen) plus self-config
+	  from /etc/wfb-link.json and auto-keygen. Replaces the stock
+	  wfb-bins-only package (separate wfb_tx/wfb_rx/... binaries).
+
+	  Pre-built binary from waybeam-releases. libpcap is static-linked;
+	  libsodium (so.23) and libstdc++ are dynamic (libstdc++ ships with
+	  the base rootfs).
+
+	  Installs:
+	    - /usr/bin/wfb-air
+	    - /etc/wfb-link.json     (vehicle preset)
+	    - /etc/wfb-common.sh     (shared init helpers)
+	    - /etc/init.d/S99wfb     (wfbmode-gated broadcaster startup)
