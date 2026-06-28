@@ -9,7 +9,7 @@
 #
 ################################################################################
 
-WFB_AIR_VERSION = v0.8.0
+WFB_AIR_VERSION = v0.8.1
 WFB_AIR_SITE = https://github.com/snokvist/waybeam-releases/releases/download/$(WFB_AIR_VERSION)
 WFB_AIR_SOURCE = wfb-air-arm.tar.gz
 WFB_AIR_LICENSE = GPL-3.0
@@ -23,6 +23,8 @@ define WFB_AIR_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/wfb-link.json
 	$(INSTALL) -m 0644 -D $(WFB_AIR_PKGDIR)/files/wfb-common.sh \
 		$(TARGET_DIR)/etc/wfb-common.sh
+	$(INSTALL) -m 0755 -D $(WFB_AIR_PKGDIR)/files/recovery-apfpv.sh \
+		$(TARGET_DIR)/etc/wfb/recovery-apfpv.sh
 endef
 
 define WFB_AIR_INSTALL_INIT_SYSV
