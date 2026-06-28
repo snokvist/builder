@@ -9,7 +9,7 @@
 #
 ################################################################################
 
-WFB_AIR_VERSION = v0.8.0
+WFB_AIR_VERSION = v0.8.1
 WFB_AIR_SITE = https://github.com/snokvist/waybeam-releases/releases/download/$(WFB_AIR_VERSION)
 WFB_AIR_SOURCE = wfb-air-arm.tar.gz
 WFB_AIR_LICENSE = GPL-3.0
