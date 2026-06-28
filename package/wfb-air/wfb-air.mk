@@ -23,6 +23,8 @@ define WFB_AIR_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/wfb-link.json
 	$(INSTALL) -m 0644 -D $(WFB_AIR_PKGDIR)/files/wfb-common.sh \
 		$(TARGET_DIR)/etc/wfb-common.sh
+	$(INSTALL) -m 0755 -D $(WFB_AIR_PKGDIR)/files/recovery-apfpv.sh \
+		$(TARGET_DIR)/etc/wfb/recovery-apfpv.sh
 endef
 
 define WFB_AIR_INSTALL_INIT_SYSV
