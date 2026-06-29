@@ -256,23 +256,25 @@ write_udhcpd_conf() {
     # Extract base IP for DHCP range from STATIC_IP_AP
     BASE=$(echo "$STATIC_IP_AP" | cut -d'/' -f1 | sed 's/\.[0-9]*$/./')
 
-    # Session-sticky leases without static MAC mappings: a long lease keeps
-    # each client (by MAC) on the same IP for the whole session, so a unit that
-    # roams/reconnects gets its old address back instead of churning to a new
-    # one (which silently breaks a venc subscribe pinned to the old IP). The
-    # lease_file is on tmpfs, so the table is wiped on a vehicle reboot —
-    # "remembered for the active session, valid until the vehicle restarts".
+    # Sticky-to-MAC leases without static mappings: a long lease + a PERSISTENT
+    # lease_file keep each client (by MAC) on the IP it was first assigned, even
+    # across a vehicle reboot — udhcpd re-offers a known MAC its recorded IP. This
+    # keeps the ground's address stable so a venc subscribe pinned to it survives
+    # the reboot. lease_file lives on the /etc overlay (jffs2), not tmpfs: writes
+    # are small + infrequent (typically one client) so flash wear is negligible.
+    # (Pool is ${BASE}2-${BASE}20; with a ~10 yr lease, >19 distinct lifetime
+    # clients would fill it — fine for a vehicle paired with 1-2 ground stations.)
     cat > "$UDHCPDCONF" <<EOF
 start ${BASE}2
 end ${BASE}20
 interface $IFACE
-lease_file /tmp/udhcpd.leases
+lease_file /etc/udhcpd.${IFACE}.leases
 opt lease 315360000
 opt dns ${BASE}1
 opt router ${BASE}1
 opt subnet 255.255.255.0
 EOF
-    touch /tmp/udhcpd.leases
+    touch /etc/udhcpd.${IFACE}.leases
 }
 
 start_ap() {
