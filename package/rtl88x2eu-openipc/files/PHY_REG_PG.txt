@@ -1,66 +1,68 @@
-// NEEDS RF VALIDATION before treating as the shipped default — the numbers
-// below are the fpvd reference curve (gilankpam gist) for the RTL8822EU PA,
-// NOT yet measured on the Waybeam eu air unit. Verify on the vehicle:
+// fpvd reference curve (gilankpam gist) for the RTL8822EU PA, trimmed -2 dB
+// across every rate (see -2 note below). Bench-verified live on the Waybeam eu
+// air unit: both RF chains (A+B, 2T2R w/ STBC), 5GHz ch161, curve applied, no
+// regd collapse (regd limit cols = 127, country US). Full PA+thermal field
+// validation still pending. Verify on the vehicle:
 //   cat /proc/net/rtl88x2eu/<iface>/tx_power_by_rate   (per-rate ladder present)
 //   cat /proc/net/rtl88x2eu/<iface>/tx_power_idx
-// Confirm 5GHz ch161 power does NOT collapse (regd interaction — cf. the prior
-// UNII-3 regd trap), then retune values to our PA + thermal limit (29 dBm is
-// aggressive). Loaded at runtime because CONFIG_LOAD_PHY_PARA_FROM_FILE=y and
+// Loaded at runtime because CONFIG_LOAD_PHY_PARA_FROM_FILE=y and
 // REALTEK_CONFIG_PATH="/lib/firmware/".
 // RTL8822EU per-rate TX power (dBm, whole numbers only — parser fraction math truncates)
 // Values on each row are ordered HIGHEST rate first, e.g. C30 = MCS7 MCS6 MCS5 MCS4.
-// HT 1SS = fpvd txPowerCurve: MCS0..7 = 29 28 25 23 19 19 19 19
-// OFDM mapped by constellation: 6/9M=29, 12M=28, 18M=25, 24M=23, 36/48/54M=19
-// 2SS kept at 19 (unused); VHT1SS mirrors HT curve, MCS8/9=19. CCK left at default 18.
+// -2 dB trim of the fpvd curve (was 29 28 25 23 19 19 19 19); reduces PA drive /
+// heat while keeping the range-vs-EVM shape. Per chain — STBC radiates both.
+// HT 1SS: MCS0..7 = 27 26 23 21 17 17 17 17
+// OFDM mapped by constellation: 6/9M=27, 12M=26, 18M=23, 24M=21, 36/48/54M=17
+// 2SS kept at 17 (unused); VHT1SS mirrors HT curve, MCS8/9=17. CCK left at 16.
 #[v1][Exact]#
 #[2.4G] A
-[1Tx] C20 ffffffff 18 18 18 18
-[1Tx] C24 ffffffff 25 28 29 29
-[1Tx] C28 ffffffff 19 19 19 23
-[1Tx] C2C ffffffff 23 25 28 29
-[1Tx] C30 ffffffff 19 19 19 19
-[2Tx] C34 ffffffff 19 19 19 19
-[2Tx] C38 ffffffff 19 19 19 19
-[1Tx] C3C ffffffff 23 25 28 29
-[1Tx] C40 ffffffff 19 19 19 19
-[1Tx] C44 ffffffff 19 19 19 19
-[2Tx] C48 ffffffff 19 19 19 19
-[2Tx] C4C ffffffff 19 19 19 19
+[1Tx] C20 ffffffff 16 16 16 16
+[1Tx] C24 ffffffff 23 26 27 27
+[1Tx] C28 ffffffff 17 17 17 21
+[1Tx] C2C ffffffff 21 23 26 27
+[1Tx] C30 ffffffff 17 17 17 17
+[2Tx] C34 ffffffff 17 17 17 17
+[2Tx] C38 ffffffff 17 17 17 17
+[1Tx] C3C ffffffff 21 23 26 27
+[1Tx] C40 ffffffff 17 17 17 17
+[1Tx] C44 ffffffff 17 17 17 17
+[2Tx] C48 ffffffff 17 17 17 17
+[2Tx] C4C ffffffff 17 17 17 17
 #[2.4G] B
-[1Tx] E20 ffffffff 18 18 18 18
-[1Tx] E24 ffffffff 25 28 29 29
-[1Tx] E28 ffffffff 19 19 19 23
-[1Tx] E2C ffffffff 23 25 28 29
-[1Tx] E30 ffffffff 19 19 19 19
-[2Tx] E34 ffffffff 19 19 19 19
-[2Tx] E38 ffffffff 19 19 19 19
-[1Tx] E3C ffffffff 23 25 28 29
-[1Tx] E40 ffffffff 19 19 19 19
-[1Tx] E44 ffffffff 19 19 19 19
-[2Tx] E48 ffffffff 19 19 19 19
-[2Tx] E4C ffffffff 19 19 19 19
+[1Tx] E20 ffffffff 16 16 16 16
+[1Tx] E24 ffffffff 23 26 27 27
+[1Tx] E28 ffffffff 17 17 17 21
+[1Tx] E2C ffffffff 21 23 26 27
+[1Tx] E30 ffffffff 17 17 17 17
+[2Tx] E34 ffffffff 17 17 17 17
+[2Tx] E38 ffffffff 17 17 17 17
+[1Tx] E3C ffffffff 21 23 26 27
+[1Tx] E40 ffffffff 17 17 17 17
+[1Tx] E44 ffffffff 17 17 17 17
+[2Tx] E48 ffffffff 17 17 17 17
+[2Tx] E4C ffffffff 17 17 17 17
 #[5G] A
-[1Tx] C24 ffffffff 25 28 29 29
-[1Tx] C28 ffffffff 19 19 19 23
-[1Tx] C2C ffffffff 23 25 28 29
-[1Tx] C30 ffffffff 19 19 19 19
-[2Tx] C34 ffffffff 19 19 19 19
-[2Tx] C38 ffffffff 19 19 19 19
-[1Tx] C3C ffffffff 23 25 28 29
-[1Tx] C40 ffffffff 19 19 19 19
-[1Tx] C44 ffffffff 19 19 19 19
-[2Tx] C48 ffffffff 19 19 19 19
-[2Tx] C4C ffffffff 19 19 19 19
+[1Tx] C24 ffffffff 23 26 27 27
+[1Tx] C28 ffffffff 17 17 17 21
+[1Tx] C2C ffffffff 21 23 26 27
+[1Tx] C30 ffffffff 17 17 17 17
+[2Tx] C34 ffffffff 17 17 17 17
+[2Tx] C38 ffffffff 17 17 17 17
+[1Tx] C3C ffffffff 21 23 26 27
+[1Tx] C40 ffffffff 17 17 17 17
+[1Tx] C44 ffffffff 17 17 17 17
+[2Tx] C48 ffffffff 17 17 17 17
+[2Tx] C4C ffffffff 17 17 17 17
 #[5G] B
-[1Tx] E24 ffffffff 25 28 29 29
-[1Tx] E28 ffffffff 19 19 19 23
-[1Tx] E2C ffffffff 23 25 28 29
-[1Tx] E30 ffffffff 19 19 19 19
-[2Tx] E34 ffffffff 19 19 19 19
-[2Tx] E38 ffffffff 19 19 19 19
-[1Tx] E3C ffffffff 23 25 28 29
-[1Tx] E40 ffffffff 19 19 19 19
-[1Tx] E44 ffffffff 19 19 19 19
-[2Tx] E48 ffffffff 19 19 19 19
-[2Tx] E4C ffffffff 19 19 19 19
+[1Tx] E24 ffffffff 23 26 27 27
+[1Tx] E28 ffffffff 17 17 17 21
+[1Tx] E2C ffffffff 21 23 26 27
+[1Tx] E30 ffffffff 17 17 17 17
+[2Tx] E34 ffffffff 17 17 17 17
+[2Tx] E38 ffffffff 17 17 17 17
+[1Tx] E3C ffffffff 21 23 26 27
+[1Tx] E40 ffffffff 17 17 17 17
+[1Tx] E44 ffffffff 17 17 17 17
+[2Tx] E48 ffffffff 17 17 17 17
+[2Tx] E4C ffffffff 17 17 17 17
 #[END]#
