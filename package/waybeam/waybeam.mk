@@ -5,7 +5,7 @@
 ################################################################################
 
 WAYBEAM_VERSION = HEAD
-WAYBEAM_SITE = $(call github,OpenIPC,waybeam_venc,$(WAYBEAM_VERSION))
+WAYBEAM_SITE = https://github.com/OpenIPC/waybeam_venc.git
 WAYBEAM_SITE_METHOD = git
 WAYBEAM_LICENSE = Autod Personal Use License
 
@@ -32,18 +32,10 @@ define WAYBEAM_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/etc/waybeam.json
 endef
 
-# Infinity6C (Maruko) stock firmware ships no MI vendor libraries; the
-# encoder dlopens them at runtime, so install the copies bundled in the
-# source tree. Infinity6E provides them in firmware.
-ifeq ($(WAYBEAM_SOC),maruko)
-define WAYBEAM_INSTALL_MI_LIBS
-	for so in $(@D)/vendor-libs/maruko/*.so; do \
-		$(INSTALL) -m 0644 -D "$$so" \
-			$(TARGET_DIR)/usr/lib/$$(basename "$$so"); \
-	done
-endef
-WAYBEAM_POST_INSTALL_TARGET_HOOKS += WAYBEAM_INSTALL_MI_LIBS
-endif
+# The encoder dlopens the SigmaStar MI libraries at runtime. They are
+# installed to /usr/lib by sigmastar-osdrv-infinity6{e,c}, which does so
+# only when Majestic is not selected; waybeam depends on !MAJESTIC, so
+# that path always applies and the package ships no libraries itself.
 
 define WAYBEAM_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D $(WAYBEAM_PKGDIR)/files/S95waybeam \
