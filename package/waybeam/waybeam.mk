@@ -7,7 +7,8 @@
 WAYBEAM_VERSION = HEAD
 WAYBEAM_SITE = https://github.com/OpenIPC/waybeam_venc.git
 WAYBEAM_SITE_METHOD = git
-WAYBEAM_LICENSE = Autod Personal Use License
+WAYBEAM_LICENSE = MIT
+WAYBEAM_LICENSE_FILES = LICENSE
 
 # The encoder ships a single source tree with two SoC backends selected by
 # SOC_BUILD. Derive it from the target SoC family and build with Buildroot's

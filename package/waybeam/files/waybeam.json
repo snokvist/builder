@@ -25,7 +25,7 @@
   "video0": {
     "rcMode": "cbr",
     "fps": 90,
-    "size": "1440x1080",
+    "size": "auto",
     "bitrate": 2580,
     "gopSize": 5.0,
     "qpDelta": -12,
@@ -57,7 +57,7 @@
     "bareAlias": true
   },
   "fpv": {
-    "roiEnabled": true,
+    "roiEnabled": false,
     "roiQp": 0,
     "roiSteps": 2,
     "roiCenter": 0.4,
