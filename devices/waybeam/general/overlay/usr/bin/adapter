@@ -55,6 +55,26 @@ log_warn() { echo "[$TAG] WARN: $*"; logger -t "$TAG" "WARN: $*" 2>/dev/null; }
 fw_get() { fw_printenv -n "$1" 2>/dev/null || echo "$2"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# set_txpower <iface> <mbm>
+# On the eu air the rtl88x2eu driver owns TX power via its per-rate TXAGC
+# curve (rtw_tx_pwr_by_rate=1 + /lib/firmware/PHY_REG_PG.txt). A fixed
+# nl80211 txpower would clamp every rate flat (utgt override), so when the
+# driver reports by_rate=1 use `iw txpower auto` and let the curve own power
+# — mirroring what S99wfb does in wfb-ng mode. Otherwise (cu/bu, by_rate=0)
+# keep the legacy fixed value from the wlanpwr u-boot env.
+set_txpower() {
+    _iface="$1"; _mbm="$2"
+    for _p in /sys/module/8812eu/parameters/rtw_tx_pwr_by_rate \
+              /sys/module/rtl88x2eu/parameters/rtw_tx_pwr_by_rate; do
+        if [ "$(cat "$_p" 2>/dev/null)" = "1" ]; then
+            log_info "txpower: HW per-rate TXAGC curve (iw txpower auto)"
+            iw "$_iface" set txpower auto 2>/dev/null || true
+            return 0
+        fi
+    done
+    iw "$_iface" set txpower fixed "$_mbm" 2>/dev/null || true
+}
+
 pid_is_running() {
     [ -f "$1" ] || return 1
     pid="$(cat "$1" 2>/dev/null || true)"
@@ -182,7 +202,7 @@ start_client() {
     ip link set "$IFACE" up 2>/dev/null || true
     ip addr flush dev "$IFACE" 2>/dev/null || true
     iw dev "$IFACE" set power_save off 2>/dev/null || true
-    iw "$IFACE" set txpower fixed "$PWR" 2>/dev/null || true
+    set_txpower "$IFACE" "$PWR"
 
     write_wpa_conf
     kill_pidfile "$WPAPID"
@@ -288,7 +308,7 @@ start_ap() {
     ip link set "$IFACE" up 2>/dev/null || true
     ip addr flush dev "$IFACE" 2>/dev/null || true
     iw dev "$IFACE" set power_save off 2>/dev/null || true
-    iw "$IFACE" set txpower fixed "$PWR" 2>/dev/null || true
+    set_txpower "$IFACE" "$PWR"
 
     # Static IP for AP
     ip addr add "$STATIC_IP_AP" dev "$IFACE" 2>/dev/null || true
