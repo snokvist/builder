@@ -1,0 +1,79 @@
+Subject: [PATCH] usb: usbfs: correct kernel->user page attribute mismatch (4.9 backport)
+
+Backport to 4.9 of three mainline commits which together give the
+current mainline mapping logic of usbdev_mmap():
+
+  2bef9aed6f0e usb: usbfs: correct kernel->user page attribute mismatch
+               (Jeremy Linton <jeremy.linton@arm.com>)
+  a0e710a7def4 USB: usbfs: fix mmap dma mismatch
+               (Greg Kroah-Hartman <gregkh@linuxfoundation.org>)
+  d0b861653f8c usb: usbfs: Use consistent mmap functions
+               (Ruihan Li <lrh2000@pku.edu.cn>)
+
+From 2bef9aed6f0e:
+
+  On some architectures (e.g. arm64) requests for IO coherent memory may
+  use non-cachable attributes if the relevant device isn't cache
+  coherent. If these pages are then remapped into userspace as
+  cacheable, they may not be coherent with the non-cacheable mappings.
+  [...] dma_mmap_coherent() can be used instead of remap_pfn_range().
+  The page cache/etc attributes will then be correctly set in userspace
+  to match the kernel mapping.
+
+Adapted to 4.9, nothing else changed:
+ - hcd->self.sysdev (4.11+) becomes hcd->self.controller, the device
+   4.9's hcd_buffer_alloc() allocates on;
+ - DMA_MAPPING_ERROR (4.20+) becomes its value, ~(dma_addr_t)0, which is
+   what 4.9's hcd_buffer_alloc() stores when it falls back to kmalloc().
+
+Seen on SigmaStar SSC338Q (Cortex-A7, 4.9.84): libusb zero-copy RX
+buffers (libusb_dev_mem_alloc) read stale 64-byte cache lines from an
+earlier transfer, about 1.5 per 1000 frames.
+---
+--- a/drivers/usb/core/devio.c
++++ b/drivers/usb/core/devio.c
+@@ -224,10 +224,11 @@
+ {
+ 	struct usb_memory *usbm = NULL;
+ 	struct usb_dev_state *ps = file->private_data;
++	struct usb_hcd *hcd = bus_to_hcd(ps->dev->bus);
+ 	size_t size = vma->vm_end - vma->vm_start;
+ 	void *mem;
+ 	unsigned long flags;
+-	dma_addr_t dma_handle;
++	dma_addr_t dma_handle = ~(dma_addr_t) 0;
+ 	int ret;
+ 
+ 	ret = usbfs_increase_memory_usage(size + sizeof(struct usb_memory));
+@@ -257,11 +258,26 @@
+ 	usbm->vma_use_count = 1;
+ 	INIT_LIST_HEAD(&usbm->memlist);
+ 
+-	if (remap_pfn_range(vma, vma->vm_start,
+-			virt_to_phys(usbm->mem) >> PAGE_SHIFT,
+-			size, vma->vm_page_prot) < 0) {
+-		dec_usb_memory_use_count(usbm, &usbm->vma_use_count);
+-		return -EAGAIN;
++	/*
++	 * In DMA-unavailable cases, hcd_buffer_alloc allocates normal
++	 * pages and assigns ~(dma_addr_t)0 to dma_handle. Check whether we
++	 * are in such cases, and then use remap_pfn_range (or
++	 * dma_mmap_coherent) to map normal (or DMA) pages into the user
++	 * space, respectively.
++	 */
++	if (dma_handle == ~(dma_addr_t) 0) {
++		if (remap_pfn_range(vma, vma->vm_start,
++				    virt_to_phys(usbm->mem) >> PAGE_SHIFT,
++				    size, vma->vm_page_prot) < 0) {
++			dec_usb_memory_use_count(usbm, &usbm->vma_use_count);
++			return -EAGAIN;
++		}
++	} else {
++		if (dma_mmap_coherent(hcd->self.controller, vma, mem,
++				      dma_handle, size)) {
++			dec_usb_memory_use_count(usbm, &usbm->vma_use_count);
++			return -EAGAIN;
++		}
+ 	}
+ 
+ 	vma->vm_flags |= VM_IO;

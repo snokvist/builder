@@ -1,0 +1,13 @@
+# Lean SSC338Q, merged over the stock infinity6e-ssc012b.config.
+#
+# No WiFi stack: radios are driven from userspace (devourer over
+# libusb/usbfs). usbfs is part of usbcore (CONFIG_USB=y) and the EHCI
+# host controller stays built in, so nothing USB-side changes here.
+# CONFIG_CFG80211 is not set
+# CONFIG_WIRELESS is not set
+# CONFIG_RFKILL is not set
+
+# Modules the stock image ships and nothing loads: the NFS client and the
+# SigmaStar /dev/crypto driver.
+# CONFIG_NFS_FS is not set
+# CONFIG_CRYPTODEV is not set
