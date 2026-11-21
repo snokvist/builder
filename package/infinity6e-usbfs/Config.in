@@ -1,0 +1,13 @@
+config BR2_PACKAGE_INFINITY6E_USBFS
+	bool "infinity6e usbfs mmap fix"
+	depends on BR2_LINUX_KERNEL
+	help
+	  Two usbfs fixes for the SigmaStar Infinity6E 4.9.84 kernel,
+	  backported from mainline (OpenIPC/linux#280):
+
+	    - usbdev_mmap() maps coherent (uncached) DMA memory to
+	      userspace as cached, so libusb zero-copy buffers
+	      (libusb_dev_mem_alloc) read stale cache lines;
+	    - double free of usb memory on a submiturb error.
+
+	  Remove once OpenIPC/linux#280 is in the kernel tarball.

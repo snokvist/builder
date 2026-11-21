@@ -1,0 +1,56 @@
+# Lean SSC338Q base: camera stack only, reachable over Ethernet and serial.
+# No WiFi driver, no cfg80211, no wpa/hostapd. The userspace layer
+# (waybeam-now, waybeam-link, waybeam_venc, waybeam-hub) is installed by
+# hand on top. Radios run in userspace (devourer over libusb/usbfs).
+
+# Architecture
+BR2_arm=y
+BR2_cortex_a7=y
+BR2_ARM_FPU_NEON_VFPV4=y
+BR2_ARM_INSTRUCTIONS_THUMB2=y
+
+# Toolchain
+BR2_TOOLCHAIN_EXTERNAL=y
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
+BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
+BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/openipc/firmware/releases/download/$(OPENIPC_TOOLCHAIN).tgz"
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-openipc-linux-gnueabihf"
+BR2_TOOLCHAIN_EXTERNAL_HEADERS_4_9=y
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM_GLIBC=y
+# BR2_TOOLCHAIN_EXTERNAL_INET_RPC is not set
+BR2_TOOLCHAIN_EXTERNAL_CXX=y
+
+# Kernel: stock OpenIPC infinity6e config plus the lean fragment
+BR2_LINUX_KERNEL=y
+BR2_LINUX_KERNEL_CUSTOM_TARBALL=y
+BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="https://github.com/openipc/linux/archive/$(OPENIPC_KERNEL).tar.gz"
+BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(EXTERNAL_VENDOR)/board/$(OPENIPC_SOC_FAMILY)/infinity6e-ssc012b.config"
+BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="$(EXTERNAL_VENDOR)/board/$(OPENIPC_SOC_FAMILY)/infinity6e-lean.fragment"
+BR2_LINUX_KERNEL_UIMAGE=y
+BR2_LINUX_KERNEL_XZ=y
+
+# Filesystem
+BR2_PACKAGE_BUSYBOX_CONFIG="$(BR2_EXTERNAL)/package/busybox/busybox.config"
+BR2_PACKAGE_UBOOT_TOOLS=y
+# BR2_PACKAGE_IFUPDOWN_SCRIPTS is not set
+BR2_TARGET_ROOTFS_CPIO=y
+BR2_TARGET_ROOTFS_SQUASHFS=y
+BR2_TARGET_ROOTFS_SQUASHFS4_XZ=y
+
+# OpenIPC
+BR2_OPENIPC_SOC_VENDOR="sigmastar"
+BR2_OPENIPC_SOC_MODEL="ssc338q"
+BR2_OPENIPC_SOC_FAMILY="infinity6e"
+BR2_OPENIPC_VARIANT="lean"
+BR2_OPENIPC_FLASH_SIZE="16"
+
+# Packages
+BR2_PACKAGE_DROPBEAR_OPENIPC=y
+BR2_PACKAGE_IPCTOOL=y
+BR2_PACKAGE_LINUX_PATCHER=y
+BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E=y
+
+# Kernel patches
+BR2_PACKAGE_INFINITY6E_PWM=y
+BR2_PACKAGE_INFINITY6E_USBFS=y

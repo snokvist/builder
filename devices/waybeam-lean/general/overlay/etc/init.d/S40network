@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Lean image: Ethernet only. The stock script switches eth0 to a static
+# fallback address when the u-boot env still names a wlandev; a camera
+# re-flashed from a WiFi image keeps that env, so ignore it here.
+
+case "$1" in
+	start)
+		echo "Starting network..."
+		ifup lo
+		ifup eth0
+		;;
+
+	stop)
+		echo "Stopping network..."
+		ifdown -f eth0
+		ifdown lo
+		;;
+
+	restart|reload)
+		$0 stop
+		$0 start
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+		;;
+esac
