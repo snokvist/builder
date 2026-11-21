@@ -14,7 +14,6 @@
 /lib/modules/4.9.84/sigmastar/sensor_gc2053_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_gc2093_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_gc4653_mipi.ko
-/lib/modules/4.9.84/sigmastar/sensor_imx274_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_imx307_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_imx335_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_imx347_mipi.ko
@@ -23,6 +22,4 @@
 /lib/modules/4.9.84/sigmastar/sensor_os04c10_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_sc501ai_mipi.ko
 /lib/modules/4.9.84/sigmastar/sensor_sc8235_mipi.ko
-/lib/modules/4.9.84/sigmastar/sensor_tp9950_mipi.ko
-/lib/modules/4.9.84/sigmastar/sensor_tp9951_mipi.ko
 /usr/sbin/wireguard

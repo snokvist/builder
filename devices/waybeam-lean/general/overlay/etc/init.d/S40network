@@ -1,25 +1,34 @@
 #!/bin/sh
 #
-# Lean image: Ethernet only. The stock script switches eth0 to a static
-# fallback address when the u-boot env still names a wlandev; a camera
-# re-flashed from a WiFi image keeps that env, so ignore it here.
+# Lean image: Ethernet only, by DHCP (interfaces.d/eth0). The stock script
+# switches eth0 to a static fallback address when the u-boot env still names
+# a wlandev; a camera re-flashed from a WiFi image keeps that env, so ignore
+# it here. Without a DHCP server the camera is reachable over serial only.
+
+start() {
+	echo "Starting network..."
+	ifup lo
+	ifup eth0
+}
+
+stop() {
+	echo "Stopping network..."
+	ifdown -f eth0
+	ifdown lo
+}
 
 case "$1" in
 	start)
-		echo "Starting network..."
-		ifup lo
-		ifup eth0
+		start
 		;;
 
 	stop)
-		echo "Stopping network..."
-		ifdown -f eth0
-		ifdown lo
+		stop
 		;;
 
 	restart|reload)
-		$0 stop
-		$0 start
+		stop
+		start
 		;;
 
 	*)
