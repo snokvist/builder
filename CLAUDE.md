@@ -33,7 +33,10 @@ Naming: `<soc>_<flavor>_<vendor-model>` (e.g. `ssc30kq_waybeam_bu`).
 
 The `devices/common/` directory holds shared configs inherited by multiple
 profiles. The `devices/waybeam/` directory contains all Waybeam FPV profiles
-(SSC338Q, SSC30KQ, SSC378QE variants).
+(SSC338Q, SSC30KQ, SSC378QE variants). `devices/waybeam-lean/` holds
+`ssc338q_waybeam_lean`: no WiFi stack, Ethernet and serial only, with the
+userspace layer installed by hand. It has its own directory so the WiFi
+overlay in `devices/waybeam/` never reaches it.
 
 To add a new profile: copy an existing profile directory with similar SoC,
 rename the directory and defconfig file to match the new naming convention,
@@ -55,6 +58,7 @@ a `files/` directory with config files or init scripts.
 | `waybeam-distribution-star6e` | ISP sensor binary distribution (IMX335, IMX415) |
 | `waybeam-distribution-star6c` | ISP sensor binary distribution (Star6C) |
 | `infinity6e-pwm` | Kernel PWM patches for SigmaStar (legacy) |
+| `infinity6e-usbfs` | usbfs mmap + double-free kernel fixes (OpenIPC/linux#280); remove once merged |
 | `linux-patcher` | Generic kernel patch applicator |
 | `wfb-bins-only` | Pre-built WFB-ng binaries |
 | `demo-openipc` | Demo/example package |

@@ -7,5 +7,7 @@
 # CONFIG_WIRELESS is not set
 # CONFIG_RFKILL is not set
 
-# No NFS client; the stock image ships these modules and nothing loads them.
+# Modules the stock image ships and nothing loads: the NFS client and the
+# SigmaStar /dev/crypto driver.
 # CONFIG_NFS_FS is not set
+# CONFIG_CRYPTODEV is not set
