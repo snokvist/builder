@@ -26,7 +26,8 @@ config BR2_PACKAGE_WAYBEAM_STAR6E_OWN
 	depends on BR2_PACKAGE_WAYBEAM
 	depends on BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E
 	help
-	  Install the encoder's own imx335/imx415 drivers over the stock
+	  Build the encoder's own imx335/imx415 drivers against this kernel
+	  and install them over the stock
 	  sensor_imx{335,415}_mipi.ko (their mode lists differ, so a
 	  sensor.mode index means another resolution on each) and the
 	  init script from the encoder's tree instead of files/S95waybeam.

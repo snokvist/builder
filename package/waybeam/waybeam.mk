@@ -8,6 +8,7 @@
 WAYBEAM_VERSION = 2ca7b6bd43b40d3c13f1dc848b1d0cf7dd8174fc
 WAYBEAM_SITE = https://github.com/OpenIPC/waybeam.git
 WAYBEAM_SITE_METHOD = git
+WAYBEAM_GIT_SUBMODULES = YES
 WAYBEAM_LICENSE = MIT
 WAYBEAM_LICENSE_FILES = LICENSE
 
@@ -64,16 +65,22 @@ endif
 
 # BR2_PACKAGE_WAYBEAM_STAR6E_OWN (Infinity6E): the encoder's own imx335/imx415
 # drivers, whose modes its config names (the stock drivers list different
-# ones: the same sensor.mode selects another resolution), under the stock
-# _mipi.ko names, built after the stock modules so they win. And its own init
-# script, which raises net.unix.max_dgram_qlen for unix:// output.
+# ones: the same sensor.mode selects another resolution), built here against
+# this kernel and installed under the stock _mipi.ko names after the stock
+# modules, so they win. And its own init script, which raises
+# net.unix.max_dgram_qlen for unix:// output.
 ifeq ($(BR2_PACKAGE_WAYBEAM_STAR6E_OWN),y)
-WAYBEAM_DEPENDENCIES += sigmastar-osdrv-sensors
+WAYBEAM_DEPENDENCIES += sigmastar-osdrv-sensors linux
+define WAYBEAM_BUILD_STAR6E_SENSORS
+	$(MAKE) -C $(@D)/drivers sensor SOC=star6e \
+		KSRC="$(LINUX_DIR)" CROSS="$(TARGET_CROSS)"
+endef
+WAYBEAM_POST_BUILD_HOOKS += WAYBEAM_BUILD_STAR6E_SENSORS
 define WAYBEAM_INSTALL_STAR6E_SENSORS
-	$(INSTALL) -m 0644 -D $(@D)/sensors/star6e/sensor_imx335_star6e.ko \
-		$(TARGET_DIR)/lib/modules/4.9.84/sigmastar/sensor_imx335_mipi.ko
-	$(INSTALL) -m 0644 -D $(@D)/sensors/star6e/sensor_imx415_star6e.ko \
-		$(TARGET_DIR)/lib/modules/4.9.84/sigmastar/sensor_imx415_mipi.ko
+	$(INSTALL) -m 0644 -D $(@D)/drivers/sensor_imx335_star6e.ko \
+		$(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED)/sigmastar/sensor_imx335_mipi.ko
+	$(INSTALL) -m 0644 -D $(@D)/drivers/sensor_imx415_star6e.ko \
+		$(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED)/sigmastar/sensor_imx415_mipi.ko
 endef
 WAYBEAM_POST_INSTALL_TARGET_HOOKS += WAYBEAM_INSTALL_STAR6E_SENSORS
 WAYBEAM_INIT_SCRIPT = $(@D)/init.d/S95waybeam
