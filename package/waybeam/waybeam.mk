@@ -13,13 +13,13 @@ WAYBEAM_LICENSE = MIT
 WAYBEAM_LICENSE_FILES = LICENSE
 
 ifeq ($(OPENIPC_SOC_FAMILY),hi3516cv6xx)
-# Hi3516CV610. After upstream OpenIPC/firmware's arm (#2860) for the daemon,
-# the IMX662 plugin and the vendor MPP libraries, plus the encoder's own
-# runtime: its init script and module loader (load-cv610-online, which sets
-# the sensor clock and the audio modules; the image's S70vendor steps aside
-# for it) and its sys_config/PM kernel modules, built here against this
-# kernel. Not installed: libbin.so, the vendor PQ library, so
-# isp.sensorBin and /api/v1/iq/export_bin are no-ops.
+# Hi3516CV610. The daemon, the IMX662 plugin and the vendor MPP libraries as
+# upstream OpenIPC/firmware's arm (fd2528a), plus the encoder's own runtime:
+# its init script and module loader (load-cv610-online, which sets the sensor
+# clock and the audio modules, in place of the image's load_hisilicon) and its
+# sys_config/PM kernel modules, built here against this kernel. Not installed:
+# libbin.so, the vendor PQ library, so isp.sensorBin and
+# /api/v1/iq/export_bin are no-ops.
 WAYBEAM_SOC = cv610
 WAYBEAM_CV610_MPP_LIB_DIR = $(HISILICON_OSDRV_HI3516CV6XX_PKGDIR)/files/lib
 # The set the daemon's link line reaches, closed over DT_NEEDED (upstream).
@@ -35,7 +35,7 @@ WAYBEAM_CV610_MPP_LIBS = \
 WAYBEAM_MAKE_OPTS = SOC_BUILD=cv610 CV610_CC="$(TARGET_CC)" \
 	CV610_SDK_INC="$(HISILICON_OPENSDK_DIR)" \
 	CV610_SDK_LIB="$(WAYBEAM_CV610_MPP_LIB_DIR)"
-WAYBEAM_DEPENDENCIES += hisilicon-osdrv-hi3516cv6xx hisilicon-opensdk opus-openipc linux
+WAYBEAM_DEPENDENCIES += hisilicon-osdrv-hi3516cv6xx hisilicon-opensdk linux
 
 define WAYBEAM_BUILD_CMDS
 	$(MAKE) -C $(@D) build sensor-cv610 $(WAYBEAM_MAKE_OPTS)
@@ -44,14 +44,13 @@ define WAYBEAM_BUILD_CMDS
 endef
 
 define WAYBEAM_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0755 -D $(@D)/out/cv610/waybeam $(TARGET_DIR)/usr/bin/waybeam
+	$(INSTALL) -m 0755 -D $(@D)/out/$(WAYBEAM_SOC)/waybeam \
+		$(TARGET_DIR)/usr/bin/waybeam
 	$(INSTALL) -m 0755 -D $(@D)/init.d/load-cv610-online \
 		$(TARGET_DIR)/usr/bin/load-cv610-online
-	$(INSTALL) -m 0644 -D $(@D)/config/waybeam.default.cv610.json \
+	$(INSTALL) -m 0644 -D $(@D)/config/waybeam.default.$(WAYBEAM_SOC).json \
 		$(TARGET_DIR)/etc/waybeam.json
-	$(INSTALL) -m 0644 -D $(@D)/config/waybeam-cv610-platform.conf \
-		$(TARGET_DIR)/etc/waybeam-cv610.conf
-	$(INSTALL) -m 0644 -D $(@D)/sensors/cv610/imx662/libsns_imx662.so \
+	$(INSTALL) -m 0644 -D $(@D)/sensors/$(WAYBEAM_SOC)/imx662/libsns_imx662.so \
 		$(TARGET_DIR)/usr/lib/cv610/libsns_imx662.so
 	$(INSTALL) -m 0644 -t $(TARGET_DIR)/usr/lib/cv610 $(@D)/drivers/cv610/build/*.ko
 	$(INSTALL) -m 0644 -t $(TARGET_DIR)/usr/lib \
@@ -62,6 +61,13 @@ define WAYBEAM_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D $(@D)/init.d/S95waybeam.cv610 \
 		$(TARGET_DIR)/etc/init.d/S95waybeam
 endef
+
+# load-cv610-online brings the modules up; the image's S70vendor finds no
+# load_hisilicon and loads nothing.
+define WAYBEAM_REMOVE_VENDOR_LOADER
+	rm -f $(TARGET_DIR)/usr/bin/load_hisilicon
+endef
+WAYBEAM_POST_INSTALL_TARGET_HOOKS += WAYBEAM_REMOVE_VENDOR_LOADER
 
 else
 # The encoder ships a single source tree with two SoC backends selected by
