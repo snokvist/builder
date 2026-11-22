@@ -16,7 +16,7 @@ ifeq ($(OPENIPC_SOC_FAMILY),hi3516cv6xx)
 # Hi3516CV610. The daemon, the IMX662 plugin and the vendor MPP libraries as
 # upstream OpenIPC/firmware's arm (fd2528a), plus the encoder's own runtime:
 # its init script and module loader (load-cv610-online, which sets the sensor
-# clock and the audio modules, in place of the image's load_hisilicon) and its
+# clock and the audio modules, and refuses to start after load_hisilicon) and its
 # sys_config/PM kernel modules, built here against this kernel. Not installed:
 # libbin.so, the vendor PQ library, so isp.sensorBin and
 # /api/v1/iq/export_bin are no-ops.
@@ -61,13 +61,6 @@ define WAYBEAM_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D $(@D)/init.d/S95waybeam.cv610 \
 		$(TARGET_DIR)/etc/init.d/S95waybeam
 endef
-
-# load-cv610-online brings the modules up; the image's S70vendor finds no
-# load_hisilicon and loads nothing.
-define WAYBEAM_REMOVE_VENDOR_LOADER
-	rm -f $(TARGET_DIR)/usr/bin/load_hisilicon
-endef
-WAYBEAM_POST_INSTALL_TARGET_HOOKS += WAYBEAM_REMOVE_VENDOR_LOADER
 
 else
 # The encoder ships a single source tree with two SoC backends selected by

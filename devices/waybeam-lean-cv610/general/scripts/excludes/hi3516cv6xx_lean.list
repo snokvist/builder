@@ -1,3 +1,8 @@
+# load-cv610-online loads the MPP modules and refuses to start after
+# load_hisilicon has; without it the stock S70vendor loads nothing. Removed
+# here, from the final tree, since a package hook only reaches its own
+# per-package copy.
+/usr/bin/load_hisilicon
 # The encoder opens its own IMX662 plugin (/usr/lib/cv610) and the image's
 # IMX335 one; the other sensor plugins and the streamer profiles under
 # /etc/sensors have no reader here.
