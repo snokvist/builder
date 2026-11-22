@@ -1,0 +1,56 @@
+{
+  "system": {
+    "webPort": 80,
+    "verbose": false
+  },
+  "video0": {
+    "rcMode": "cbr",
+    "fps": 100,
+    "size": "1280x720",
+    "bitrate": 8000,
+    "gopSize": 2.0,
+    "sliceCount": 6,
+    "frameGateCloseSlots": 0,
+    "frameGateMaxClosedMs": 0,
+    "resilience": "racing",
+    "intraRefreshQp": 0,
+    "framing": "off"
+  },
+  "outgoing": {
+    "enabled": true,
+    "server": "unix://now-video",
+    "streamMode": "rtp",
+    "maxPayloadSize": 1400,
+    "connectedUdp": false,
+    "allowUnixEncoderStall": false,
+    "audioPort": 0,
+    "fec": true
+  },
+  "audio": {
+    "enabled": true,
+    "sampleRate": 48000,
+    "channels": 1,
+    "codec": "opus",
+    "volume": 80,
+    "mute": false
+  },
+  "record": {
+    "enabled": false,
+    "dir": "/mnt/mmcblk0p1",
+    "format": "ts",
+    "mode": "mirror",
+    "maxSeconds": 300,
+    "maxMB": 500
+  },
+  "snapshot": {
+    "enabled": true,
+    "quality": 80,
+    "channel": 7
+  },
+  "discovery": {
+    "enabled": true,
+    "serviceType": "_waybeam-venc._tcp",
+    "name": "",
+    "bareAlias": true
+  }
+}

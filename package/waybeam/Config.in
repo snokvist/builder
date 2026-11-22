@@ -2,11 +2,15 @@ config BR2_PACKAGE_WAYBEAM
 	bool "waybeam"
 	depends on BR2_TOOLCHAIN_HAS_THREADS
 	depends on BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E || \
-		BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6C
+		BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6C || \
+		(BR2_PACKAGE_HISILICON_OPENSDK && \
+		 BR2_PACKAGE_HISILICON_OSDRV_HI3516CV6XX && \
+		 BR2_OPENIPC_SOC_FAMILY = "hi3516cv6xx")
 	depends on !BR2_PACKAGE_MAJESTIC
 	help
 	  Standalone H.265 video encoder and streamer for SigmaStar
-	  Infinity6E (SSC338Q/SSC30KQ) and Infinity6C (SSC378QE). The
+	  Infinity6E (SSC338Q/SSC30KQ), Infinity6C (SSC378QE) and
+	  Hi3516CV610. The
 	  SoC backend is selected automatically from the target SoC
 	  family. Provides a dual encoder backend, sensor unlock and an
 	  HTTP configuration API.
