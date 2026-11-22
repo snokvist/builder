@@ -20,3 +20,16 @@ config BR2_PACKAGE_WAYBEAM
 	    - /usr/bin/waybeam
 	    - /etc/waybeam.json
 	    - /etc/init.d/S95waybeam
+
+config BR2_PACKAGE_WAYBEAM_STAR6E_OWN
+	bool "encoder's own sensor drivers and init script"
+	depends on BR2_PACKAGE_WAYBEAM
+	depends on BR2_PACKAGE_SIGMASTAR_OSDRV_INFINITY6E
+	help
+	  Build the encoder's own imx335/imx415 drivers against this kernel
+	  and install them over the stock
+	  sensor_imx{335,415}_mipi.ko (their mode lists differ, so a
+	  sensor.mode index means another resolution on each) and the
+	  init script from the encoder's tree instead of files/S95waybeam.
+	  That script raises net.unix.max_dgram_qlen and rewrites some
+	  outgoing keys of /etc/waybeam.json at every start.
