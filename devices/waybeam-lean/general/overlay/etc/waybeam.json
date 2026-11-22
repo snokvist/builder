@@ -1,0 +1,146 @@
+{
+  "system": {
+    "webPort": 80,
+    "overclockLevel": 2,
+    "verbose": false
+  },
+  "sensor": {
+    "index": -1,
+    "mode": 3
+  },
+  "isp": {
+    "sensorBin": "/etc/sensors/imx415_greg_fpvXVIII-gpt200.bin",
+    "aeEngine": "sdk",
+    "aeFps": 15,
+    "awbFps": 15,
+    "gainMax": 0,
+    "shutterMaxUs": 4000,
+    "gainMin": 0,
+    "shutterMinUs": 0,
+    "awbMode": "auto",
+    "awbCt": 5000,
+    "keepAspect": true,
+    "shutterRule180": false
+  },
+  "image": {
+    "mirror": false,
+    "flip": false,
+    "rotate": 0
+  },
+  "video0": {
+    "rcMode": "cbr",
+    "fps": 100,
+    "size": "1280x720",
+    "bitrate": 8000,
+    "gopSize": 2.0,
+    "qpDelta": -12,
+    "minQp": 0,
+    "maxQp": 0,
+    "sceneThreshold": 0,
+    "sceneHoldoff": 2,
+    "sliceCount": 6,
+    "frameGateCloseSlots": 0,
+    "frameGateMaxClosedMs": 0,
+    "resilience": "racing",
+    "intraRefreshQp": 0,
+    "zoomX": 0.5,
+    "zoomY": 0.5,
+    "framing": "off",
+    "stabCropPct": 0,
+    "stabRecenterSpeed": 0,
+    "stabKalmanQ": 0.0,
+    "stabKalmanR": 0.0
+  },
+  "outgoing": {
+    "enabled": true,
+    "server": "unix://now-video",
+    "streamMode": "rtp",
+    "maxPayloadSize": 1400,
+    "fec": true,
+    "connectedUdp": false,
+    "allowUnixEncoderStall": false,
+    "audioPort": 0,
+    "sidecarPort": 5602
+  },
+  "discovery": {
+    "enabled": false,
+    "serviceType": "_waybeam-venc._tcp",
+    "name": "",
+    "bareAlias": true
+  },
+  "fpv": {
+    "roiEnabled": true,
+    "roiQp": -20,
+    "roiSteps": 4,
+    "roiCenter": 0.5,
+    "noiseLevel": 0
+  },
+  "audio": {
+    "enabled": true,
+    "sampleRate": 48000,
+    "channels": 1,
+    "codec": "opus",
+    "volume": 80,
+    "mute": false
+  },
+  "imu": {
+    "enabled": false,
+    "i2cDevice": "/dev/i2c-1",
+    "i2cAddr": "0x68",
+    "sampleRateHz": 200,
+    "gyroRangeDps": 1000,
+    "calFile": "/etc/imu.cal",
+    "calSamples": 400
+  },
+  "record": {
+    "enabled": false,
+    "dir": "/mnt/mmcblk0p1",
+    "format": "ts",
+    "mode": "mirror",
+    "maxSeconds": 300,
+    "maxMB": 500,
+    "bitrate": 0,
+    "fps": 0,
+    "gopSize": 0.0,
+    "server": ""
+  },
+  "snapshot": {
+    "enabled": true,
+    "quality": 80,
+    "channel": 7,
+    "width": 1920,
+    "height": 1080
+  },
+  "debug": {
+    "showOsd": false
+  },
+  "attitude": {
+    "enabled": false,
+    "mountDeg": 0,
+    "invertRoll": false,
+    "invertPitch": false,
+    "axisFwd": "+x",
+    "axisDown": "+z",
+    "trimRollDeg": 0.0,
+    "trimPitchDeg": 0.0
+  },
+  "detect": {
+    "enabled": false,
+    "plugin": "/root/libwaybeam_detect_native.so",
+    "modelPath": "/root/models/yolov8n352drone.img",
+    "firmwarePath": "",
+    "inferInterval": 1,
+    "confThresh": 0.0,
+    "nmsIou": 0.0,
+    "netWidth": 640,
+    "netHeight": 352,
+    "modelId": 0,
+    "osd": true
+  },
+  "qr": {
+    "tapEnabled": true,
+    "tapWidth": 0,
+    "tapHeight": 0,
+    "windowMs": 15000
+  }
+}
