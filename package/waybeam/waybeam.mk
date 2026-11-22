@@ -25,8 +25,6 @@ WAYBEAM_DEPENDENCIES += sigmastar-osdrv-sensors sigmastar-osdrv-infinity6c
 else
 WAYBEAM_SOC = star6e
 WAYBEAM_MAKE_OPTS = SOC_BUILD=star6e STAR6E_CC="$(TARGET_CC)" CC_BIN="$(TARGET_CC)"
-# Built after the stock sensor modules so the encoder's install over them.
-WAYBEAM_DEPENDENCIES += sigmastar-osdrv-infinity6e
 endif
 
 define WAYBEAM_BUILD_CMDS
@@ -64,11 +62,13 @@ endef
 WAYBEAM_POST_INSTALL_TARGET_HOOKS += WAYBEAM_INSTALL_MARUKO_SENSORS
 endif
 
-# Infinity6E: the encoder's own imx335/imx415 drivers, whose modes its config
-# names (the stock drivers list different ones: the same sensor.mode selects
-# another resolution), under the stock _mipi.ko names. Its own init script
-# also raises net.unix.max_dgram_qlen for unix:// output.
-ifeq ($(WAYBEAM_SOC),star6e)
+# BR2_PACKAGE_WAYBEAM_STAR6E_OWN (Infinity6E): the encoder's own imx335/imx415
+# drivers, whose modes its config names (the stock drivers list different
+# ones: the same sensor.mode selects another resolution), under the stock
+# _mipi.ko names, built after the stock modules so they win. And its own init
+# script, which raises net.unix.max_dgram_qlen for unix:// output.
+ifeq ($(BR2_PACKAGE_WAYBEAM_STAR6E_OWN),y)
+WAYBEAM_DEPENDENCIES += sigmastar-osdrv-sensors
 define WAYBEAM_INSTALL_STAR6E_SENSORS
 	$(INSTALL) -m 0644 -D $(@D)/sensors/star6e/sensor_imx335_star6e.ko \
 		$(TARGET_DIR)/lib/modules/4.9.84/sigmastar/sensor_imx335_mipi.ko

@@ -6,10 +6,10 @@
   },
   "sensor": {
     "index": -1,
-    "mode": 3
+    "mode": -1
   },
   "isp": {
-    "sensorBin": "/etc/sensors/imx415_greg_fpvXVIII-gpt200.bin",
+    "sensorBin": "",
     "aeEngine": "sdk",
     "aeFps": 15,
     "awbFps": 15,
