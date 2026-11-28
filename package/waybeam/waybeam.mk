@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-# Pinned: an image is a tested set. 0.90.0 (#148).
-WAYBEAM_VERSION = 2ca7b6bd43b40d3c13f1dc848b1d0cf7dd8174fc
+# Pinned: an image is a tested set. 0.93.0 (#162).
+WAYBEAM_VERSION = 6d352973e42a60ac094fe99997bdd3b3fdde7ef9
 WAYBEAM_SITE = https://github.com/OpenIPC/waybeam.git
 WAYBEAM_SITE_METHOD = git
 WAYBEAM_GIT_SUBMODULES = YES

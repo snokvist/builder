@@ -3,9 +3,13 @@
     "webPort": 80,
     "verbose": false
   },
+  "sensor": {
+    "index": -1,
+    "mode": 5
+  },
   "video0": {
     "rcMode": "cbr",
-    "fps": 100,
+    "fps": 94,
     "size": "1280x720",
     "bitrate": 8000,
     "gopSize": 2.0,
@@ -14,7 +18,8 @@
     "frameGateMaxClosedMs": 0,
     "resilience": "racing",
     "intraRefreshQp": 0,
-    "framing": "off"
+    "framing": "off",
+    "lowLatency": true
   },
   "outgoing": {
     "enabled": true,
